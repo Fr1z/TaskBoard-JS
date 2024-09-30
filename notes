@@ -1,0 +1,28 @@
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Fetch the JSON data
+            fetch('data.json')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('#dataTable tbody');
+                    let rows = '';
+
+                    // Loop through the JSON data and create rows
+                    data.forEach((item) => {
+                        rows += `
+                            <tr draggable="true">
+                                <td>${item.name}</td>
+                                <td>${item.age}</td>
+                                <td contenteditable="true">${item.email}</td>
+                            </tr>
+                        `;
+                    });
+
+                    // Insert rows into the table body
+                    tableBody.innerHTML = rows;
+                }).then(enableDragAndDrop())
+                .catch(error => console.error('Error loading JSON:', error));
+
+            //Enable Drag&Drop
+
+        });
