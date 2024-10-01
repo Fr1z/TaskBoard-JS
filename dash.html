@@ -39,6 +39,7 @@
 
 
     <script>
+
         document.addEventListener('DOMContentLoaded', function () {
             // Fetch the JSON data
             fetch('data.json')
@@ -48,30 +49,30 @@
                     let rows = '';
 
                     // Loop through the JSON data and create rows
-                    data.forEach((item) => {
+                    data.forEach((item, index_id) => {
                         rows += `
-                        <div class="d-flex text-body-secondary pt-3">
-                        <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
-                            xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
-                            preserveAspectRatio="xMidYMid slice" focusable="false">
-                            <title>${item.age}</title>
-                            <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff"
-                                dy=".3em">32x32</text>
-                        </svg>
-                        <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
-                            <div class="d-flex justify-content-between">
-                                <strong class="text-gray-dark">${item.name}</strong>
-                                <a href="#">Completato</a>
+                        <div class="d-flex text-body-secondary pt-3 myitem id="item-${index_id}">
+                            <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
+                                xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
+                                preserveAspectRatio="xMidYMid slice" focusable="false">
+                                <title>${item.age}</title>
+                                <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff"
+                                    dy=".3em">32x32</text>
+                            </svg>
+                            <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
+                                <div class="d-flex justify-content-between">
+                                    <strong class="text-gray-dark">${item.name}</strong>
+                                    <a href="#">Completato</a>
+                                </div>
+                                <span class="d-block">${item.email}</span>
                             </div>
-                            <span class="d-block">${item.email}</span>
                         </div>
-                    </div>
                         `;
                     });
 
                     // Insert rows into the table body
                     tableBody.innerHTML = rows;
-                })
+                }).then(enableSearch())
                 .catch(error => console.error('Error loading JSON:', error));
 
         });
@@ -79,8 +80,54 @@
         $(function () {
             $("#sortable").sortable();
         });
-    </script>
 
+        function enableSearch() {
+            document.getElementById('mysearch').addEventListener('input', function () {
+
+                const searchTerm = this.value.toLowerCase();
+                const divs = document.querySelectorAll('.myitem');
+
+                removeHighlights(document.getElementById('sortable')); //remove previous highlights
+
+                divs.forEach(div => {
+                    // Remove previous highlights
+                    const onlyText = div.textContent;
+                    originalText = div.innerHTML; // Reset content to remove previous highlights
+
+
+                    if (!searchTerm || searchTerm.length <= 2) {
+                        // If the search term is empty, or too short, show all divs
+                        div.style.display = '';
+
+                    } else if (searchTerm && onlyText.toLowerCase().includes(searchTerm)) {
+                        // Show div
+                        div.style.display = '';
+
+                        // add hightlight only on text nodes, ignoring HTML nodes
+                        const regex = new RegExp(`(${searchTerm})`, 'gi');
+
+                        div.innerHTML = originalText.replace(regex, '<span class="highlight">$1</span>');
+
+                    } else {
+                        // Hide div if no match
+                        div.setAttribute("style", "display: none !important;");
+                    }
+                });
+            });
+        }
+
+        function removeHighlights(div) {
+            // find all <span> with 'highlight' class inside given div
+            const highlights = div.querySelectorAll('span .highlight');
+
+            highlights.forEach(span => {
+                //Replace span with his textcontent
+                span.replaceWith(span.textContent);
+                span.remove();
+            });
+        }
+
+    </script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
 
@@ -266,7 +313,8 @@
                         <use href="#moon-stars-fill"></use>
                     </svg> Navbar</a>
                 <form class="d-flex" role="search">
-                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                    <input id="mysearch" class="form-control me-2" type="search" placeholder="Search"
+                        aria-label="Search">
                     <button class="btn btn-outline-success" type="submit">Search</button>
                 </form>
             </div>
@@ -275,7 +323,7 @@
 
         <div class="my-3 p-3 bg-body rounded shadow-sm">
             <h6 class="border-bottom pb-2 mb-0">da fare:</h6>
-            <div id="sortable">
+            <div id="sortable" class="myitems">
                 <div class="d-flex text-body-secondary pt-3">
                     <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
                         xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
@@ -284,7 +332,7 @@
                         <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff"
                             dy=".3em">32x32</text>
                     </svg>
-                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
+                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100 myitem">
                         <div class="d-flex justify-content-between">
                             <strong class="text-gray-dark">Full Name</strong>
                             <a href="#">Completato</a>
@@ -300,7 +348,7 @@
                         <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff"
                             dy=".3em">32x32</text>
                     </svg>
-                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
+                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100 myitem">
                         <div class="d-flex justify-content-between">
                             <strong class="text-gray-dark">Jimmi</strong>
                             <a href="#">Completato</a>
@@ -316,7 +364,7 @@
                         <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff"
                             dy=".3em">32x32</text>
                     </svg>
-                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
+                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100 myitem">
                         <div class="d-flex justify-content-between">
                             <strong class="text-gray-dark">Pico</strong>
                             <a href="#">Completato</a>
