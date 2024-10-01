@@ -106,7 +106,7 @@
                         // add hightlight only on text nodes, ignoring HTML nodes
                         const regex = new RegExp(`(${searchTerm})`, 'gi');
 
-                        div.innerHTML = originalText.replace(regex, '<span class="highlight">$1</span>');
+                        div.innerHTML = originalText.replace(regex, '<mark>$1</mark>');
 
                     } else {
                         // Hide div if no match
@@ -118,7 +118,7 @@
 
         function removeHighlights(div) {
             // find all <span> with 'highlight' class inside given div
-            const highlights = div.querySelectorAll('span .highlight');
+            const highlights = div.querySelectorAll('mark');
 
             highlights.forEach(span => {
                 //Replace span with his textcontent
@@ -315,7 +315,6 @@
                 <form class="d-flex" role="search">
                     <input id="mysearch" class="form-control me-2" type="search" placeholder="Search"
                         aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit">Search</button>
                 </form>
             </div>
         </nav>
