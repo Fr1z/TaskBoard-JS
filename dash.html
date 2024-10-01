@@ -21,17 +21,8 @@
             padding: 0;
         }
 
-        #sortable li {
-            margin: 0 3px 3px 3px;
-            padding: 0.4em;
-            padding-left: 1.5em;
-            font-size: 1.4em;
-            height: 18px;
-        }
-
-        #sortable li span {
-            position: absolute;
-            margin-left: -1.3em;
+        .grab {
+            cursor: -webkit-grab; cursor: grab;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
@@ -52,12 +43,10 @@
                     data.forEach((item, index_id) => {
                         rows += `
                         <div class="d-flex text-body-secondary pt-3 myitem id="item-${index_id}">
-                            <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
-                                xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
-                                preserveAspectRatio="xMidYMid slice" focusable="false">
-                                <title>${item.age}</title>
-                                <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff"
-                                    dy=".3em">32x32</text>
+                            <svg class="bd-placeholder flex-shrink-0 me-2 rounded grab" width="16" height="32" 
+                             xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder" 
+                             preserveAspectRatio="xMidYMid slice" focusable="false">
+                            <rect width="100%" height="100%" fill="#0c0b0f"></rect>
                             </svg>
                             <div class="pb-3 mb-0 small lh-sm border-bottom w-100">
                                 <div class="d-flex justify-content-between">
@@ -78,7 +67,10 @@
         });
 
         $(function () {
-            $("#sortable").sortable();
+            $("#sortable").sortable({
+                cursor: "n-resize",
+                handle: ".bd-placeholder"
+            });
         });
 
         function enableSearch() {
@@ -143,18 +135,10 @@
     <meta name="theme-color" content="#712cf9">
 
     <style>
-        .bd-placeholder-img {
-            font-size: 1.125rem;
-            text-anchor: middle;
+        .bd-placeholder {
             -webkit-user-select: none;
             -moz-user-select: none;
             user-select: none;
-        }
-
-        @media (min-width: 768px) {
-            .bd-placeholder-img-lg {
-                font-size: 3.5rem;
-            }
         }
 
         .b-example-divider {
@@ -300,10 +284,6 @@
     </div>
 
 
-
-
-
-
     <main class="container">
 
         <nav class="navbar">
@@ -311,7 +291,7 @@
             <div class="container-fluid d-flex align-items-center p-3 my-3 text-white bg-purple rounded shadow-sm">
                 <a class="navbar-brand"> <svg width="48" height="38">
                         <use href="#moon-stars-fill"></use>
-                    </svg> Navbar</a>
+                    </svg> Navbar </a>
                 <form class="d-flex" role="search">
                     <input id="mysearch" class="form-control me-2" type="search" placeholder="Search"
                         aria-label="Search">
@@ -324,12 +304,10 @@
             <h6 class="border-bottom pb-2 mb-0">da fare:</h6>
             <div id="sortable" class="myitems">
                 <div class="d-flex text-body-secondary pt-3">
-                    <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
-                        xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
+                    <svg class="bd-placeholder flex-shrink-0 me-2 rounded" width="16" height="32"
+                        xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder"
                         preserveAspectRatio="xMidYMid slice" focusable="false">
-                        <title>Placeholder</title>
-                        <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff"
-                            dy=".3em">32x32</text>
+                        <rect width="100%" height="100%" fill="#0c0b0f"></rect>
                     </svg>
                     <div class="pb-3 mb-0 small lh-sm border-bottom w-100 myitem">
                         <div class="d-flex justify-content-between">
@@ -340,7 +318,7 @@
                     </div>
                 </div>
                 <div class="d-flex text-body-secondary pt-3">
-                    <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
+                    <svg class="bd-placeholder flex-shrink-0 me-2 rounded" width="32" height="32"
                         xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
                         preserveAspectRatio="xMidYMid slice" focusable="false">
                         <title>Placeholder</title>
@@ -356,7 +334,7 @@
                     </div>
                 </div>
                 <div class="d-flex text-body-secondary pt-3">
-                    <svg class="bd-placeholder-img flex-shrink-0 me-2 rounded" width="32" height="32"
+                    <svg class="bd-placeholder flex-shrink-0 me-2 rounded" width="32" height="32"
                         xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
                         preserveAspectRatio="xMidYMid slice" focusable="false">
                         <title>Placeholder</title>
