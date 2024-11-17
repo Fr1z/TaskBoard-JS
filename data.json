@@ -1,17 +1,20 @@
 [
     {
-        "name": "John Doe",
-        "age": 29,
-        "email": "john.doe@example.com"
+        "title": "Metodologia",
+        "status": 0,
+        "description": "delineare il metodo testparallelo/mastermind, parametri",
+        "categories": "logic, math"
     },
     {
-        "name": "Jane Smith",
-        "age": 35,
-        "email": "jane.smith@example.com"
+        "title": "Termux",
+        "status": 1,
+        "description": "termux with python and camera input.",
+        "categories": "python, android"
     },
     {
-        "name": "Emily Jones",
-        "age": 24,
-        "email": "emily.jones@example.com"
+        "title": "Rafiki",
+        "status": 0,
+        "description": "app disegna numeri geometrici",
+        "categories": "python, math"
     }
 ]
