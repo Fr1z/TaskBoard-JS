@@ -6,7 +6,7 @@
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
+    <meta name="description" content="Dashboard things to do">
     <meta name="author" content="Frax">
 
     <!-- Favicons -->
@@ -17,7 +17,7 @@
     <title>OffTasks Dashboard</title>
 
     <!-- TODO: fix misterious BUG, happens when search 'ter'-->
-    <!-- TODO: when editing a description, esxpand until cover last str-->
+    <!-- TODO: decent centered and responsive grid layout-->
 
     <link href="/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
@@ -98,7 +98,6 @@
         .btn-bd-primary {
             --bd-violet-bg: #31048B;
             --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
-
             --bs-btn-font-weight: 600;
             --bs-btn-color: var(--bs-white);
             --bs-btn-bg: var(--bd-violet-bg);
@@ -121,11 +120,8 @@
         }
 
         .navbar-nav .btn {
-            min-width: 120px;
-        }
-
-        .navbar-nav .active {
-            background-color: #5a23c8;
+            min-width: 160px;
+            min-height: 56px;
         }
 
         /* Categorie nella parte destra */
@@ -137,7 +133,7 @@
         .content {
             padding: 7px;
             display: block;
-            height: 100px; /* Assicurati che il genitore abbia altezza definita */
+            height: min-content;
         }
 
         .container {
@@ -159,9 +155,14 @@
             overflow: hidden;
             white-space: nowrap; 
             overflow: hidden;
-            text-overflow: ellipsis; 
+            text-overflow: ellipsis;
+            transition: height 0.5s ease; /* Animazione */
         }
-
+        .desc[contentEditable="true"] {
+            overflow: hidden; /* Nascondi il contenuto in eccesso */
+            height: 100px; /* Espansione massima */
+            transition: height 0.5s ease; /* Animazione */
+        }
         .divider {
             height: 1px;
             background-color: #aaa;
@@ -211,7 +212,7 @@
                                         <!-- Task Description -->
                                         <div class="title dbclick-editable">${item.title}</div>
                                         <div class="divider"></div>
-                                        <div class="desc dbclick-editable">${item.description}<br/></div>
+                                        <div class="desc text-break dbclick-editable">${item.description}<br/></div>
                                     </div>
                                 </div>
 
@@ -373,18 +374,13 @@
         </symbol>
         <symbol id="taskicon" viewBox="-2.4 -2.4 28.80 28.80" fill="none" xmlns="http://www.w3.org/2000/svg"
             transform="rotate(0)">
-            <g id="SVGRepo_bgCarrier" stroke-width="0" transform="translate(-2,-1), scale(1.1)">
+            <g id="SVGRepo_bgCarrier" stroke-width="0" transform="translate(0,0), scale(1)">
                 <path transform="translate(-2.4, -2.4), scale(0.8999999999999999)"
                     d="M16,25.927358459681273C17.427072077043174,25.516779668223723,18.814813629471445,25.166844833017365,20.268480168306343,24.86359040033281C22.147586475428252,24.471583497857814,24.678633429554253,25.376152230677924,25.867297531988335,23.868907201945717C27.05889658184093,22.357940613104912,25.697539355223377,20.09565074068117,25.54118728213873,18.177713735082456C25.424003430888714,16.740244820619747,24.873591138110104,15.363223016158194,25.057290989206976,13.932732436060803C25.354806717290206,11.615945329742212,28.360459503427702,9.129867077045184,26.941340113475043,7.274572420792072C25.539813529416758,5.4422778299284005,22.035636107919075,8.735630044553591,20.11018812786088,7.46510640855929C17.722658885705602,5.88967442327441,18.61690164989806,1.2098695057601478,16.000000000000004,0.05483375862240791C13.862374494299992,-0.888661337256753,11.08396844283688,0.9965904931075551,9.670884139014042,2.8574554932773086C8.194727018900497,4.801379937232536,9.147942177175999,7.644427442747693,8.45861512167286,9.985946244213938C8.045812302262329,11.388162442216675,6.740937558580871,12.387664775578598,6.443914329444681,13.818885804982527C6.148984636805601,15.240019025869922,6.808736084677707,16.65490927163514,6.773471215706342,18.105894986287907C6.726415962346155,20.042000306300213,5.524005350480329,21.999953572870762,6.20098120103299,23.8144567293346C6.873641649532478,25.617393283178124,8.477363784357404,27.30916324546583,10.35846268234712,27.714772949667505C12.31126550043706,28.135843726039834,14.080193314216526,26.479700504320167,16,25.927358459681273"
                     fill="#f5f9fa" strokewidth="0"></path>
             </g>
-            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC"
-                stroke-width="0.9120000000000001">
-                <path
-                    d="M10 12H14M12 10V14M19.9592 15H16.6C16.0399 15 15.7599 15 15.546 15.109C15.3578 15.2049 15.2049 15.3578 15.109 15.546C15 15.7599 15 16.0399 15 16.6V19.9592M20 14.1031V7.2C20 6.07989 20 5.51984 19.782 5.09202C19.5903 4.71569 19.2843 4.40973 18.908 4.21799C18.4802 4 17.9201 4 16.8 4H7.2C6.0799 4 5.51984 4 5.09202 4.21799C4.71569 4.40973 4.40973 4.71569 4.21799 5.09202C4 5.51984 4 6.0799 4 7.2V16.8C4 17.9201 4 18.4802 4.21799 18.908C4.40973 19.2843 4.71569 19.5903 5.09202 19.782C5.51984 20 6.0799 20 7.2 20H14.1031C14.5923 20 14.8369 20 15.067 19.9447C15.2711 19.8957 15.4662 19.8149 15.6451 19.7053C15.847 19.5816 16.0199 19.4086 16.3658 19.0627L19.0627 16.3658C19.4086 16.0199 19.5816 15.847 19.7053 15.6451C19.8149 15.4662 19.8957 15.2711 19.9447 15.067C20 14.8369 20 14.5923 20 14.1031Z"
-                    stroke="#9c305b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-            </g>
-            <g id="SVGRepo_iconCarrier">
+
+            <g id="SVGRepo_iconCarrier" transform="translate(1,2), scale(0.9)">
                 <path
                     d="M10 12H14M12 10V14M19.9592 15H16.6C16.0399 15 15.7599 15 15.546 15.109C15.3578 15.2049 15.2049 15.3578 15.109 15.546C15 15.7599 15 16.0399 15 16.6V19.9592M20 14.1031V7.2C20 6.07989 20 5.51984 19.782 5.09202C19.5903 4.71569 19.2843 4.40973 18.908 4.21799C18.4802 4 17.9201 4 16.8 4H7.2C6.0799 4 5.51984 4 5.09202 4.21799C4.71569 4.40973 4.40973 4.71569 4.21799 5.09202C4 5.51984 4 6.0799 4 7.2V16.8C4 17.9201 4 18.4802 4.21799 18.908C4.40973 19.2843 4.71569 19.5903 5.09202 19.782C5.51984 20 6.0799 20 7.2 20H14.1031C14.5923 20 14.8369 20 15.067 19.9447C15.2711 19.8957 15.4662 19.8149 15.6451 19.7053C15.847 19.5816 16.0199 19.4086 16.3658 19.0627L19.0627 16.3658C19.4086 16.0199 19.5816 15.847 19.7053 15.6451C19.8149 15.4662 19.8957 15.2711 19.9447 15.067C20 14.8369 20 14.5923 20 14.1031Z"
                     stroke="#9c305b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -406,7 +402,7 @@
     </svg>
 
     <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
-        <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button"
+        <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center shadow" id="bd-theme" type="button"
             aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)">
             <svg class="bi my-1 theme-icon-active" width="1em" height="1em">
                 <use href="#circle-half"></use>
@@ -458,65 +454,59 @@
 
         <nav class="navbar navbar-expand-lg bg-body-tertiary">
 
-            <div class="container-fluid d-flex align-items-center p-3 my-3 text-white bg-purple rounded shadow-sm">
+            <div class="container-fluid d-flex align-items-center p-3 my-3 text-white bg-primary rounded shadow-sm">
                 <a class="navbar-brand">
-                    <svg width="64" height="64">
+                    <svg width="72" height="72">
                         <use href="#taskicon"></use>
                     </svg>
-                   <span class="text-primary">Dashboard</span> 
+                   <span class="text-white">Dashboard</span> 
                 </a>
                 <div class="collapse navbar-collapse justify-content-center" id="navbarNavAltMarkup">
-                    <div class="navbar-nav d-flex gap-1 text-white">
-                        <a class="btn btn-primary flex-grow-1 nav-link active" aria-current="page" href="#">Da fare</a>
-                        <a class="btn btn-primary flex-grow-1 nav-link" href="#">Completati</a>
-                        <a class="btn btn-primary flex-grow-1 nav-link" href="#">Falliti</a>
+                    <div class="navbar-nav d-flex gap-1 text-center">
+                        <div class="btn-group fs-4" role="group" aria-label="toggle button group">
+                            <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" checked>
+                            <label class="btn btn-primary border-primary-subtle nav-link text-white" for="todos">Da fare</label>
+                          
+                            <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off">
+                            <label class="btn btn-primary border-primary-subtle nav-link  text-white" for="completed">Completati</label>
+                          
+                            <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off">
+                            <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed">Falliti</label>
+                        </div>
                     </div>
                 </div>
-                <form class="d-flex" role="search">
-                    <input id="mysearch" class="form-control me-2" type="search" placeholder="Search"
-                        aria-label="Search">
-                </form>
+
+
+                <div class="input-group d-flex" style="width: 172px">
+                    <!-- the "magic" search-->
+
+                    <input id="mysearch" class="form-control me-2 bg-body-secondary" type="search" placeholder="Search" aria-label="Search">
+                    <i class="bi bi-search"></i>
+                    <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                      <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end bg-secondary">
+                      <li><a class="dropdown-item" href="#">Settings</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item" href="#">Import Tasks</a></li>
+                      <li><a class="dropdown-item" href="#">Export Tasks</a></li>
+                      <li><a class="dropdown-item" href="#">About this</a></li>
+                    </ul>
+                </div>
+
+
             </div>
         </nav>
 
 
         <div class="my-3 p-3 bg-body rounded shadow-sm">
-            <h3 class="pb-2 mb-0 text-center background-color text-primary">TODOs</h3>
+            <h3 class="mb-2 fw-bold text-center background-color text-primary fs-2">Da Fare</h3>
             <div id="sortable" class="myitems">
-                <div class="d-flex text-body-secondary pt-3">
-                    <svg class="bd-placeholder flex-shrink-0 me-2 rounded" width="16" height="32"
-                        xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder"
-                        preserveAspectRatio="xMidYMid slice" focusable="false">
-                        <rect width="100%" height="100%" fill="#0c0b0f"></rect>
-                    </svg>
-                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100 myitem">
-                        <div class="d-flex justify-content-between">
-                            <strong class="text-gray-dark">Full Name</strong>
-                            <a href="#">Completato</a>
-                        </div>
-                        <span class="d-block">desc</span>
-                    </div>
-                </div>
-                <div class="d-flex text-body-secondary pt-3">
-                    <svg class="bd-placeholder flex-shrink-0 me-2 rounded" width="32" height="32"
-                        xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 32x32"
-                        preserveAspectRatio="xMidYMid slice" focusable="false">
-                        <title>Placeholder</title>
-                        <rect width="100%" height="100%" fill="#007bff"></rect><text x="50%" y="50%" fill="#007bff"
-                            dy=".3em">32x32</text>
-                    </svg>
-                    <div class="pb-3 mb-0 small lh-sm border-bottom w-100 myitem">
-                        <div class="d-flex justify-content-between">
-                            <strong class="text-gray-dark">Jimmi</strong>
-                            <a href="#">Completato</a>
-                        </div>
-                        <span class="d-block">the nail</span>
-                    </div>
-                </div>
+                <!-- SOME DUMMY DATA LOADER -->
             </div>
 
             <small class="d-block text-end mt-3">
-                <a href="#">Esporta tutti</a>
+                <a href="#">#really need more?</a>
             </small>
         </div>
     </main>
