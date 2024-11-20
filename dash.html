@@ -17,6 +17,7 @@
     <title>OffTasks Dashboard</title>
 
     <!-- TODO: fix misterious BUG, happens when search 'ter'-->
+    <!-- TODO: when editing a description, esxpand until cover last str-->
 
     <link href="/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
@@ -135,23 +136,43 @@
 
         .content {
             padding: 7px;
+            display: block;
+            height: 100px; /* Assicurati che il genitore abbia altezza definita */
         }
+
         .container {
             color: #ffffffe5;
         }
-        .header {
+
+        .title {
             font-weight: bold;
-            margin-bottom: 10px;
+            height: 25px;
+            overflow: hidden;
+            white-space: nowrap;
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            line-clamp: 1;
+            -webkit-line-clamp: 1;
+        }
+        .desc{
+            height: 50px;
+            overflow: hidden;
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis; 
         }
 
         .divider {
             height: 1px;
             background-color: #aaa;
-            margin: 10px 0;
+            margin: 7px 0;
         }
         .subgrid .col {
             padding: 7px;
         }
+
+
+
     </style>
 
 
@@ -160,6 +181,9 @@
 
 
     <script>
+
+        var isLShiftPressed = false;
+        var canTrigger = true;
 
         document.addEventListener('DOMContentLoaded', function () {
             // Fetch the JSON data
@@ -184,10 +208,10 @@
                                 <!-- Main Content -->
                                 <div class="col">
                                     <div class="content justify-content-between">
-                                        <!-- Header -->
-                                        <div class="header dbclick-editable">${item.title}</div>
+                                        <!-- Task Description -->
+                                        <div class="title dbclick-editable">${item.title}</div>
                                         <div class="divider"></div>
-                                        <div class="desc dbclick-editable">${item.description}</div>
+                                        <div class="desc dbclick-editable">${item.description}<br/></div>
                                     </div>
                                 </div>
 
@@ -224,7 +248,7 @@
 
 
         function enableEditing() {
-            $(window).dblclick(function (event) {
+            $(window).click(function (event) {
                 var target = event.target;
                 //check if element is editable
                 if (target.classList.contains("dbclick-editable")) {
@@ -236,11 +260,48 @@
 
                         if (editableElement.hasAttribute('contentEditable')) {
                             editableElement.setAttribute('contentEditable', false);
+                            editableElement.scrollTop = 0;
                         }
                     });
                 }
+
+                //This will fix line/paragraph breaks in contentEditable
+                $(".dbclick-editable").keydown(function(e){ 
+                    if (e.which == 16 && isLShiftPressed==false) {isLShiftPressed=true;}
+                    if (e.which == 13 && isLShiftPressed==true && canTrigger) {
+
+                        e.preventDefault(); 
+                        // Ottieni la posizione del cursore (selezione corrente)
+                        let selection = window.getSelection();
+                        let range = selection.getRangeAt(0);
+                        
+                        // Crea un <br/> da inserire
+                        let br = document.createElement("br");
+
+                        // Inserisci il <br/> nella posizione del cursore
+                        range.deleteContents();  // Rimuove il contenuto selezionato, se ce n'è
+                        range.insertNode(br);    // Inserisce il <br/> nella posizione attuale del cursore
+
+                        // Mantieni il cursore nella posizione successiva al <br/>
+                        selection.removeAllRanges();
+                        range.setStartAfter(br);
+                        range.setEndAfter(br);
+                        selection.addRange(range);
+                        
+                        canTrigger=false; //wait after release the RETURN key
+                       
+                    }
+                    return e.which != 13; 
+                });
+
+                $(".dbclick-editable").keyup(function(e){
+                    if (e.which == 16 && isLShiftPressed==true) {isLShiftPressed=false;}
+                    if (e.which == 13 && canTrigger==false) {canTrigger=true;}
+                });
                 return;
             });
+
+        
         }
 
         function enableSearch() {
