@@ -16,8 +16,9 @@
 
     <title>OffTasks Dashboard</title>
 
-    <!-- TODO: fix misterious BUG, happens when search 'ter'-->
-    <!-- TODO: decent centered and responsive grid layout-->
+    <!-- TODO: expand toggler work-->
+    <!-- TODO: new task editor expander (and insert)-->
+    <!-- TODO: decent centered and responsive grid layout (progress)-->
 
     <link href="/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
@@ -74,6 +75,10 @@
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
         }
+        .navbar-nav .btn {
+            min-width: 160px;
+            min-height: 56px;
+        }
 
         .btn-bd-primary {
             --bd-violet-bg: #31048B;
@@ -99,10 +104,6 @@
             display: block !important;
         }
 
-        .navbar-nav .btn {
-            min-width: 160px;
-            min-height: 56px;
-        }
 
         /* Categorie nella parte destra */
         .categories {
@@ -445,22 +446,28 @@
                     </div>
                 </div>
                 <div class="col">
-                    <div class="collapse navbar-collapse navbarToggler justify-content-end" id="navbarToggler2">
-                        <input id="mysearch"  class="form-control w-50" type="search" placeholder="Search" aria-label="Search">
-                        <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                            <span class="visually-hidden">Toggle Dropdown</span>
-                        </button>
+                    <div class="collapse navbar-collapse navbarToggler justify-content-end subgrid" id="navbarToggler2">
+                        <div class="col-6"></div>
+                        <div class="col-6">
+                            <input id="mysearch" class="form-control" type="search" placeholder="Search" aria-label="Search">
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="visually-hidden">Toggle Dropdown</span>
+                            </button>
+                        </div>
                         <ul class="dropdown-menu dropdown-menu-end bg-secondary">
-                            <li><a class="dropdown-item" href="#">Settings</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#">Import Tasks</a></li>
-                            <li><a class="dropdown-item" href="#">Export Tasks</a></li>
-                            <li><a class="dropdown-item" href="#">About this</a></li>
+                            <li><a class="dropdown-item text-white" href="#">Settings</a></li>
+                            <li><hr class="dropdown-divider bg-white"></li>
+                            <li><a class="dropdown-item text-white" href="#">Import Tasks</a></li>
+                            <li><a class="dropdown-item text-white" href="#">Export Tasks</a></li>
+                            <li><a class="dropdown-item text-white" href="#">About this</a></li>
                         </ul>
+                       
                     </div>
                 </div>
                 
-                <button class="col navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbarToggler" aria-controls="navbarToggler1 navbarToggler2" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="row col-auto navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbarToggler" aria-controls="navbarToggler1 navbarToggler2" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
