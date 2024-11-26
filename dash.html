@@ -23,7 +23,7 @@
 
     <link rel="stylesheet" href="/css/jquery-ui.css">
 
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/boxicons.min.css">
 
     <style>
         #sortable {
@@ -434,121 +434,87 @@
 
     <main class="container">
 
-        <nav class="navbar navbar-expand-lg navbar-light bg-primary rounded">
-            <div class="container-fluid">
 
-              <a class="navbar-brand">
-                  <svg width="72" height="72">
-                      <use href="#taskicon"></use>
-                  </svg>
-                  <span class="text-white">Dash Tasker</span> 
-              </a>
-              <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler" aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-              </button>
-              <div class="collapse navbar-collapse" id="navbarToggler">
-                
-                <div class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
-                    <div class="btn-group fs-4" role="group" aria-label="toggle button group">
-                        <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" checked>
-                        <label class="btn btn-primary border-primary-subtle nav-link text-white" for="todos">Da fare</label>
-                    
-                        <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off">
-                        <label class="btn btn-primary border-primary-subtle nav-link  text-white" for="completed">Completati</label>
-                    
-                        <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off">
-                        <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed">Falliti</label>
-                    </div>
-                </div>
-               
-                <form class="d-flex justify-content-end">
-                    <input id="mysearch"  class="form-control" type="search" placeholder="Search" aria-label="Search">
-                    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="visually-hidden">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end bg-secondary">
-                        <li><a class="dropdown-item" href="#">Settings</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">Import Tasks</a></li>
-                        <li><a class="dropdown-item" href="#">Export Tasks</a></li>
-                        <li><a class="dropdown-item" href="#">About this</a></li>
-                    </ul>
-                </form>
-              </div>
-            </div>
-          </nav>
-        <!--
-        <nav class="container navbar navbar-expand-lg bg-body-tertiary">
-
-            <div class="row w-100 align-items-center p-3 my-3 text-white bg-primary rounded shadow-sm">
-                <div class="col-3">
+        <div class="row">
+            <nav class="navbar navbar-expand-lg navbar-light bg-primary rounded mt-1 p-3">
+                <div class="col">
                     <a class="navbar-brand">
                         <svg width="72" height="72">
                             <use href="#taskicon"></use>
                         </svg>
-                    <span class="text-white">Dash Tasker</span> 
+                        <span class="text-white">Dash Tasker</span> 
                     </a>
                 </div>
-                
-                <div class="collapse navbar-collapse justify-content-center col-6" id="navbarNavAltMarkup">
-                    <div class="navbar-nav gap-1 text-center">
-                        <div class="btn-group fs-4" role="group" aria-label="toggle button group">
-                            <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" checked>
-                            <label class="btn btn-primary border-primary-subtle nav-link text-white" for="todos">Da fare</label>
-                        
-                            <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off">
-                            <label class="btn btn-primary border-primary-subtle nav-link  text-white" for="completed">Completati</label>
-                        
-                            <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off">
-                            <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed">Falliti</label>
+
+                <div class="col">
+                    <div class="collapse navbar-collapse navbarToggler" id="navbarToggler1">
+                        <div class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+                            <div class="btn-group fs-4" role="group" aria-label="toggle button group">
+                                <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" checked>
+                                <label class="btn btn-primary border-primary-subtle nav-link text-white" for="todos">Da fare</label>
+                            
+                                <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off">
+                                <label class="btn btn-primary border-primary-subtle nav-link  text-white" for="completed">Completati</label>
+                            
+                                <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off">
+                                <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed">Falliti</label>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-
-                <div class="col-4 input-group">
-
-
-                    <input id="mysearch" class="form-control bg-body-secondary" type="search" placeholder="Search" aria-label="Search">
-                    <i class="fa fa-search d-none"></i>
-                    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="visually-hidden">Toggle Dropdown</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end bg-secondary">
-                        <li><a class="dropdown-item" href="#">Settings</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">Import Tasks</a></li>
-                        <li><a class="dropdown-item" href="#">Export Tasks</a></li>
-                        <li><a class="dropdown-item" href="#">About this</a></li>
-                    </ul>
+                <div class="col">
+                    <div class="collapse navbar-collapse navbarToggler justify-content-end" id="navbarToggler2">
+                        <input id="mysearch"  class="form-control w-50" type="search" placeholder="Search" aria-label="Search">
+                        <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end bg-secondary">
+                            <li><a class="dropdown-item" href="#">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">Import Tasks</a></li>
+                            <li><a class="dropdown-item" href="#">Export Tasks</a></li>
+                            <li><a class="dropdown-item" href="#">About this</a></li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </nav>
-    -->
+                
+                <button class="col navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbarToggler" aria-controls="navbarToggler1 navbarToggler2" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-        <div class="p-2 bg-body rounded shadow-sm">
-            <div class="row mb-2 background-color text-primary fs-2 gx-5 border-bottom">
-                <!-- First Header Col -->
-                <div class="col-lg-3 col-3">
-                </div>
-                <div class="col-lg-6 col-6 align-items-center">
-                    <h3 class="fw-bold text-center my-3">Da Fare</h3>
-                </div>
-                <div class="col-lg-3 col-3 fw-bold text-center">
-                    <button type="button" class="btn btn-lg btn-outline-primary my-3">
-                        <i class="fa fa-solid fa-plus"></i>&ensp;Add Task</i>
+            </nav>
+        </div>
+
+
+        
+        <div class="container rounded shadow-sm">
+            <div class="row mb-3 mt-4 my-3 pb-4 border-bottom">
+                <div class="col">
+                    <button type="button" class="btn btn-lg btn-outline-primary">
+                       &ensp;Add Task <i class='bx bx-fw bx-plus-circle bx-sm' ></i>
                     </button>
                 </div>
+                <div class="col">
+                    <h3 class="text-primary fw-bold text-center">Da Fare</h3>
+                </div>
+
+                <div class="col d-flex justify-content-end">
+                    <button type="button" class="btn btn-lg btn-outline-primary">
+                        &ensp;Save&ensp;<i class='bx bx-fw bxs-save bx-sm'></i>
+                </button>
+                </div>
+
             </div>
+
             
-            <div id="sortable" class="myitems">
+            <div id="sortable" class="myitems container">
                 <!-- SOME DUMMY DATA LOADER -->
             </div>
 
             <small class="d-block text-end mt-3">
                 <a href="#">#really need more?</a>
                 <a class="btn btn-danger d-none" href="path/to/settings" aria-label="Delete">
-                    <i class="fa fa-trash-o" aria-hidden="true">Delete</i>
+                    <i class='bx bxs-save'>Delete</i>
                 </a>
             </small>
         </div>
