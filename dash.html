@@ -18,7 +18,7 @@
 
     <!-- TODO: expand toggler work-->
     <!-- TODO: new task editor expander (and insert)-->
-    <!-- TODO: decent centered and responsive grid layout (progress)-->
+    <!-- TODO: decent centered and responsive grid layout (progress, check navbar)-->
 
 
     <link href="/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
@@ -186,7 +186,16 @@
                         }else{
                             progress = '+'.repeat(item.progress);
                         }
-                        
+
+                        //if progress was added recently disable the button
+                        var disabledProgress = "";
+                        var differenceTimeToProgress = 40*60*60*1000; //4-hours
+                        var difference = (new Date().getTime()) - item.lastProgress;
+
+                        if (difference<differenceTimeToProgress){
+                            disabledProgress = "disabled";
+                        }
+
                         rows += `
                         <div class="container mt-3 text-body-secondary myitem border-bottom w-100" id="item-${index_id}">
                             <div class="row">
@@ -198,14 +207,14 @@
 
 
                                 <!-- Main Content -->
-                                <div class="col">
+                                <div class="col-9">
                                     <div class="content justify-content-between">
                                         <!-- Task Description -->
-                                        <div class="row row-cols-3">
+                                        <div class="row row-cols-3" style="max-height: 1.2em;">
                                             <div class="col-6 title dbclick-editable">${item.title}</div>
                                             <div class="col-3"></div>
-                                            <div class="col-3 ">
-                                                <div class="input-group date  d-flex flex-nowrap">
+                                            <div class="col-3" style="max-height: 1em;">
+                                                <div class="input-group date d-flex flex-nowrap">
                                                     <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-body-tertiary text-end" value="${item.expireDate}" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
                                                     <span class="input-group-text" style="border: 0;">
                                                         <i class="bx bx-calendar opacity-50 datapickertoggler" role="button"></i>
@@ -219,29 +228,29 @@
                                     </div>
                                 </div>
 
-                                <div class="col-lg-3 col-md-3 col-sm-3">
+                                <div class="col">
                                     <div class="row row-cols-2">
                                         <!-- Subgrid Section -->
                                         <div class="col-lg-9 col-md-8 col-sm-6">
-                                            <div class="row">
-                                                <div class="position-relative">
-                                                    <button class="btn btn-secondary w-75 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Add progress">${progress}</button>
-                                                    <button class="btn btn-primary w-75 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Complete task">Completa</button>
+                                            <div class="row justify-content-center">
+                                                <div class="position-relative" style="max-width: min-content;">
+                                                    <button class="btn btn-secondary w-100 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Add progress" ${disabledProgress}>${progress}</button>
+                                                    <button class="btn btn-primary w-100 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Complete task">Completa</button>
                                                 </div>
-                                                <div class="mt-2 categories dbclick-editable position-relativestart-0 bottom-0">
+                                                <div class="mt-2 font-lighter categories dbclick-editable position-relativestart-0 bottom-0">
                                                     ${item.categories}
                                                 </div>
                                             </div>
                                         </div>
                                         <!-- Toggler Expander -->
                                         <div class="col-lg-3 col-md-4 col-sm-6">
-                                            <div class="row">
+                                            <div class="subgrid">
                                                 <!-- Delete, Expand actions -->
-                                                <div class="col">
-                                                    <button class="btn btn-outline-danger p-2 m-2" aria-label="Toggle details">
+                                                <div class="row">
+                                                    <button class="btn btn-outline-danger p-2 m-2" aria-label="Toggle details" style="max-width: max-content;">
                                                         <i class="bx bxs-trash bx-sm" ></i>
                                                     </button>
-                                                    <button class="btn btn-outline-primary p-2 m-2" aria-label="Toggle details">
+                                                    <button class="btn btn-outline-primary p-2 m-2" aria-label="Toggle details" style="max-width: max-content;">
                                                         <i class="bx bx-chevron-down bx-sm"></i>
                                                     </button>
                                                 </div>
@@ -506,7 +515,7 @@
                                 <label class="btn btn-primary border-primary-subtle nav-link  text-white" for="completed">Completati</label>
                             
                                 <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off">
-                                <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed">Falliti</label>
+                                <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed">Rimossi</label>
                             </div>
                         </div>
                     </div>
@@ -579,7 +588,7 @@
                                     <div class="col-6 title dbclick-editable">${item.title}</div>
                                     <div class="col-3"></div>
                                     <div class="col-3 ">
-                                        <div class="input-group date  d-flex flex-nowrap">
+                                        <div class="input-group date d-flex flex-nowrap">
                                             <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-body-tertiary text-end" value="" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
                                             <span class="input-group-text" style="border: 0;">
                                                 <i class="bx bx-calendar opacity-50 datapickertoggler" ></i>

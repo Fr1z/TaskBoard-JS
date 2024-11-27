@@ -4,6 +4,7 @@
         "status": 0,
         "description": "delineare il metodo testparallelo/mastermind, parametri",
         "progress": 3,
+        "lastProgress": "0",
         "expireDate": "",
         "categories": "logic, math"
     },
@@ -12,6 +13,7 @@
         "status": 1,
         "description": "termux with python and camera input.",
         "progress": 4,
+        "lastProgress": "1732720585556",
         "expireDate": "",
         "categories": "python, android"
     },
@@ -20,6 +22,7 @@
         "status": 0,
         "description": "app disegna numeri geometrici",
         "progress": 1,
+        "lastProgress": "0",
         "expireDate": "25/12/2030",
         "categories": "python, math"
     }
