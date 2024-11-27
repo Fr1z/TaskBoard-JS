@@ -3,18 +3,24 @@
         "title": "Metodologia",
         "status": 0,
         "description": "delineare il metodo testparallelo/mastermind, parametri",
+        "progress": 3,
+        "expireDate": "",
         "categories": "logic, math"
     },
     {
         "title": "Termux",
         "status": 1,
         "description": "termux with python and camera input.",
+        "progress": 4,
+        "expireDate": "",
         "categories": "python, android"
     },
     {
         "title": "Rafiki",
         "status": 0,
         "description": "app disegna numeri geometrici",
+        "progress": 1,
+        "expireDate": "25/12/2030",
         "categories": "python, math"
     }
 ]

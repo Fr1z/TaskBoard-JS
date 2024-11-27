@@ -180,6 +180,13 @@
                     // Loop through the JSON data and create rows
 
                     data.forEach((item, index_id) => {
+                        var progress = "+" 
+                        if (item.progress>3){
+                            progress = item.progress + " +";
+                        }else{
+                            progress = '+'.repeat(item.progress);
+                        }
+                        
                         rows += `
                         <div class="container mt-3 text-body-secondary myitem border-bottom w-100" id="item-${index_id}">
                             <div class="row">
@@ -194,20 +201,32 @@
                                 <div class="col">
                                     <div class="content justify-content-between">
                                         <!-- Task Description -->
-                                        <div class="title dbclick-editable">${item.title}</div>
+                                        <div class="row row-cols-3">
+                                            <div class="col-6 title dbclick-editable">${item.title}</div>
+                                            <div class="col-3"></div>
+                                            <div class="col-3 ">
+                                                <div class="input-group date  d-flex flex-nowrap">
+                                                    <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-body-tertiary text-end" value="${item.expireDate}" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
+                                                    <span class="input-group-text" style="border: 0;">
+                                                        <i class="bx bx-calendar opacity-50 datapickertoggler" role="button"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="divider"></div>
                                         <div class="desc text-break dbclick-editable">${item.description}<br/></div>
                                     </div>
                                 </div>
 
-                                <div class="col-lg-3 col-md-3 col-sm-3 ">
+                                <div class="col-lg-3 col-md-3 col-sm-3">
                                     <div class="row row-cols-2">
                                         <!-- Subgrid Section -->
                                         <div class="col-lg-9 col-md-8 col-sm-6">
                                             <div class="row">
                                                 <div class="position-relative">
-                                                    <button class="btn btn-secondary w-75 m-1 position-relative start-50 translate-middle-x" aria-label="Add progress">+++</button>
-                                                    <button class="btn btn-primary w-75 m-1 position-relative start-50 translate-middle-x" aria-label="Complete task">Completa</button>
+                                                    <button class="btn btn-secondary w-75 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Add progress">${progress}</button>
+                                                    <button class="btn btn-primary w-75 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Complete task">Completa</button>
                                                 </div>
                                                 <div class="mt-2 categories dbclick-editable position-relativestart-0 bottom-0">
                                                     ${item.categories}
@@ -234,10 +253,9 @@
                         </div>
                         `;
                     });
-
                     // Insert rows into the table body
-                    //tableBody.innerHTML = rows;
-                }).then(enableSearch()).then(enableEditing()).then(enableDatePickers())
+                    tableBody.innerHTML = rows;
+                }).then(enableSearch()).then(enableDynamicActions()).then(translateDatePickers())
                 .catch(error => console.error('Error loading JSON:', error));
 
         });
@@ -249,8 +267,10 @@
             });
         });
 
-        function enableDatePickers() {
-            //noConflict provides a way to avoid conflict with other jQuery datepicker plugins:
+
+        function translateDatePickers() {
+            // Initialize date picker
+            //It translation
             $.fn.datepicker.dates['it'] = {
                 days: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
                 daysShort: ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
@@ -263,35 +283,10 @@
                 titleFormat: "MM yyyy", /* Leverages same syntax as 'format' */
                 weekStart: 1
             };
-
-            // Seleziona tutte le icone con la classe 'datapickertoggler'
-            $('.datapickertoggler').on('click', function () {
-                // Trova il nodo padre (div con classe 'input-group') e l'input di testo all'interno
-                const input = $(this).closest('.input-group').find('input[type="text"]');
-                if (input.length) {
-                    // Verifica se il Datepicker è inizializzato
-                    if (!input.data('datepicker')) {
-                        // Inizializza il Datepicker se non è già stato inizializzato
-                        input.datepicker({
-                            autoclose: true,
-                            format: 'dd/mm/yyyy',
-                            language: 'it',
-                            leftArrow: '<i class="bx bxs-left-arrow" ></i>',
-                            rightArrow: '<i class="bx bxs-right-arrow" ></i>',
-                            clearBtn: true,
-                        });
-                    }
-                    // Mostra il Datepicker
-                    input.datepicker('show');
-            
-                }else{
-                    console.log('No input found');
-                }
-            });
         
         }
 
-        function enableEditing() {
+        function enableDynamicActions() {
             $(window).click(function (event) {
                 var target = event.target;
                 //check if element is editable
@@ -307,6 +302,34 @@
                             editableElement.scrollTop = 0;
                         }
                     });
+
+                    //HERE all the activable javascript function on dynamic elements in the DOM
+
+                    //Datepicker toggler
+                    if (target.classList.contains("datapickertoggler")) {
+                        // Trova il nodo padre (div con classe 'input-group') e l'input di testo all'interno
+                        const input = $(target).closest('.input-group').find('input[type="text"]');
+                        if (input.length) {
+                            // Verifica se il Datepicker è inizializzato
+                            if (!input.data('datepicker')) {
+                                // Inizializza il Datepicker se non è già stato inizializzato
+                                input.datepicker({
+                                    autoclose: true,
+                                    format: 'dd/mm/yyyy',
+                                    language: 'it',
+                                    leftArrow: '<i class="bx bxs-left-arrow" ></i>',
+                                    rightArrow: '<i class="bx bxs-right-arrow" ></i>',
+                                    clearBtn: true,
+                                });
+                            }
+                            // Mostra il Datepicker
+                            input.datepicker('show');
+                    
+                        } else {
+                            console.log('No date found');
+                        }
+                    }
+
                 }
 
                 //This will fix line/paragraph breaks in contentEditable
@@ -518,8 +541,8 @@
         </div>
 
         
-        <div class="container rounded shadow-sm">
-            <div class="row mb-3 mt-4 my-3 pb-4 border-bottom">
+        <div class="container rounded shadow">
+            <div class="row mb-3 mt-4 my-3 py-3 border-bottom shadow-sm">
                 <div class="col">
                     <button type="button" class="btn btn-lg btn-outline-primary">
                        &ensp;Add Task <i class='bx bx-fw bx-plus-circle bx-sm' ></i>
@@ -602,57 +625,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="container mt-3 text-body-secondary myitem border-bottom w-100" id="item-${index_id}">
-                    <div class="row">
 
-                        <!-- Grab Item -->
-                        <div class="col-auto mh-100 bd-placeholder grab">
-                            <i class="bx bx-menu bx-sm opacity-50 position-relative top-50 start-50 translate-middle"></i>
-                        </div>
-
-
-                        <!-- Main Content -->
-                        <div class="col">
-                            <div class="content justify-content-between">
-                                <!-- Task Description -->
-                                <div class="title dbclick-editable">${item.title}</div>
-                                <div class="divider"></div>
-                                <div class="desc text-break dbclick-editable">${item.description}<br/></div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-3 col-md-3 col-sm-3 ">
-                            <div class="row row-cols-2">
-                                <!-- Subgrid Section -->
-                                <div class="col-lg-9 col-md-8 col-sm-6">
-                                    <div class="row">
-                                        <div class="position-relative">
-                                            <button class="btn btn-secondary w-75 m-1 position-relative start-50 translate-middle-x" aria-label="Add progress">+++</button>
-                                            <button class="btn btn-primary w-75 m-1 position-relative start-50 translate-middle-x" aria-label="Complete task">Completa</button>
-                                        </div>
-                                        <div class="mt-2 categories dbclick-editable position-relativestart-0 bottom-0">
-                                            ${item.categories}
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Toggler Expander -->
-                                <div class="col-lg-3 col-md-4 col-sm-6">
-                                    <div class="row">
-                                        <!-- Delete, Expand actions -->
-                                        <div class="col">
-                                            <button class="btn btn-outline-danger p-2 m-2" aria-label="Toggle details">
-                                                <i class="bx bxs-trash bx-sm" ></i>
-                                            </button>
-                                            <button class="btn btn-outline-primary p-2 m-2" aria-label="Toggle details">
-                                                <i class="bx bx-chevron-down bx-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <small class="d-block text-end mt-3">
