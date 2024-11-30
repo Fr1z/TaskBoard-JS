@@ -16,7 +16,7 @@
 
     <title>OffTasks Dashboard</title>
 
-    <!-- TODO: expand toggler work-->
+    <!-- TODO: expand toggler fix animation -->
     <!-- TODO: new task editor expander (and insert)-->
     <!-- TODO: decent centered and responsive grid layout (progress, check navbar)-->
 
@@ -138,12 +138,14 @@
             white-space: nowrap; 
             overflow: hidden;
             text-overflow: ellipsis;
-            transition: height 0.5s ease; /* Animazione */
+            transition: all 0.5s ease; /* Animazione */
         }
-        .desc[contentEditable="true"] {
-            overflow: hidden; /* Nascondi il contenuto in eccesso */
-            height: 100px; /* Espansione massima */
-            transition: height 0.5s ease; /* Animazione */
+        .desc.expanded {
+            height: 12em; /* Espansione massima */
+            border: 1px solid rgb(168, 168, 168);
+            min-height: 12em; /* Dimensione minima espansa */
+            height: max-content;
+            transition: all 0.5s ease; /* Animazione */
         }
         .divider {
             height: 1px;
@@ -247,11 +249,11 @@
                                             <div class="subgrid">
                                                 <!-- Delete, Expand actions -->
                                                 <div class="row">
-                                                    <button class="btn btn-outline-danger p-2 m-2" aria-label="Toggle details" style="max-width: max-content;">
+                                                    <button class="btn btn-outline-danger p-2 m-2" aria-label="Trash" style="max-width: max-content;">
                                                         <i class="bx bxs-trash bx-sm" ></i>
                                                     </button>
-                                                    <button class="btn btn-outline-primary p-2 m-2" aria-label="Toggle details" style="max-width: max-content;">
-                                                        <i class="bx bx-chevron-down bx-sm"></i>
+                                                    <button class="btn btn-outline-primary p-2 m-2 expand-toggler" aria-label="Toggle details" style="max-width: max-content;">
+                                                        <i class="bx bx-chevron-down bx-sm expand-toggler"></i>
                                                     </button>
                                                 </div>
                                             </div>
@@ -295,22 +297,44 @@
         
         }
 
+        function removeEditableAndCollapse(){
+            //set not more editable all the dbclick-editable
+            document.querySelectorAll('.dbclick-editable').forEach(editableElement => {
+
+            if (editableElement.hasAttribute('contentEditable')) {
+                editableElement.setAttribute('contentEditable', false);
+                editableElement.scrollTop = 0;
+
+                //collapse expanded desc
+                if (editableElement.classList.contains("expanded")){
+                    editableElement.classList.remove('expanded');
+
+                }
+
+                //if desc, de-flip expanded icon 
+                if ($(editableElement).hasClass('desc')){
+                    $(editableElement).closest('.myitem').find('.bx-chevron-down').removeClass('bx-flip-vertical');
+                }
+            }
+            });
+
+        }
+
         function enableDynamicActions() {
             $(window).click(function (event) {
                 var target = event.target;
                 //check if element is editable
                 if (target.classList.contains("dbclick-editable")) {
-                    //if so edit 
+                    removeEditableAndCollapse();
+                    //expand editable desc and flip it's icon
+                    if (target.classList.contains("desc") && !$(target).hasClass("expanded") ) {
+                        $(target).addClass('expanded');
+                        $(target).closest('.myitem').find('.bx-chevron-down').addClass('bx-flip-vertical');
+                    }
+                    //then enable edit 
                     target.setAttribute('contentEditable', true);
                 } else {
-                    //set not more editable all the dbclick-editable
-                    document.querySelectorAll('.dbclick-editable').forEach(editableElement => {
 
-                        if (editableElement.hasAttribute('contentEditable')) {
-                            editableElement.setAttribute('contentEditable', false);
-                            editableElement.scrollTop = 0;
-                        }
-                    });
 
                     //HERE all the activable javascript function on dynamic elements in the DOM
 
@@ -337,6 +361,31 @@
                         } else {
                             console.log('No date found');
                         }
+                    }
+                    //Expander toggler
+                     if (target.classList.contains("expand-toggler")) {
+                        // Trova il nodo padre (div con classe 'input-group') e l'input di testo all'interno
+                        let desc = $(target).closest('.myitem').find('.desc');
+
+                        if (desc.length) {
+
+                            if ($(target).hasClass('bx')){
+                                //iconclick
+                                $(target).toggleClass("bx-flip-vertical");
+                            }else{
+                                //buttonclick
+                                $(target).find('.bx').toggleClass("bx-flip-vertical");
+                            }
+                            
+                            // Verifica se il Datepicker è inizializzato
+                            $(desc).toggleClass("expanded");
+                    
+                        } else {
+                            console.log('No desc found');
+                        }
+                    }else{
+                        //set not more editable all the dbclick-editable
+                        removeEditableAndCollapse();
                     }
 
                 }
