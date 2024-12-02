@@ -16,7 +16,7 @@
 
     <title>OffTasks Dashboard</title>
 
-    <!-- TODO: expand toggler fix animation -->
+    <!-- TODO: ter search bug re-appeared -->
     <!-- TODO: topics/categories js colored pills-->
     <!-- TODO: Task relationships (depends on /subtask of)-->
     <!-- TODO: decent centered and responsive grid layout (progress, check navbar)-->
@@ -125,7 +125,7 @@
 
         .title {
             font-weight: bold;
-            height: 25px;
+            height: 2em;
             overflow: hidden;
             white-space: nowrap;
             overflow: hidden; 
@@ -134,7 +134,7 @@
             -webkit-line-clamp: 1;
         }
         .desc{
-            height: 50px;
+            height: 3em;
             overflow: hidden;
             white-space: nowrap; 
             overflow: hidden;
@@ -142,10 +142,9 @@
             transition: all 0.5s ease; /* Animazione */
         }
         .desc.expanded {
-            height: 12em; /* Espansione massima */
+            max-height: max-content; /* Espansione massima */
+            height: 12em;
             border: 1px solid rgb(168, 168, 168);
-            min-height: 12em; /* Dimensione minima espansa */
-            height: max-content;
             transition: all 0.5s ease; /* Animazione */
         }
         .divider {
