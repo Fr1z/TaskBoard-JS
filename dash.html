@@ -17,7 +17,8 @@
     <title>OffTasks Dashboard</title>
 
     <!-- TODO: expand toggler fix animation -->
-    <!-- TODO: new task editor expander (and insert)-->
+    <!-- TODO: topics/categories js colored pills-->
+    <!-- TODO: Task relationships (depends on /subtask of)-->
     <!-- TODO: decent centered and responsive grid layout (progress, check navbar)-->
 
 
@@ -217,7 +218,7 @@
                                             <div class="col-3"></div>
                                             <div class="col-3" style="max-height: 1em;">
                                                 <div class="input-group date d-flex flex-nowrap">
-                                                    <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-body-tertiary text-end" value="${item.expireDate}" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
+                                                    <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-body-tertiary float-end text-end" value="${item.expireDate}" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
                                                     <span class="input-group-text" style="border: 0;">
                                                         <i class="bx bx-calendar opacity-50 datapickertoggler" role="button"></i>
                                                     </span>
@@ -600,22 +601,71 @@
 
         
         <div class="container rounded shadow">
-            <div class="row mb-3 mt-4 my-3 py-3 border-bottom shadow-sm">
-                <div class="col">
-                    <button type="button" class="btn btn-lg btn-outline-primary">
-                       &ensp;Add Task <i class='bx bx-fw bx-plus-circle bx-sm' ></i>
+            
+            <div class="row mb-3 mt-4 py-3 border-bottom shadow-sm">
+                <div class="row m-0">
+                    <div class="col" data-bs-toggle="collapse" href="#collapseEditor" role="button" aria-expanded="false" aria-controls="collapseEditor">
+                        <button type="button" class="btn btn-lg btn-outline-primary" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
+                        &ensp;Add Task <i class='bx bx-fw bx-add-to-queue bx-sm' ></i>
+                        </button>
+                    </div>
+                    <div class="col">
+                        <h3 class="text-primary fw-bold text-center">Da Fare</h3>
+                    </div>
+
+                    <div class="col d-flex justify-content-end">
+                        <button type="button" class="btn btn-lg btn-outline-warning">
+                            &ensp;Save&ensp;<i class='bx bx-fw bxs-save bx-sm'></i>
                     </button>
-                </div>
-                <div class="col">
-                    <h3 class="text-primary fw-bold text-center">Da Fare</h3>
+                    </div>
                 </div>
 
-                <div class="col d-flex justify-content-end">
-                    <button type="button" class="btn btn-lg btn-outline-warning">
-                        &ensp;Save&ensp;<i class='bx bx-fw bxs-save bx-sm'></i>
-                </button>
-                </div>
+                <!-- New Task -->
+                <div class="row collapse p-4 m-0" id="collapseEditor">
+                    <div class="divider mb-3"></div>
+                    <div class="col p-0">
+                        <div class="content justify-content-between">
+                            <!-- Task Description -->
+                            <div class="row row-cols-3">
+                                <div class="col-6">
+                                    <div class="input-group mb-3">
+                                        <span class="input-group-text fw-light" id="new_title">Title</span>
+                                        <input type="text" class="form-control " placeholder="Title" aria-label="Titolo" aria-describedby="new_title">
+                                      </div>                                      
+                                </div>
+                                <div class="col-3">
+                                    <div class="input-group mb-3 font-light ">
+                                    <input type="text" class="form-control" placeholder="Categories" aria-label="Categories" aria-describedby="topics">
+                                    <span class="input-group-text" id="topics"></span>
+                                  </div>
+                                </div>
+                                <div class="col-3 ">
+                                    <div class="input-group date d-flex flex-nowrap">
+                                        <input type="text" class="form-control fw-light pe-none text-body-secondary bg-body-tertiary float-end text-end" value="" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
+                                        <span class="input-group-text datapickertoggler" style="border: 0;">
+                                            <i class="bx bx-calendar bx-sm opacity-50 datapickertoggler" ></i>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+         
+                            <div class="col">
+                                <div class="form-floating">
+                                    <textarea class="form-control" placeholder="Description here" id="floatingTextarea" ></textarea>
+                                    <label for="floatingTextarea" style="color: var(--bs-gray)">Description</label>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col d-flex justify-content-end">
+                                    <button type="button" class="btn btn-lg btn-outline-primary">
+                                        &ensp;Insert&ensp;<i class='bx bx-fw bx-plus-circle bx-sm'></i>
+                                </button>
+                                </div>
+                            </div>
 
+                        </div>
+                    </div>
+                </div>
             </div>
 
             
