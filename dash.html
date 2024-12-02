@@ -110,7 +110,7 @@
         /* Categorie nella parte destra */
         .categories {
             font-size: 0.9rem;
-            /* Puoi regolare la dimensione del testo */
+            min-height: 1.8em;
         }
 
         .content {
@@ -266,7 +266,7 @@
                     });
                     // Insert rows into the table body
                     tableBody.innerHTML = rows;
-                }).then(enableSearch()).then(enableDynamicActions()).then(translateDatePickers())
+                }).then(enableSearch()).then(enableDynamicActions()).then(colorizeCategories()).then(translateDatePickers())
                 .catch(error => console.error('Error loading JSON:', error));
 
         });
@@ -278,6 +278,15 @@
             });
         });
 
+
+        function colorizeCategories(){
+            //set not more editable all the dbclick-editable
+            document.querySelectorAll('.categories').forEach(categoryElement => {
+                console.log(categoryElement);
+                colorTopicsBadges(categoryElement);
+            });
+            return;
+        }
 
         function translateDatePickers() {
             // Initialize date picker
@@ -297,22 +306,26 @@
         
         }
 
-        function removeEditableAndCollapse(){
+        function outOfEditableActions(){
             //set not more editable all the dbclick-editable
             document.querySelectorAll('.dbclick-editable').forEach(editableElement => {
-
-            if (editableElement.hasAttribute('contentEditable')) {
+                
+            if (editableElement.hasAttribute('contentEditable') && editableElement.getAttribute('contentEditable')=="true") {
                 editableElement.setAttribute('contentEditable', false);
                 editableElement.scrollTop = 0;
 
                 //collapse expanded desc
                 if (editableElement.classList.contains("expanded")){
                     editableElement.classList.remove('expanded');
+                }
 
+                //collapse expanded desc
+                if (editableElement.classList.contains("categories")){
+                    colorTopicsBadges(editableElement);
                 }
 
                 //if desc, de-flip expanded icon 
-                if ($(editableElement).hasClass('desc')){
+                if (editableElement.classList.contains('desc')){
                     $(editableElement).closest('.myitem').find('.bx-chevron-down').removeClass('bx-flip-vertical');
                 }
             }
@@ -320,12 +333,86 @@
 
         }
 
+        function colorTopicsBadges(element){
+                const categories_element = $(element);
+                console.log(categories_element);
+                let elementHtml = categories_element.html();
+                //exit if empty
+                if (elementHtml.length < 1) return;
+
+                let textContent = '';
+                // Trova l'ultima occorrenza di </span> se presente
+                const lastSpanIndex = elementHtml.lastIndexOf('</span>');
+
+                if (lastSpanIndex === -1) {
+                    //è tutto contenuto testuale da processare
+                    elementHtml = '';
+                    textContent = categories_element.text().trim();
+                }else{
+                    // Divide il contenuto in due parti
+                    elementHtml = elementHtml.substring(0, lastSpanIndex + 7); // Include </span>
+                    textContent = elementHtml.substring(lastSpanIndex + 7).trim();; // Dopo </span>
+                }
+
+                //se non c'è abbastanza contenuto esci dalla funzione
+                if (textContent.length < 1) return;
+
+                // Dividi il contenuto in un array di parole separate da virgole
+                const words = textContent.split(',').map(word => word.trim());
+
+                // Genera il contenuto modificato
+                const modifiedContent = words.map(word => {
+                    let hashNum = 0;
+                    
+                    for (let i = 0; i < word.length; i++) {
+                        hashNum += word.toLocaleUpperCase().charCodeAt(i);
+                    }
+                    hashNum = hashNum % 7;
+                    let hashBack = 'bg-primary';
+                    switch (hashNum) {
+                        case 0:
+                            hashBack = 'bg-primary';
+                            break;
+                        case 1:
+                            hashBack = 'bg-secondary';
+                            break;
+                        case 2:
+                            hashBack = 'bg-success';
+                            break;
+                        case 3:
+                            hashBack = 'bg-warning text-dark';
+                            break;
+                        case 4:
+                            hashBack = 'bg-info text-dark';
+                            break;
+                        case 5:
+                            hashBack = 'bg-light text-dark';
+                            break;
+                        case 6:
+                            hashBack = 'bg-dark';
+                            break;
+                        default:
+                            hashBack = 'bg-primary';
+                        }
+
+                    return `<span role="alert" class="alert badge rounded-pill bg-primary m-0 p-1 text-white ${hashBack}">
+                        <button type="button" class="m-0 p-0 bg-transparent border-0 text-white" data-bs-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button> 
+                            ${word}
+                        </span>`;
+                }).join(' ');
+
+                // Sostituisci il contenuto originale con il nuovo contenuto
+                categories_element.html(elementHtml + modifiedContent);
+        }
+
         function enableDynamicActions() {
             $(window).click(function (event) {
                 var target = event.target;
                 //check if element is editable
                 if (target.classList.contains("dbclick-editable")) {
-                    removeEditableAndCollapse();
+                    outOfEditableActions();
                     //expand editable desc and flip it's icon
                     if (target.classList.contains("desc") && !$(target).hasClass("expanded") ) {
                         $(target).addClass('expanded');
@@ -385,7 +472,8 @@
                         }
                     }else{
                         //set not more editable all the dbclick-editable
-                        removeEditableAndCollapse();
+                        outOfEditableActions();
+                        //colorTopicsBadges();
                     }
 
                 }
@@ -634,7 +722,7 @@
                                 </div>
                                 <div class="col-3">
                                     <div class="input-group mb-3 font-light ">
-                                    <input type="text" class="form-control" placeholder="Categories" aria-label="Categories" aria-describedby="topics">
+                                    <input type="text" class="form-control categories" placeholder="Categories" aria-label="Categories" aria-describedby="topics">
                                     <span class="input-group-text" id="topics"></span>
                                   </div>
                                 </div>
