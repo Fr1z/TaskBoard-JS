@@ -613,7 +613,7 @@
                     </div>
 
                     <div class="col d-flex justify-content-end">
-                        <button type="button" class="btn btn-lg btn-outline-warning">
+                        <button type="button" class="btn btn-lg btn-outline-warning" onclick="new bootstrap.Toast($('#toastSuccess')).show();">
                             &ensp;Save&ensp;<i class='bx bx-fw bxs-save bx-sm'></i>
                     </button>
                     </div>
@@ -743,8 +743,37 @@
             </small>
         </div>
     </main>
+
     <script src="/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 
+    <style>
+    .toast {
+        left: 50%;
+        position: fixed;
+        bottom:1em;
+        transform: translate(-50%, 0px);
+        z-index: 9999;
+    }
+    </style>
+
+    <div class="toast align-items-center fade bg-success border-0 text-white opacity-75 w-50" role="alert" aria-live="assertive" aria-atomic="true" id="toastSuccess">
+        <div class="toast-content p-1">
+            <div class="content-body d-flex align-items-center">
+                <div class="icon pt-1 mx-2">
+                  <i class="bx bx-badge-check bx-md"></i>
+                </div>
+                <div class="d-flex justify-content-between w-100">
+                  <div>
+                    <p class="text-white fw-bold mb-0 pt-1">Hello, This page has been loaded!</p> 
+                  </div>     
+                  <div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                </div>          
+              </div>
+            
+        </div>
+    </div>
 
 </body>
 
