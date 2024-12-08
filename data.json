@@ -1,6 +1,7 @@
 [
     {
         "title": "Metodologia",
+        "star": 0,
         "status": 0,
         "description": "delineare il metodo testparallelo/mastermind, parametri",
         "progress": 3,
@@ -10,6 +11,7 @@
     },
     {
         "title": "Termux",
+        "star": 1,
         "status": 1,
         "description": "termux with python and camera input.",
         "progress": 4,
@@ -19,6 +21,7 @@
     },
     {
         "title": "Rafiki",
+        "star": 0,
         "status": 0,
         "description": "app disegna numeri geometrici",
         "progress": 1,

@@ -109,7 +109,7 @@
 
         /* Categorie nella parte destra */
         .categories {
-            font-size: 0.9rem;
+            font-size: 0.87rem;
             /* Puoi regolare la dimensione del testo */
         }
 
@@ -194,6 +194,8 @@
                         var differenceTimeToProgress = 40*60*60*1000; //4-hours
                         var difference = (new Date().getTime()) - item.lastProgress;
 
+                        var starred = (item.star==1) ? 's' : '';
+
                         if (difference<differenceTimeToProgress){
                             disabledProgress = "disabled";
                         }
@@ -232,15 +234,23 @@
 
                                 <div class="col">
                                     <div class="row row-cols-2">
-                                        <!-- Subgrid Section -->
                                         <div class="col-lg-9 col-md-8 col-sm-6">
                                             <div class="row justify-content-center">
                                                 <div class="position-relative" style="max-width: min-content;">
                                                     <button class="btn btn-secondary w-100 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Add progress" ${disabledProgress}>${progress}</button>
                                                     <button class="btn btn-primary w-100 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Complete task">Completa</button>
                                                 </div>
-                                                <div class="mt-2 font-lighter categories dbclick-editable position-relativestart-0 bottom-0">
-                                                    ${item.categories}
+                                                <div class="row border p-0">
+                                                    <div class="mt-1 font-lighter categories position-relative start-0 bottom-0 col-auto">
+                                                        ${item.categories}
+                                                    </div>
+                                                    <input id="addcategory" class="p-0 px-3 bg-light text-center" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value=""">
+                                                    <div class="col-auto"></div>
+                                                </div>
+                                                <div class="row border p-0 collapse">
+                                                    <div class="mt-2">
+                                                        <span><b>Depends on:</b>&ensp;<a href="#12">Termux</a></span> 
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -249,12 +259,19 @@
                                             <div class="subgrid">
                                                 <!-- Delete, Expand actions -->
                                                 <div class="row">
-                                                    <button class="btn btn-outline-danger p-2 m-2" aria-label="Trash" style="max-width: max-content;">
-                                                        <i class="bx bxs-trash bx-sm" ></i>
+                                                    <button class="btn btn-outline-warning p-2 m-2" aria-label="Star" style="max-width: max-content;">
+                                                        <i class='bx bx${starred}-star bx-sm' ></i>
                                                     </button>
                                                     <button class="btn btn-outline-primary p-2 m-2 expand-toggler" aria-label="Toggle details" style="max-width: max-content;">
                                                         <i class="bx bx-chevron-down bx-sm expand-toggler"></i>
                                                     </button>
+                                                    <button class="btn btn-outline-danger p-2 m-2 collapse" aria-label="Trash" style="max-width: max-content;">
+                                                        <i class="bx bxs-trash bx-sm" ></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-primary p-2 m-2 collapse" aria-label="New Subtask" style="max-width: max-content;">
+                                                        <i class='bx bx-plus-circle bx-sm' ></i>
+                                                    </button>
+                                                    
                                                 </div>
                                             </div>
                                         </div>
@@ -314,6 +331,7 @@
                 //if desc, de-flip expanded icon 
                 if ($(editableElement).hasClass('desc')){
                     $(editableElement).closest('.myitem').find('.bx-chevron-down').removeClass('bx-flip-vertical');
+                    $(editableElement).closest('.myitem').find('.collapse').removeClass('show');
                 }
             }
             });
@@ -330,6 +348,7 @@
                     if (target.classList.contains("desc") && !$(target).hasClass("expanded") ) {
                         $(target).addClass('expanded');
                         $(target).closest('.myitem').find('.bx-chevron-down').addClass('bx-flip-vertical');
+                        $(target).closest('.myitem').find('.collapse').addClass('show');
                     }
                     //then enable edit 
                     target.setAttribute('contentEditable', true);
@@ -366,7 +385,8 @@
                      if (target.classList.contains("expand-toggler")) {
                         // Trova il nodo padre (div con classe 'input-group') e l'input di testo all'interno
                         let desc = $(target).closest('.myitem').find('.desc');
-
+                        let collapsables = $(target).closest('.myitem').find('.collapse');
+                        
                         if (desc.length) {
 
                             if ($(target).hasClass('bx')){
@@ -379,13 +399,14 @@
                             
                             // Verifica se il Datepicker è inizializzato
                             $(desc).toggleClass("expanded");
-                    
+                            $(collapsables).toggleClass("show");
+                            
                         } else {
                             console.log('No desc found');
                         }
                     }else{
                         //set not more editable all the dbclick-editable
-                        removeEditableAndCollapse();
+                        //removeEditableAndCollapse();
                     }
 
                 }
@@ -557,14 +578,15 @@
                     <div class="collapse navbar-collapse navbarToggler" id="navbarToggler1">
                         <div class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
                             <div class="btn-group fs-4" role="group" aria-label="toggle button group">
+                                <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off">
+                                <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed">Starred</label>
+
                                 <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" checked>
                                 <label class="btn btn-primary border-primary-subtle nav-link text-white" for="todos">Da fare</label>
                             
                                 <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off">
                                 <label class="btn btn-primary border-primary-subtle nav-link  text-white" for="completed">Completati</label>
                             
-                                <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off">
-                                <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed">Rimossi</label>
                             </div>
                         </div>
                     </div>
