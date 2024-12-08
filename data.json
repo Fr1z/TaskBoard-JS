@@ -1,5 +1,6 @@
 [
     {
+        "LUID": 1,
         "title": "Metodologia",
         "star": 0,
         "status": 0,
@@ -7,9 +8,11 @@
         "progress": 3,
         "lastProgress": "0",
         "expireDate": "",
-        "categories": "logic, math"
+        "categories": "logic, math",
+        "depends": "2"
     },
     {
+        "LUID": 2,
         "title": "Termux",
         "star": 1,
         "status": 1,
@@ -17,9 +20,11 @@
         "progress": 4,
         "lastProgress": "1732720585556",
         "expireDate": "",
-        "categories": "python, android"
+        "categories": "python, android",
+        "depends": ""
     },
     {
+        "LUID": 3,
         "title": "Rafiki",
         "star": 0,
         "status": 0,
@@ -27,6 +32,7 @@
         "progress": 1,
         "lastProgress": "0",
         "expireDate": "25/12/2030",
-        "categories": "python, math"
+        "categories": "python, math",
+        "depends": ""
     }
 ]

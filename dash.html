@@ -201,7 +201,7 @@
                         }
 
                         rows += `
-                        <div class="container mt-3 text-body-secondary myitem border-bottom w-100" id="item-${index_id}">
+                        <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${index_id}">
                             <div class="row">
 
                                 <!-- Grab Item -->
@@ -268,7 +268,7 @@
                                                     <button class="btn btn-outline-danger p-2 m-2 collapse" aria-label="Trash" style="max-width: max-content;">
                                                         <i class="bx bxs-trash bx-sm" ></i>
                                                     </button>
-                                                    <button class="btn btn-outline-primary p-2 m-2 collapse" aria-label="New Subtask" style="max-width: max-content;">
+                                                    <button class="btn btn-outline-primary p-2 m-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.LUID}">
                                                         <i class='bx bx-plus-circle bx-sm' ></i>
                                                     </button>
                                                     
@@ -768,6 +768,8 @@
 
     <script src="/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 
+
+    <!-- TOASTS -->
     <style>
     .toast {
         left: 50%;
@@ -797,6 +799,96 @@
         </div>
     </div>
 
+    <!-- MODALS -->
+
+    <!-- Vertically centered modal -->
+    <div class="modal fade" id="addSubTaskModal" tabindex="-1" aria-labelledby="addSubTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="addSubTaskModalLabel">New subTask</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form>
+                  <div class="mb-3">
+                    <label for="exampleDataList" class="form-label">SubTask</label>
+                    <input class="form-control" list="datalistOptions" id="exampleDataList" placeholder="Type to search...">
+                    <datalist id="datalistOptions">
+                    </datalist>
+                  </div>
+                  <p class="mt-3">Subtask selezionato: <span id="selectedTask">Nessuno</span></p>
+                  <input class="form-control" id="requiredfor" type="hidden" aria-label="hide input" readonly value="">
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" id="sendButton" class="btn btn-primary" disabled>Add SubTask</button>
+              </div>
+            </div>
+          </div>
+    </div>
+  
+    <script>
+        var addSubTaskModal = document.getElementById('addSubTaskModal')
+        addSubTaskModal.addEventListener('show.bs.modal', function (event) {
+            // Button that triggered the modal
+            var button = event.relatedTarget
+
+            // Extract info from data-bs-* attributes
+            var requiredName= button.getAttribute('data-bs-requiredfor')
+            // Extract info from data-bs-* attributes
+            var requiredID = button.getAttribute('data-bs-requiredforID')
+            // Update the modal's content.
+            var modalTitle = addSubTaskModal.querySelector('.modal-title')
+            var hiddenRequiredInput = addSubTaskModal.querySelector('.modal-body #requiredfor')
+
+            var datalist = addSubTaskModal.querySelector('#datalistOptions');
+            var datalistElement = addSubTaskModal.querySelector('.modal-body #exampleDataList');
+            var subtaskSelected = addSubTaskModal.querySelector('.modal-body #selectedTask');
+            var items = document.querySelectorAll('.myitem');
+            var sendBtn = addSubTaskModal.querySelector('.modal-footer #sendButton');
+
+            //remplace required data forms
+            modalTitle.textContent = 'Task Required for ' + requiredName
+            hiddenRequiredInput.value = requiredID
+
+            
+
+            // Pulisci il datalist (opzionale, utile se viene rigenerato dinamicamente)
+            datalist.innerHTML = '';
+            // Mappa per tenere traccia di valore e testo
+            var valueMap = new Map();
+            
+            // Aggiungi ogni titolo come opzione
+            items.forEach(item => {
+                const option = document.createElement('option');
+                var value =  item.getAttribute('data-value'); // Ottieni il valore
+                var title = item.querySelector('.title')
+                var text = title.textContent.trim(); // Testo del titolo senza spazi
+                option.value = text
+                
+                datalist.appendChild(option);
+                // Aggiungi alla mappa
+                valueMap.set(text, value);
+            });
+
+            // Gestisci il cambio di input
+            datalistElement.addEventListener('input', () => {
+                
+                const text = datalistElement.value; // Testo selezionato dall'utente
+                const value = valueMap.get(text) || 'Nessuno'; // Valore corrispondente
+                subtaskSelected.textContent = value; // Mostra il valore
+                
+                if (value!=='Nessuno'){
+                    sendBtn.removeAttribute('disabled');
+                } else {
+                    sendBtn.setAttribute('disabled', true);
+                }
+            });
+        })
+
+    </script>
 </body>
 
 </html>
