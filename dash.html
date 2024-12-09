@@ -18,7 +18,6 @@
 
     <!-- TODO: ter search bug re-appeared -->
     <!-- TODO: topics/categories js colored pills-->
-    <!-- TODO: Task relationships (depends on /subtask of)-->
     <!-- TODO: decent centered and responsive grid layout (progress, check navbar)-->
 
 
@@ -56,6 +55,10 @@
     </style>
 
     <style>
+
+        .showed {
+            display: block!important;
+        }
 
         .bi {
             vertical-align: -.125em;
@@ -200,6 +203,15 @@
                             disabledProgress = "disabled";
                         }
 
+                        var depenciesHTML = '';
+                        var hideDepencies = (item.depends.length) ? '' : 'd-none';
+                        if (hideDepencies.length==0){
+                            var depencies = item.depends.split(',').map(dep_id => dep_id.trim());
+                            // Genera il link alle dipendenze
+                            depenciesHTML += depencies.map(dep_id => {return "<a class=\"depency\" href=\"#"+dep_id+"\"></a>";}).join(',&nbsp');
+                        }
+
+
                         rows += `
                         <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${index_id}">
                             <div class="row">
@@ -228,7 +240,7 @@
                                         </div>
 
                                         <div class="divider"></div>
-                                        <div class="desc text-break dbclick-editable">${item.description}<br/></div>
+                                        <div class="desc text-break p-1 dbclick-editable">${item.description}<br/></div>
                                     </div>
                                 </div>
 
@@ -244,12 +256,12 @@
                                                     <div class="mt-1 font-lighter categories position-relative start-0 bottom-0 col-auto">
                                                         ${item.categories}
                                                     </div>
-                                                    <input id="addcategory" class="p-0 px-3 bg-light text-center" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value=""">
+                                                    <input id="addcategory" class="p-0 px-3 bg-body-tertiary text-center" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value=""">
                                                     <div class="col-auto"></div>
                                                 </div>
                                                 <div class="row border p-0 collapse">
-                                                    <div class="mt-2">
-                                                        <span><b>Depends on:</b>&ensp;<a href="#12">Termux</a></span> 
+                                                    <div class="mt-2 ${hideDepencies}">
+                                                        <span><b>Depends on:</b>&ensp;${depenciesHTML}</span> 
                                                     </div>
                                                 </div>
                                             </div>
@@ -268,8 +280,8 @@
                                                     <button class="btn btn-outline-danger p-2 m-2 collapse" aria-label="Trash" style="max-width: max-content;">
                                                         <i class="bx bxs-trash bx-sm" ></i>
                                                     </button>
-                                                    <button class="btn btn-outline-primary p-2 m-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.LUID}">
-                                                        <i class='bx bx-plus-circle bx-sm' ></i>
+                                                    <button class="btn btn-outline-primary p-2 m-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.title}" data-bs-requiredforID="${item.LUID}">
+                                                        <i class='bx bx-plus-circle bx-sm ' ></i>
                                                     </button>
                                                     
                                                 </div>
@@ -283,7 +295,11 @@
                     });
                     // Insert rows into the table body
                     tableBody.innerHTML = rows;
-                }).then(enableSearch()).then(enableDynamicActions()).then(translateDatePickers())
+
+                    //Activate functions for dynamic elements
+                    populateDepencies();
+                    translateDatePickers();
+                }).then(enableSearch()).then(enableDynamicActions())
                 .catch(error => console.error('Error loading JSON:', error));
 
         });
@@ -314,6 +330,22 @@
         
         }
 
+        function populateDepencies(){
+            //set not more editable all the dbclick-editable
+            document.querySelectorAll('.depency').forEach(depencyElement => {
+
+                if (depencyElement.hasAttribute('href') && depencyElement.textContent.length==0) {
+                    var href = depencyElement.getAttribute('href'); 
+                    //remove # char
+                    href = href.split('#')[1];
+                    //get title from id
+                    var title = document.querySelector(`.myitem[data-value="${href}"] .title`);
+                    depencyElement.innerHTML = title.textContent.trim();
+                }
+            });
+
+        }
+
         function removeEditableAndCollapse(){
             //set not more editable all the dbclick-editable
             document.querySelectorAll('.dbclick-editable').forEach(editableElement => {
@@ -331,7 +363,7 @@
                 //if desc, de-flip expanded icon 
                 if ($(editableElement).hasClass('desc')){
                     $(editableElement).closest('.myitem').find('.bx-chevron-down').removeClass('bx-flip-vertical');
-                    $(editableElement).closest('.myitem').find('.collapse').removeClass('show');
+                    $(editableElement).closest('.myitem').find('.collapse').removeClass('showed');
                 }
             }
             });
@@ -348,12 +380,11 @@
                     if (target.classList.contains("desc") && !$(target).hasClass("expanded") ) {
                         $(target).addClass('expanded');
                         $(target).closest('.myitem').find('.bx-chevron-down').addClass('bx-flip-vertical');
-                        $(target).closest('.myitem').find('.collapse').addClass('show');
+                        $(target).closest('.myitem').find('.collapse').addClass('showed');
                     }
                     //then enable edit 
                     target.setAttribute('contentEditable', true);
                 } else {
-
 
                     //HERE all the activable javascript function on dynamic elements in the DOM
 
@@ -399,7 +430,7 @@
                             
                             // Verifica se il Datepicker è inizializzato
                             $(desc).toggleClass("expanded");
-                            $(collapsables).toggleClass("show");
+                            $(collapsables).toggleClass("showed");
                             
                         } else {
                             console.log('No desc found');
@@ -645,7 +676,7 @@
                 <div class="row collapse p-4 m-0" id="collapseEditor">
                     <div class="divider mb-3"></div>
                     <div class="col p-0">
-                        <div class="content justify-content-between">
+                        <div class="content justify-content-between" style="color: var(--bs-gray)">
                             <!-- Task Description -->
                             <div class="row row-cols-3">
                                 <div class="col-6">
@@ -677,8 +708,17 @@
                                 </div>
                             </div>
                             <div class="row mt-3">
+                                <div class="col">
+                                    <div class="input-group mb-3 font-light ">
+                                    <p class="mt-3 font-light">Dipende da: <a id="newDepencyTask" class="depency" href="">Nessuno</a></p>
+                                    <button class="btn btn-outline-primary p-2 m-2" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="New Task" data-bs-requiredforID="0">
+                                        <i class="bx bx-plus-circle bx-sm"></i>
+                                    </button> 
+                                </div>
+                                
+                                </div>
                                 <div class="col d-flex justify-content-end">
-                                    <button type="button" class="btn btn-lg btn-outline-primary">
+                                    <button type="button" class="btn btn-lg btn-outline-primary text-uppercase">
                                         &ensp;Insert&ensp;<i class='bx bx-fw bx-plus-circle bx-sm'></i>
                                 </button>
                                 </div>
@@ -822,7 +862,7 @@
                 </form>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" id="closeButton" data-bs-dismiss="modal">Close</button>
                 <button type="button" id="sendButton" class="btn btn-primary" disabled>Add SubTask</button>
               </div>
             </div>
@@ -841,6 +881,7 @@
             var requiredID = button.getAttribute('data-bs-requiredforID')
             // Update the modal's content.
             var modalTitle = addSubTaskModal.querySelector('.modal-title')
+            var closeBtn = addSubTaskModal.querySelector('.modal-footer #closeButton')
             var hiddenRequiredInput = addSubTaskModal.querySelector('.modal-body #requiredfor')
 
             var datalist = addSubTaskModal.querySelector('#datalistOptions');
@@ -885,6 +926,16 @@
                 } else {
                     sendBtn.setAttribute('disabled', true);
                 }
+            });
+
+            sendBtn.addEventListener('click', () => {
+                if (requiredID==0){
+                    var newDepencyTask = document.querySelector('#newDepencyTask');
+                    newDepencyTask.innerHTML = '';
+                    newDepencyTask.setAttribute('href', "#"+subtaskSelected.textContent);
+                    populateDepencies();
+                }
+                closeBtn.click();
             });
         })
 
