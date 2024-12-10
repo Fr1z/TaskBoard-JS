@@ -5,7 +5,7 @@
     <script src="/js/color-modes.js"></script>
 
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta id="vp" name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Dashboard things to do">
     <meta name="author" content="Frax">
 
@@ -165,6 +165,15 @@
 
     </style>
 
+    <!--Fix min witdth for small devices-->
+    <script>
+    window.onload = function() {
+        if (screen.width < 540) {
+            var mvp = document.getElementById('vp');
+            mvp.setAttribute('content','user-scalable=no,width=540');
+        }
+    }
+    </script>
 
     <script src="/js/jquery-3.7.1.js"></script>
     <script src="/js/jquery-ui.js"></script>
@@ -695,7 +704,6 @@
 
 
     <main class="container">
-
         <div class="row">
             <nav class="navbar navbar-expand-lg navbar-light bg-primary rounded mt-1 p-3">
                 <div class="col">
@@ -708,28 +716,27 @@
                 </div>
 
                 <div class="col">
-                    <div class="collapse navbar-collapse navbarToggler" id="navbarToggler1">
-                        <div class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
+                    <div class="navbarToggler justify-content-center" id="navbarToggler1">
+                        <div class="navbar-nav">
                             <div class="btn-group fs-4" role="group" aria-label="toggle button group">
                                 <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off">
-                                <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed"><i class="bx bx-star bx-sm"></i>&nbspStarred</label>
+                                <label class="btn btn btn-primary border border-light rounded-left nav-link text-white" for="failed"><i class="bx bx-star bx-sm"></i>&nbspStarred</label>
 
                                 <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" checked>
-                                <label class="btn btn-primary border-primary-subtle nav-link text-white" for="todos">Da fare</label>
+                                <label class="btn btn-primary border border-light border-left-0 border-right-0 nav-link text-white" for="todos">Da fare</label>
                             
                                 <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off">
-                                <label class="btn btn-primary border-primary-subtle nav-link  text-white" for="completed">Completati</label>
+                                <label class="btn btn-primary border border-light rounded-right nav-link text-white" for="completed">Completati</label>
                             
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col">
-                    <div class="collapse navbar-collapse navbarToggler justify-content-end subgrid" id="navbarToggler2">
-                        <div class="col">
+                    <div class="navbarToggler justify-content-end subgrid" id="navbarToggler2">
+                        <div class="col input-group">
                             <input id="mysearch" class="form-control shadow-sm" type="search" placeholder="Search" aria-label="Search" style="border: 0; min-width: 0px!important;">
                         
-                        <div class="col-auto input-group">
                             <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="visually-hidden">Toggle Dropdown</span>
                             </button>
@@ -746,10 +753,6 @@
                     </div>
                 </div>
                 
-                <button class="row col-auto navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbarToggler" aria-controls="navbarToggler1 navbarToggler2" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
             </nav>
         </div>
 
@@ -759,16 +762,16 @@
             <div class="row mb-3 mt-4 py-3 border-bottom shadow-sm">
                 <div class="row m-0">
                     <div class="col" data-bs-toggle="collapse" href="#collapseEditor" role="button" aria-expanded="false" aria-controls="collapseEditor">
-                        <button type="button" class="btn btn-lg btn-outline-primary" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
+                        <button type="button" class="btn btn-lg btn-outline-primary text-nowrap" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
                         &ensp;Add Task <i class='bx bx-fw bx-add-to-queue bx-sm' ></i>
                         </button>
                     </div>
                     <div class="col">
-                        <h3 class="text-primary fw-bold text-center">Da Fare</h3>
+                        <h3 class="text-primary fw-bold text-center text-nowrap">Da Fare</h3>
                     </div>
 
                     <div class="col d-flex justify-content-end">
-                        <button type="button" class="btn btn-lg btn-outline-warning" onclick="new bootstrap.Toast($('#toastSuccess')).show();">
+                        <button type="button" class="btn btn-lg btn-outline-warning text-nowrap" id="saveBtn" onclick="new bootstrap.Toast($('#toastSuccess')).show();">
                             &ensp;Save&ensp;<i class='bx bx-fw bxs-save bx-sm'></i>
                     </button>
                     </div>
@@ -819,7 +822,7 @@
                                         <a id="newDepencyTask" class="depency alert z-0 m-0 p-0" href="#">Nessuno</a>
                                     </p>
 
-                                    <button class="btn btn-outline-primary p-2 m-2" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="New Task" data-bs-requiredforID="0">
+                                    <button class="btn btn-outline-primary p-2 m-2 text-nowrap" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="New Task" data-bs-requiredforID="0">
                                         <i class="bx bx-plus-circle bx-sm"></i>
                                     </button> 
                                 </div>
@@ -914,8 +917,25 @@
         </div>
     </main>
 
+    <!-- CTRL+S catch event-->
+    <script>
+    document.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 's') {
+          // Prevent the Save dialog to open
+          e.preventDefault();
+          // Place your code here
+          console.log('CTRL + S');
+          document.querySelector('#saveBtn').click(); 
+        }
+      });
+</script>
+
     <script src="/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 
+    <blockquote class="blockquote text-center footer mt-5" id="justafooter">
+        <p class="mb-1"><em>"I have to re-invent this wheel"</em></p>
+        <footer class="blockquote-footer">A developer just before <cite title="mindlost">falling to insanity</cite></footer>
+    </blockquote>
 
     <!-- TOASTS -->
     <style>
@@ -936,7 +956,7 @@
                 </div>
                 <div class="d-flex justify-content-between w-100">
                   <div>
-                    <p class="text-white fw-bold mb-0 pt-1">Hello, This page has been loaded!</p> 
+                    <p class="text-white fw-bold mb-0 pt-1">Hello, The page has been saved!</p> 
                   </div>     
                   <div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
@@ -1086,7 +1106,7 @@
 
             sendBtn.addEventListener('click', () => {
                 if (requiredID==0){
-                    var newDepencyTask = document.querySelector('#newDepencyTask');
+                    var newDepencyTask = document.querySelector('#newDepencyTask'); 
                     newDepencyTask.innerHTML = '';
                     newDepencyTask.setAttribute('href', "#"+subtaskSelected.textContent);
                     populateDepencies();
@@ -1096,6 +1116,7 @@
         })
 
     </script>
+
 </body>
 
 </html>
