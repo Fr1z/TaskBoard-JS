@@ -17,9 +17,11 @@
     <title>OffTasks Dashboard</title>
 
     <!-- TODO: ter search bug re-appeared -->
-    <!-- TODO: topics/categories js colored pills-->
+    <!-- TODO: STAR toggle color -->
+    <!-- TODO: replace contenteditables with inputs / mobile keyboard doesnt work-->
+    <!-- TODO: Modals: settings modal (server + secret + lang) -->
     <!-- TODO: decent centered and responsive grid layout (progress, check navbar)-->
-
+    <!-- TODO: for mobile resolution hide even progress categories and star, let show with expander-->
 
     <link href="/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
@@ -253,10 +255,10 @@
                                                     <button class="btn btn-primary w-100 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Complete task">Completa</button>
                                                 </div>
                                                 <div class="row border p-0">
-                                                    <div class="mt-1 font-lighter categories position-relative start-0 bottom-0 col-auto">
+                                                    <div class="m-0 font-lighter categories position-relative start-0 bottom-0 col-auto">
                                                         ${item.categories}
                                                     </div>
-                                                    <input id="addcategory" class="p-0 px-3 bg-body-tertiary text-center" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value=""">
+                                                    <input class="p-0 px-3 bg-body-tertiary text-center addcategory" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value=""">
                                                     <div class="col-auto"></div>
                                                 </div>
                                                 <div class="row border p-0 collapse">
@@ -277,7 +279,7 @@
                                                     <button class="btn btn-outline-primary p-2 m-2 expand-toggler" aria-label="Toggle details" style="max-width: max-content;">
                                                         <i class="bx bx-chevron-down bx-sm expand-toggler"></i>
                                                     </button>
-                                                    <button class="btn btn-outline-danger p-2 m-2 collapse" aria-label="Trash" style="max-width: max-content;">
+                                                    <button class="btn btn-outline-danger p-2 m-2 collapse" aria-label="Trash" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-deleteName="${item.title}" data-bs-deleteID="${item.LUID}">
                                                         <i class="bx bxs-trash bx-sm" ></i>
                                                     </button>
                                                     <button class="btn btn-outline-primary p-2 m-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.title}" data-bs-requiredforID="${item.LUID}">
@@ -299,6 +301,8 @@
                     //Activate functions for dynamic elements
                     populateDepencies();
                     translateDatePickers();
+                    colorAllTopicsBadges();
+                    insertNewTopic();
                 }).then(enableSearch()).then(enableDynamicActions())
                 .catch(error => console.error('Error loading JSON:', error));
 
@@ -330,6 +334,84 @@
         
         }
 
+        function colorAllTopicsBadges(){
+            document.querySelectorAll('.categories').forEach(categoryElement => { colorTopicsBadges(categoryElement)});
+        }
+        function colorTopicsBadges(categoryElement){
+            
+                categoryElement = $(categoryElement); //JQuerize element
+                let elementHtml = categoryElement.html();
+                //exit if empty
+                if (elementHtml.length < 1) return;
+
+                let textContent = '';
+                // Trova l'ultima occorrenza di </span> se presente
+                const lastSpanIndex = elementHtml.lastIndexOf('</span>');
+
+                if (lastSpanIndex === -1) {
+                    //è tutto contenuto testuale da processare
+                    elementHtml = '';
+                    textContent = categoryElement.text().trim();
+                }else{
+                    // Divide il contenuto in due parti
+                    textContent = elementHtml.substring(lastSpanIndex + 7).trim(); // Dopo </span>
+                    elementHtml = elementHtml.substring(0, lastSpanIndex + 7); // Include </span>
+                }
+
+                //se non c'è abbastanza contenuto esci dalla funzione
+                if (textContent.length < 1) return;
+
+                // Dividi il contenuto in un array di parole separate da virgole
+                const words = textContent.split(',').map(word => word.trim());
+
+                // Genera il contenuto modificato
+                const modifiedContent = words.map(word => {
+                    let hashNum = 0;
+                    
+                    for (let i = 0; i < word.length; i++) {
+                        hashNum += word.toLocaleUpperCase().charCodeAt(i);
+                    }
+                    hashNum = hashNum % 7;
+                    let hashBack = 'bg-primary';
+                    switch (hashNum) {
+                        case 0:
+                            hashBack = 'bg-primary';
+                            break;
+                        case 1:
+                            hashBack = 'bg-secondary';
+                            break;
+                        case 2:
+                            hashBack = 'bg-success';
+                            break;
+                        case 3:
+                            hashBack = 'bg-warning text-dark';
+                            break;
+                        case 4:
+                            hashBack = 'bg-info text-dark';
+                            break;
+                        case 5:
+                            hashBack = 'bg-light text-dark';
+                            break;
+                        case 6:
+                            hashBack = 'bg-dark';
+                            break;
+                        default:
+                            hashBack = 'bg-primary';
+                        }
+
+                    return `<span role="alert" class="alert z-0 badge rounded-pill bg-primary m-0 p-1 text-white ${hashBack}">
+                        ${word}
+                        <button type="button" class="m-0 p-0 bg-transparent border-0 text-white" data-bs-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                        </button> 
+                        </span>`;
+                }).join(' ');
+
+                // Sostituisci il contenuto originale con il nuovo contenuto
+                categoryElement.html(elementHtml + modifiedContent);
+            return;
+        }
+
         function populateDepencies(){
             //set not more editable all the dbclick-editable
             document.querySelectorAll('.depency').forEach(depencyElement => {
@@ -343,6 +425,26 @@
                     depencyElement.innerHTML = title.textContent.trim();
                 }
             });
+
+        }
+
+        function insertNewTopic(){
+            //Event on ENTER on '+ Add Category'
+            $('input.addcategory').keypress(function (e) {
+                var key = e.which;
+                if(key == 13)  // the enter key code
+                {
+                    var inputElement = e.target
+                    var reletedCategories = $(inputElement).parent().find('.categories')
+                    var new_topic = $(inputElement).val().trim()
+                    if (new_topic.length > 0) {
+                        reletedCategories.append(' '+new_topic)
+                        colorTopicsBadges(reletedCategories)
+                        $(inputElement).val("")
+                    }
+                    return false;  
+                }
+            });   
 
         }
 
@@ -610,7 +712,7 @@
                         <div class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
                             <div class="btn-group fs-4" role="group" aria-label="toggle button group">
                                 <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off">
-                                <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed">Starred</label>
+                                <label class="btn btn btn-primary border-primary-subtle nav-link text-white" for="failed"><i class="bx bx-star bx-sm"></i>&nbspStarred</label>
 
                                 <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" checked>
                                 <label class="btn btn-primary border-primary-subtle nav-link text-white" for="todos">Da fare</label>
@@ -624,11 +726,10 @@
                 </div>
                 <div class="col">
                     <div class="collapse navbar-collapse navbarToggler justify-content-end subgrid" id="navbarToggler2">
-                        <div class="col-6"></div>
-                        <div class="col-6">
+                        <div class="col">
                             <input id="mysearch" class="form-control shadow-sm" type="search" placeholder="Search" aria-label="Search" style="border: 0; min-width: 0px!important;">
-                        </div>
-                        <div class="col-auto">
+                        
+                        <div class="col-auto input-group">
                             <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 <span class="visually-hidden">Toggle Dropdown</span>
                             </button>
@@ -639,6 +740,7 @@
                                 <li><a class="dropdown-item text-white" href="#">Export Tasks</a></li>
                                 <li><a class="dropdown-item text-white" href="#">About this</a></li>
                             </ul>
+                        </div>
                     </div>
                        
                     </div>
@@ -709,8 +811,14 @@
                             </div>
                             <div class="row mt-3">
                                 <div class="col">
-                                    <div class="input-group mb-3 font-light ">
-                                    <p class="mt-3 font-light">Dipende da: <a id="newDepencyTask" class="depency" href="">Nessuno</a></p>
+                                    <div class="input-group mb-3 font-light border">
+                                    <p class="mt-3 font-light">SubTask per: 
+                                        <button type="button" class="m-0 p-0 bg-transparent border-0 text-body-secondary text-end" aria-label="Close" onClick="$('#newDepencyTask').attr('href', '#').text('Nessuno');">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <a id="newDepencyTask" class="depency alert z-0 m-0 p-0" href="#">Nessuno</a>
+                                    </p>
+
                                     <button class="btn btn-outline-primary p-2 m-2" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="New Task" data-bs-requiredforID="0">
                                         <i class="bx bx-plus-circle bx-sm"></i>
                                     </button> 
@@ -840,43 +948,91 @@
     </div>
 
     <!-- MODALS -->
-
-    <!-- Vertically centered modal -->
-    <div class="modal fade" id="addSubTaskModal" tabindex="-1" aria-labelledby="addSubTaskModalLabel" aria-hidden="true">
+        <!-- SubTask Selector modal -->
+        <div class="modal fade" id="addSubTaskModal" tabindex="-1" aria-labelledby="addSubTaskModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="addSubTaskModalLabel">New subTask</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <form>
+                      <div class="mb-3">
+                        <label for="exampleDataList" class="form-label">SubTask</label>
+                        <input class="form-control" list="datalistOptions" id="exampleDataList" placeholder="Type to search...">
+                        <datalist id="datalistOptions">
+                        </datalist>
+                      </div>
+                      <p class="mt-3">Subtask selezionato: <span id="selectedTask">Nessuno</span></p>
+                      <input class="form-control" id="requiredfor" type="hidden" aria-label="hide input" readonly value="">
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="closeButton" data-bs-dismiss="modal">Close</button>
+                    <button type="button" id="sendButton" class="btn btn-primary" disabled>Add SubTask</button>
+                  </div>
+                </div>
+              </div>
+        </div>
+  
+        
+    <!-- SubTask Selector modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="addSubTaskModalLabel">New subTask</h5>
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Vuoi davvero eliminare?</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
                 <form>
                   <div class="mb-3">
-                    <label for="exampleDataList" class="form-label">SubTask</label>
-                    <input class="form-control" list="datalistOptions" id="exampleDataList" placeholder="Type to search...">
-                    <datalist id="datalistOptions">
-                    </datalist>
-                  </div>
-                  <p class="mt-3">Subtask selezionato: <span id="selectedTask">Nessuno</span></p>
-                  <input class="form-control" id="requiredfor" type="hidden" aria-label="hide input" readonly value="">
+                    Do you really want to delete these records? This process cannot be undone.</p>
+                  <input class="form-control" id="deleteditemID" type="hidden" aria-label="hide input" readonly value="">
                 </form>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="closeButton" data-bs-dismiss="modal">Close</button>
-                <button type="button" id="sendButton" class="btn btn-primary" disabled>Add SubTask</button>
+                <button type="button" class="btn btn-danger" id="sendButton" data-bs-dismiss="modal">Elimina</button>
+                <button type="button" class="btn btn-info" data-bs-dismiss="modal">Ignora</button>
               </div>
             </div>
           </div>
     </div>
-  
+
+
     <script>
-        var addSubTaskModal = document.getElementById('addSubTaskModal')
+        var addSubTaskModal = document.getElementById('addSubTaskModal');
+        var confirmDeleteModal = document.getElementById('confirmDeleteModal');
+        confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
+            
+            // Button that triggered the modal
+            var button = event.relatedTarget
+            
+            // Extract info from data-bs-* attributes
+            var deleteID = button.getAttribute('data-bs-deleteID')
+            var deleteName = button.getAttribute('data-bs-deleteName')
+            var modalTitle = confirmDeleteModal.querySelector('.modal-title')
+            var hiddenInput = confirmDeleteModal.querySelector('.modal-body #deleteditemID')
+            var deleteBtn = confirmDeleteModal.querySelector('.modal-footer #sendButton');
+
+            modalTitle.textContent = 'Vuoi davvero eliminare ' + deleteName + ' ?'
+            hiddenInput.value = deleteID
+
+            deleteBtn.addEventListener('click', () => {
+                if (hiddenInput!=='undefined'){
+                    console.log("elimina " + hiddenInput.value);
+                }
+            });
+        });
+
         addSubTaskModal.addEventListener('show.bs.modal', function (event) {
+            
             // Button that triggered the modal
             var button = event.relatedTarget
 
             // Extract info from data-bs-* attributes
-            var requiredName= button.getAttribute('data-bs-requiredfor')
+            var requiredName = button.getAttribute('data-bs-requiredfor')
             // Extract info from data-bs-* attributes
             var requiredID = button.getAttribute('data-bs-requiredforID')
             // Update the modal's content.
