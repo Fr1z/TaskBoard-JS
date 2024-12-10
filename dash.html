@@ -20,8 +20,6 @@
     <!-- TODO: STAR toggle color -->
     <!-- TODO: replace contenteditables with inputs / mobile keyboard doesnt work-->
     <!-- TODO: Modals: settings modal (server + secret + lang) -->
-    <!-- TODO: decent centered and responsive grid layout (progress, check navbar)-->
-    <!-- TODO: for mobile resolution hide even progress categories and star, let show with expander-->
 
     <link href="/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 
@@ -132,16 +130,12 @@
             font-weight: bold;
             height: 2em;
             overflow: hidden;
-            white-space: nowrap;
-            overflow: hidden; 
             text-overflow: ellipsis;
             line-clamp: 1;
             -webkit-line-clamp: 1;
         }
         .desc{
             height: 3em;
-            overflow: hidden;
-            white-space: nowrap; 
             overflow: hidden;
             text-overflow: ellipsis;
             transition: all 0.5s ease; /* Animazione */
@@ -168,9 +162,9 @@
     <!--Fix min witdth for small devices-->
     <script>
     window.onload = function() {
-        if (screen.width < 540) {
+        if (screen.width < 550) {
             var mvp = document.getElementById('vp');
-            mvp.setAttribute('content','user-scalable=no,width=540');
+            mvp.setAttribute('content','user-scalable=no,width=550');
         }
     }
     </script>
@@ -224,24 +218,24 @@
 
 
                         rows += `
-                        <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${index_id}">
-                            <div class="row">
+                        <div class="container mt-3 text-body-secondary myitem border w-100" data-value="${index_id}">
+                            <div class="row flex-nowrap">
 
                                 <!-- Grab Item -->
-                                <div class="col-auto mh-100 bd-placeholder grab">
+                                <div class="col-auto mh-100 bd-placeholder grab"  style="width: 32px;">
                                     <i class="bx bx-menu bx-sm opacity-50 position-relative top-50 start-50 translate-middle"></i>
                                 </div>
 
 
                                 <!-- Main Content -->
-                                <div class="col-9">
+                                <div class="flex-grow-1" style="flex-basis: 0;">
                                     <div class="content justify-content-between">
                                         <!-- Task Description -->
-                                        <div class="row row-cols-3" style="max-height: 1.2em;">
-                                            <div class="col-6 title dbclick-editable">${item.title}</div>
-                                            <div class="col-3"></div>
-                                            <div class="col-3" style="max-height: 1em;">
-                                                <div class="input-group date d-flex flex-nowrap">
+                                        <div class="row g-0" style="max-height: 1.2em;">
+                                            <div class="col-8 col-sm-8 col-md-7 col-lg-6 title dbclick-editable flex-nowrap">${item.title}</div>
+                                            <div class="col-1 col-sm-1 col-md-2 col-lg-3 flex-nowrap"></div>
+                                            <div class="col-3 col-sm-3 col-md-3 col-lg-3 flex-nowrap" style="max-height: 1em;">
+                                                <div class="input-group date d-flex flex-nowrap justify-content-end">
                                                     <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-body-tertiary float-end text-end" value="${item.expireDate}" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
                                                     <span class="input-group-text" style="border: 0;">
                                                         <i class="bx bx-calendar opacity-50 datapickertoggler" role="button"></i>
@@ -255,22 +249,26 @@
                                     </div>
                                 </div>
 
-                                <div class="col">
-                                    <div class="row row-cols-2">
-                                        <div class="col-lg-9 col-md-8 col-sm-6">
-                                            <div class="row justify-content-center">
-                                                <div class="position-relative" style="max-width: min-content;">
-                                                    <button class="btn btn-secondary w-100 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Add progress" ${disabledProgress}>${progress}</button>
-                                                    <button class="btn btn-primary w-100 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Complete task">Completa</button>
+                                <div class="col" style="flex-basis: 0; max-width: min-content;">
+                                    <div class="row flex-wrap">
+                                        <div class="col collapse">
+                                            <div class="row mt-2 justify-content-center">
+                                                <div class="row mb-2" >
+                                                    <div class="col m-0 px-1">
+                                                        <button class="btn btn-primary w-100 m-0 text-truncate" aria-label="Complete task">Completa</button>
+                                                    </div>
+                                                    <div class="col m-0 px-1">
+                                                        <button class="btn btn-secondary w-100 m-0 text-truncate" aria-label="Add progress" ${disabledProgress}>${progress}</button>
+                                                    </div>
                                                 </div>
-                                                <div class="row border p-0">
-                                                    <div class="m-0 font-lighter categories position-relative start-0 bottom-0 col-auto">
+                                                <div class="row p-0 mb-2">
+                                                    <div class="m-0 mb-1 font-lighter categories col-auto">
                                                         ${item.categories}
                                                     </div>
                                                     <input class="p-0 px-3 bg-body-tertiary text-center addcategory" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value=""">
                                                     <div class="col-auto"></div>
                                                 </div>
-                                                <div class="row border p-0 collapse">
+                                                <div class="row p-0 mb-2">
                                                     <div class="mt-2 ${hideDepencies}">
                                                         <span><b>Depends on:</b>&ensp;${depenciesHTML}</span> 
                                                     </div>
@@ -278,24 +276,22 @@
                                             </div>
                                         </div>
                                         <!-- Toggler Expander -->
-                                        <div class="col-lg-3 col-md-4 col-sm-6">
-                                            <div class="subgrid">
+                                        <div class="col">
+                                            <div class="d-flex flex-row-reverse">
                                                 <!-- Delete, Expand actions -->
-                                                <div class="row">
-                                                    <button class="btn btn-outline-warning p-2 m-2" aria-label="Star" style="max-width: max-content;">
-                                                        <i class='bx bx${starred}-star bx-sm' ></i>
-                                                    </button>
-                                                    <button class="btn btn-outline-primary p-2 m-2 expand-toggler" aria-label="Toggle details" style="max-width: max-content;">
+                                                    <button class="btn btn-outline-primary p-2 m-2 expand-toggler" aria-label="Toggle details" style="max-width: max-content;" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
                                                         <i class="bx bx-chevron-down bx-sm expand-toggler"></i>
                                                     </button>
-                                                    <button class="btn btn-outline-danger p-2 m-2 collapse" aria-label="Trash" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-deleteName="${item.title}" data-bs-deleteID="${item.LUID}">
-                                                        <i class="bx bxs-trash bx-sm" ></i>
+                                                    <button class="btn btn-outline-warning p-2 m-2 collapse" aria-label="Star" style="max-width: max-content;">
+                                                        <i class='bx bx${starred}-star bx-sm' ></i>
                                                     </button>
                                                     <button class="btn btn-outline-primary p-2 m-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.title}" data-bs-requiredforID="${item.LUID}">
                                                         <i class='bx bx-plus-circle bx-sm ' ></i>
                                                     </button>
-                                                    
-                                                </div>
+                                                    <button class="btn btn-outline-danger p-2 m-2 collapse" aria-label="Trash" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-deleteName="${item.title}" data-bs-deleteID="${item.LUID}">
+                                                        <i class="bx bxs-trash bx-sm" ></i>
+                                                    </button>
+
                                             </div>
                                         </div>
                                     </div>
@@ -733,23 +729,28 @@
                     </div>
                 </div>
                 <div class="col">
-                    <div class="navbarToggler justify-content-end subgrid" id="navbarToggler2">
-                        <div class="col input-group">
-                            <input id="mysearch" class="form-control shadow-sm" type="search" placeholder="Search" aria-label="Search" style="border: 0; min-width: 0px!important;">
-                        
-                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="visually-hidden">Toggle Dropdown</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end bg-secondary">
-                                <li><a class="dropdown-item text-white" href="#">Settings</a></li>
-                                <li><hr class="dropdown-divider bg-white"></li>
-                                <li><a class="dropdown-item text-white" href="#">Import Tasks</a></li>
-                                <li><a class="dropdown-item text-white" href="#">Export Tasks</a></li>
-                                <li><a class="dropdown-item text-white" href="#">About this</a></li>
-                            </ul>
+                    <div class="row m-0 py-2">
+                        <div class="col-1 col-sm-1 col-md-2 col-lg-3"></div>
+                        <div class="col-11 col-sm-11 col-md-10 col-lg-9">
+                            <div class="navbarToggler justify-content-end subgrid" id="navbarToggler2">
+                                <div class="col input-group">
+                                    <input id="mysearch" class="form-control shadow-sm" type="search" placeholder="Search" aria-label="Search" style="border: 0; min-width: 0px!important;">
+                                
+                                    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span class="visually-hidden">Toggle Dropdown</span>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end bg-secondary">
+                                        <li><a class="dropdown-item text-white" href="#">Settings</a></li>
+                                        <li><hr class="dropdown-divider bg-white"></li>
+                                        <li><a class="dropdown-item text-white" href="#">Import Tasks</a></li>
+                                        <li><a class="dropdown-item text-white" href="#">Export Tasks</a></li>
+                                        <li><a class="dropdown-item text-white" href="#">About this</a></li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                       
+                        
                     </div>
                 </div>
                 
@@ -760,7 +761,7 @@
         <div class="container rounded shadow">
             
             <div class="row mb-3 mt-4 py-3 border-bottom shadow-sm">
-                <div class="row m-0">
+                <div class="row m-0 flex-nowrap">
                     <div class="col" data-bs-toggle="collapse" href="#collapseEditor" role="button" aria-expanded="false" aria-controls="collapseEditor">
                         <button type="button" class="btn btn-lg btn-outline-primary text-nowrap" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
                         &ensp;Add Task <i class='bx bx-fw bx-add-to-queue bx-sm' ></i>
@@ -814,7 +815,7 @@
                             </div>
                             <div class="row mt-3">
                                 <div class="col">
-                                    <div class="input-group mb-3 font-light border">
+                                    <div class="input-group mb-3 font-light">
                                     <p class="mt-3 font-light">SubTask per: 
                                         <button type="button" class="m-0 p-0 bg-transparent border-0 text-body-secondary text-end" aria-label="Close" onClick="$('#newDepencyTask').attr('href', '#').text('Nessuno');">
                                             <span aria-hidden="true">&times;</span>
