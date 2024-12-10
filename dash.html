@@ -395,7 +395,7 @@
                             hashBack = 'bg-info text-dark';
                             break;
                         case 5:
-                            hashBack = 'bg-light text-dark';
+                            hashBack = 'bg-success';
                             break;
                         case 6:
                             hashBack = 'bg-dark';
@@ -450,6 +450,21 @@
                     return false;  
                 }
             });   
+            $('input#newtopic').keypress(function (e) {
+                var key = e.which;
+                if(key == 13)  // the enter key code
+                {
+                    var inputElement = e.target
+                    var reletedCategories = $(inputElement).parent().find('#topics')
+                    var new_topic = $(inputElement).val().trim()
+                    if (new_topic.length > 0) {
+                        reletedCategories.append(' '+new_topic)
+                        colorTopicsBadges(reletedCategories)
+                        $(inputElement).val("")
+                    }
+                    return false;  
+                }
+            });
 
         }
 
@@ -784,7 +799,7 @@
                     <div class="col p-0">
                         <div class="content justify-content-between" style="color: var(--bs-gray)">
                             <!-- Task Description -->
-                            <div class="row row-cols-3">
+                            <div class="row row-cols-3 flex-nowrap">
                                 <div class="col-6">
                                     <div class="input-group mb-3">
                                         <span class="input-group-text fw-light" id="new_title">Title</span>
@@ -793,11 +808,11 @@
                                 </div>
                                 <div class="col-3">
                                     <div class="input-group mb-3 font-light ">
-                                    <input type="text" class="form-control" placeholder="Categories" aria-label="Categories" aria-describedby="topics">
-                                    <span class="input-group-text" id="topics"></span>
+                                    <input type="text" class="form-control" placeholder="+ Topic" id="newtopic" aria-label="Categories" aria-describedby="topics">
+                                    <span class="input-group-text" id="topics" style="overflow-x: scroll;min-width: 3em;"></span>
                                   </div>
                                 </div>
-                                <div class="col-3 ">
+                                <div class="col-3">
                                     <div class="input-group date d-flex flex-nowrap">
                                         <input type="text" class="form-control fw-light pe-none text-body-secondary bg-body-tertiary float-end text-end" value="" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
                                         <span class="input-group-text datapickertoggler" style="border: 0;">
