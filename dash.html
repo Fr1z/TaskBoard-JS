@@ -16,7 +16,7 @@
 
     <title>OffTasks Dashboard</title>
 
-    <!-- TODO: ter search bug re-appeared -->
+    <!-- TODO: ter search bug re-appeared (restore original div because of intermediate results or clean 'search' spans)-->
     <!-- TODO: STAR toggle color -->
     <!-- TODO: replace contenteditables with inputs / mobile keyboard doesnt work-->
     <!-- TODO: Modals: settings modal (server + secret + lang) -->
@@ -135,7 +135,8 @@
             -webkit-line-clamp: 1;
         }
         .desc{
-            height: 3em;
+            height: 2em;
+            resize: none;
             overflow: hidden;
             text-overflow: ellipsis;
             transition: all 0.5s ease; /* Animazione */
@@ -143,6 +144,7 @@
         .desc.expanded {
             max-height: max-content; /* Espansione massima */
             height: 12em;
+            resize: vertical;
             border: 1px solid rgb(168, 168, 168);
             transition: all 0.5s ease; /* Animazione */
         }
@@ -218,9 +220,8 @@
 
 
                         rows += `
-                        <div class="container mt-3 text-body-secondary myitem border w-100" data-value="${index_id}">
+                        <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${index_id}">
                             <div class="row flex-nowrap">
-
                                 <!-- Grab Item -->
                                 <div class="col-auto mh-100 bd-placeholder grab"  style="width: 32px;">
                                     <i class="bx bx-menu bx-sm opacity-50 position-relative top-50 start-50 translate-middle"></i>
@@ -232,7 +233,9 @@
                                     <div class="content justify-content-between">
                                         <!-- Task Description -->
                                         <div class="row g-0" style="max-height: 1.2em;">
-                                            <div class="col-8 col-sm-8 col-md-7 col-lg-6 title dbclick-editable flex-nowrap">${item.title}</div>
+                                            <div class="col-8 col-sm-8 col-md-7 col-lg-6 flex-nowrap">
+                                                <input type="text" class="form-control title bg-transparent border-0 px-1 opacity-75" placeholder="Titolo" aria-label="Title of task" value="${item.title}">
+                                            </div>
                                             <div class="col-1 col-sm-1 col-md-2 col-lg-3 flex-nowrap"></div>
                                             <div class="col-3 col-sm-3 col-md-3 col-lg-3 flex-nowrap" style="max-height: 1em;">
                                                 <div class="input-group date d-flex flex-nowrap justify-content-end">
@@ -245,7 +248,9 @@
                                         </div>
 
                                         <div class="divider"></div>
-                                        <div class="desc text-break p-1 dbclick-editable">${item.description}<br/></div>
+                                        
+                                        <textarea class="form-control bg-transparent border-0 text-break p-1 desc" aria-label="Description" rows="1">${item.description}</textarea>
+                                        
                                     </div>
                                 </div>
 
@@ -308,7 +313,9 @@
                     translateDatePickers();
                     colorAllTopicsBadges();
                     insertNewTopic();
-                }).then(enableSearch()).then(enableDynamicActions())
+                    enableDynamicActions();
+                    console.log("data loaded");
+                }).then(enableSearch()).then(console.log("wainting for json.."))
                 .catch(error => console.error('Error loading JSON:', error));
 
         });
@@ -468,139 +475,82 @@
 
         }
 
-        function removeEditableAndCollapse(){
+        function collapseAllItems(){
             //set not more editable all the dbclick-editable
-            document.querySelectorAll('.dbclick-editable').forEach(editableElement => {
+            document.querySelectorAll('.desc').forEach(textareaElement => {
 
-            if (editableElement.hasAttribute('contentEditable')) {
-                editableElement.setAttribute('contentEditable', false);
-                editableElement.scrollTop = 0;
-
-                //collapse expanded desc
-                if (editableElement.classList.contains("expanded")){
-                    editableElement.classList.remove('expanded');
-
+                if (textareaElement.classList.contains("expanded")){
+                    //collapse expanded desc
+                    $(textareaElement).closest('.myitem').find('button.expand-toggler').click();
+                    textareaElement.scrollTop = 0;
                 }
-
-                //if desc, de-flip expanded icon 
-                if ($(editableElement).hasClass('desc')){
-                    $(editableElement).closest('.myitem').find('.bx-chevron-down').removeClass('bx-flip-vertical');
-                    $(editableElement).closest('.myitem').find('.collapse').removeClass('showed');
-                }
-            }
             });
-
         }
 
         function enableDynamicActions() {
-            $(window).click(function (event) {
-                var target = event.target;
-                //check if element is editable
-                if (target.classList.contains("dbclick-editable")) {
-                    removeEditableAndCollapse();
-                    //expand editable desc and flip it's icon
-                    if (target.classList.contains("desc") && !$(target).hasClass("expanded") ) {
-                        $(target).addClass('expanded');
-                        $(target).closest('.myitem').find('.bx-chevron-down').addClass('bx-flip-vertical');
-                        $(target).closest('.myitem').find('.collapse').addClass('showed');
-                    }
-                    //then enable edit 
-                    target.setAttribute('contentEditable', true);
-                } else {
-
-                    //HERE all the activable javascript function on dynamic elements in the DOM
-
-                    //Datepicker toggler
-                    if (target.classList.contains("datapickertoggler")) {
-                        // Trova il nodo padre (div con classe 'input-group') e l'input di testo all'interno
-                        const input = $(target).closest('.input-group').find('input[type="text"]');
-                        if (input.length) {
-                            // Verifica se il Datepicker è inizializzato
-                            if (!input.data('datepicker')) {
-                                // Inizializza il Datepicker se non è già stato inizializzato
-                                input.datepicker({
-                                    autoclose: true,
-                                    format: 'dd/mm/yyyy',
-                                    language: 'it',
-                                    leftArrow: '<i class="bx bxs-left-arrow" ></i>',
-                                    rightArrow: '<i class="bx bxs-right-arrow" ></i>',
-                                    clearBtn: true,
-                                });
-                            }
-                            // Mostra il Datepicker
-                            input.datepicker('show');
-                    
-                        } else {
-                            console.log('No date found');
-                        }
-                    }
-                    //Expander toggler
-                     if (target.classList.contains("expand-toggler")) {
-                        // Trova il nodo padre (div con classe 'input-group') e l'input di testo all'interno
-                        let desc = $(target).closest('.myitem').find('.desc');
-                        let collapsables = $(target).closest('.myitem').find('.collapse');
-                        
-                        if (desc.length) {
-
-                            if ($(target).hasClass('bx')){
-                                //iconclick
-                                $(target).toggleClass("bx-flip-vertical");
-                            }else{
-                                //buttonclick
-                                $(target).find('.bx').toggleClass("bx-flip-vertical");
-                            }
-                            
-                            // Verifica se il Datepicker è inizializzato
-                            $(desc).toggleClass("expanded");
-                            $(collapsables).toggleClass("showed");
-                            
-                        } else {
-                            console.log('No desc found');
-                        }
+            
+            //Expander toggler
+            $('button.expand-toggler').on("click", function (e) {
+                const target = e.target;
+                // Trova il nodo padre (div con classe 'input-group') e l'input di testo all'interno
+                let desc = $(target).closest('.myitem').find('.desc');
+                let collapsables = $(target).closest('.myitem').find('.collapse');
+                
+                if (desc.length) {
+                    //flip icon
+                    if ($(target).hasClass('bx')){
+                        //iconclick
+                        $(target).toggleClass("bx-flip-vertical");
                     }else{
-                        //set not more editable all the dbclick-editable
-                        //removeEditableAndCollapse();
+                        //buttonclick
+                        $(target).find('.bx').toggleClass("bx-flip-vertical");
                     }
-
+                    // Verifica se il Datepicker è inizializzato
+                    $(desc).toggleClass("expanded");
+                    $(collapsables).toggleClass("showed");
+                    
+                } else {
+                    console.log('No desc found');
                 }
-
-                //This will fix line/paragraph breaks in contentEditable
-                $(".dbclick-editable").keydown(function(e){ 
-                    if (e.which == 16 && isLShiftPressed==false) {isLShiftPressed=true;}
-                    if (e.which == 13 && isLShiftPressed==true && canTrigger) {
-
-                        e.preventDefault(); 
-                        // Ottieni la posizione del cursore (selezione corrente)
-                        let selection = window.getSelection();
-                        let range = selection.getRangeAt(0);
-                        
-                        // Crea un <br/> da inserire
-                        let br = document.createElement("br");
-
-                        // Inserisci il <br/> nella posizione del cursore
-                        range.deleteContents();  // Rimuove il contenuto selezionato, se ce n'è
-                        range.insertNode(br);    // Inserisce il <br/> nella posizione attuale del cursore
-
-                        // Mantieni il cursore nella posizione successiva al <br/>
-                        selection.removeAllRanges();
-                        range.setStartAfter(br);
-                        range.setEndAfter(br);
-                        selection.addRange(range);
-                        
-                        canTrigger=false; //wait after release the RETURN key
-                       
-                    }
-                    return e.which != 13; 
-                });
-
-                $(".dbclick-editable").keyup(function(e){
-                    if (e.which == 16 && isLShiftPressed==true) {isLShiftPressed=false;}
-                    if (e.which == 13 && canTrigger==false) {canTrigger=true;}
-                });
-                return;
             });
 
-        
+            //Datepicker toggler
+            $('.datapickertoggler').on("click", function (e) {
+                const target = e.target;
+                // Trova il nodo padre (div con classe 'input-group') e l'input di testo all'interno
+                const input = $(target).closest('.input-group').find('input[type="text"]');
+                if (input.length) {
+                    // Verifica se il Datepicker è inizializzato
+                    if (!input.data('datepicker')) {
+                        // Inizializza il Datepicker se non è già stato inizializzato
+                        input.datepicker({
+                            autoclose: true,
+                            format: 'dd/mm/yyyy',
+                            language: 'it',
+                            leftArrow: '<i class="bx bxs-left-arrow" ></i>',
+                            rightArrow: '<i class="bx bxs-right-arrow" ></i>',
+                            clearBtn: true,
+                        });
+                    }
+                    // Mostra il Datepicker
+                    input.datepicker('show');
+                
+                } else {
+                     console.log('No date found');
+                }
+            });
+
+            //DESC expander
+            $('.desc').on("click", function (e) {
+                const target = e.target;
+                //collapse all items
+                collapseAllItems();
+                //expand selected desc and flip it's icon
+                    if (!$(target).hasClass("expanded") ) {
+                        const togglerBtn = $(target).closest('.myitem').find('button.expand-toggler').click();
+                    }
+            });
+
         }
 
         function enableSearch() {
