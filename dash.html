@@ -16,9 +16,7 @@
 
     <title>OffTasks Dashboard</title>
 
-    <!-- TODO: ter search bug re-appeared (restore original div because of intermediate results or clean 'search' spans)-->
     <!-- TODO: STAR toggle color -->
-    <!-- TODO: replace contenteditables with inputs / mobile keyboard doesnt work-->
     <!-- TODO: Modals: settings modal (server + secret + lang) -->
 
     <link href="/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
@@ -39,19 +37,6 @@
             cursor: grab;
         }
 
-        .dbclick-editable {
-            user-select: text;
-            /* standard syntax */
-            -webkit-user-select: text;
-            /* webkit (safari, chrome) browsers */
-            -moz-user-select: text;
-            /* mozilla browsers */
-            -khtml-user-select: text;
-            /* webkit (konqueror) browsers */
-            -ms-user-select: text;
-            /* IE10+ */
-            cursor: pointer;
-        }
     </style>
 
     <style>
@@ -60,55 +45,10 @@
             display: block!important;
         }
 
-        .bi {
-            vertical-align: -.125em;
-            fill: currentColor;
-        }
-
-        .nav-scroller {
-            position: relative;
-            z-index: 2;
-            height: 2.75rem;
-            overflow-y: hidden;
-        }
-
-        .nav-scroller .nav {
-            padding-bottom: 1rem;
-            margin-top: -1px;
-            overflow-x: auto;
-            text-align: center;
-            white-space: nowrap;
-            -webkit-overflow-scrolling: touch;
-        }
         .navbar-nav .btn {
             min-width: 160px;
             min-height: 56px;
         }
-
-        .btn-bd-primary {
-            --bd-violet-bg: #31048B;
-            --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
-            --bs-btn-font-weight: 600;
-            --bs-btn-color: var(--bs-white);
-            --bs-btn-bg: var(--bd-violet-bg);
-            --bs-btn-border-color: var(--bd-violet-bg);
-            --bs-btn-hover-color: var(--bs-white);
-            --bs-btn-hover-bg: #6528e0;
-            --bs-btn-hover-border-color: #6528e0;
-            --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
-            --bs-btn-active-color: var(--bs-btn-hover-color);
-            --bs-btn-active-bg: #5a23c8;
-            --bs-btn-active-border-color: #5a23c8;
-        }
-
-        .bd-mode-toggle {
-            z-index: 1500;
-        }
-
-        .bd-mode-toggle .dropdown-menu .active .bi {
-            display: block !important;
-        }
-
 
         /* Categorie nella parte destra */
         .categories {
@@ -177,9 +117,6 @@
 
 
     <script>
-
-        var isLShiftPressed = false;
-        var canTrigger = true;
 
         document.addEventListener('DOMContentLoaded', function () {
             // Fetch the JSON data
@@ -615,38 +552,38 @@
     </svg>
     
 
-    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
-        <button class="btn btn-bd-primary py-2 dropdown-toggle align-items-center shadow" id="bd-theme" type="button"
+    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3" style="z-index: 1500;">
+        <button class="btn btn-primary py-2 dropdown-toggle align-items-center shadow" id="bd-theme" type="button"
             aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)">
             <div class="theme-icon-active">
                 <use href="#auto"></use>
             </div>
-            <i class="bx bxs-brightness-half bi my-1 bx-sm" ></i>
+            <i class="bx bxs-brightness-half my-1 bx-sm" ></i>
             <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
             <li>
                 <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light"
                     aria-pressed="false">
-                    <i class="bx bx-sun bi me-2 opacity-50 bx-sm"></i>
+                    <i class="bx bx-sun me-2 opacity-50 bx-sm"></i>
                     Light
-                    <i class='bi ms-auto d-none bx bx-check'></i>
+                    <i class='ms-auto d-none bx bx-check'></i>
                 </button>
             </li>
             <li>
                 <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark"
                     aria-pressed="false">
-                    <i class="bx bx-moon bi me-2 opacity-50 bx-sm"></i>
+                    <i class="bx bx-moon me-2 opacity-50 bx-sm"></i>
                     Dark
-                    <i class='bi ms-auto d-none bx bx-check'></i>
+                    <i class='ms-auto d-none bx bx-check'></i>
                 </button>
             </li>
             <li>
                 <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto"
                     aria-pressed="true">
-                    <i class="bx bxs-brightness-half bi me-2 opacity-50 bx-sm"></i>
+                    <i class="bx bxs-brightness-half me-2 opacity-50 bx-sm"></i>
                     Auto
-                    <i class="bi ms-auto d-none bx bx-check"></i>
+                    <i class="ms-auto d-none bx bx-check"></i>
                 </button>
             </li>
         </ul>
@@ -1037,7 +974,7 @@
                 const option = document.createElement('option');
                 var value =  item.getAttribute('data-value'); // Ottieni il valore
                 var title = item.querySelector('.title')
-                var text = title.textContent.trim(); // Testo del titolo senza spazi
+                var text = title.value.trim(); // Testo del titolo senza spazi
                 option.value = text
                 
                 datalist.appendChild(option);
