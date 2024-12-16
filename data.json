@@ -9,7 +9,7 @@
         "progress": 3,
         "lastProgress": "0",
         "expireDate": "",
-        "categories": "logic, math",
+        "categories": "logic,math",
         "depends": "2"
     },
     {
@@ -22,7 +22,7 @@
         "progress": 4,
         "lastProgress": "1732720585556",
         "expireDate": "",
-        "categories": "python, android",
+        "categories": "python,android",
         "depends": ""
     },
     {
@@ -35,7 +35,7 @@
         "progress": 1,
         "lastProgress": "0",
         "expireDate": "25/12/2030",
-        "categories": "python, math",
+        "categories": "python,math",
         "depends": "1,2"
     }
 ]
