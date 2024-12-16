@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="/css/boxicons.min.css">
 
     <style>
-        #sortable {
+        .sortable {
             list-style-type: none;
             margin: 0;
             padding: 0;
@@ -117,17 +117,21 @@
 
 
     <script>
+        let initialData = {};
 
         document.addEventListener('DOMContentLoaded', function () {
             // Fetch the JSON data
             fetch('data.json')
                 .then(response => response.json())
                 .then(data => {
-                    const tableBody = document.querySelector('#sortable');
+                    const tableBody = document.querySelector('.myitems');
                     let rows = '';
 
-                    // Loop through the JSON data and create rows
+                    // Ordina per 'order' in modo decrescente
+                    data.sort((a, b) => b.order - a.order);
+                    initialData = data;
 
+                    // Loop through the JSON data and create rows
                     data.forEach((item, index_id) => {
                         var progress = "+" 
                         if (item.progress>3){
@@ -157,7 +161,7 @@
 
 
                         rows += `
-                        <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${index_id}">
+                        <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${index_id}" order="${item.order}">
                             <div class="row flex-nowrap">
                                 <!-- Grab Item -->
                                 <div class="col-auto mh-100 bd-placeholder grab"  style="width: 32px;">
@@ -258,10 +262,20 @@
         });
 
         $(function () {
-            $("#sortable").sortable({
+            $(".sortable").sortable({
                 cursor: "n-resize",
                 handle: ".bd-placeholder"
             });
+
+            //set the order based from the element bottom, if any, else order 0 -> no fallback update for backend
+            $( ".sortable" ).on( "sortstop", function( event, ui ) {
+                nextOrder = $(ui.item).next('div.container').attr('order');
+                if (nextOrder){
+                    $(ui.item).attr('order', parseInt(nextOrder)+1);
+                }else{
+                    $(ui.item).attr('order', 0);
+                }
+            } );
         });
 
 
@@ -733,8 +747,8 @@
             </div>
 
             
-            <div id="sortable" class="myitems container">
-                <div class="container mt-3 text-body-secondary myitem border-bottom w-100" id="item-${index_id}">
+            <div class="myitems container sortable">
+                <div class="container mt-3 text-body-secondary myitem border-bottom w-100">
                     <div class="row">
 
                         <!-- Grab Item -->
