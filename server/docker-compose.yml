@@ -23,6 +23,6 @@ services:
     ports:
       - "8090:8090"
     command: >
-      sh -c "npm install express helmet && node crudServer.js"
+      sh -c "npm install express helmet mongoose && node crudServer.js"
     depends_on:
       - mongodb
