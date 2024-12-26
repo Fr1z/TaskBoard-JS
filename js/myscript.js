@@ -451,13 +451,13 @@ function enableSearch() {
 
 // Funzione per inviare la richiesta di aggiornamento
 function sendUpdate() {
-
+    
     $('#saveBtn i').removeClass('bxs-save').addClass('bx-loader-circle bx-spin');
     $('#saveBtn').prop('disabled', true);
     const modifiedItems = getModifiedItems();
 
     $.ajax({
-        url: "http://localhost/update",
+        url: serverAddress+"/update",
         method: "POST",
         contentType: "application/json",
         data: JSON.stringify({ modifiedItems }),

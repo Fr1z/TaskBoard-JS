@@ -3,13 +3,58 @@ db = db.getSiblingDB("my_database"); // Nome del database
 // Collezione "users"
 db.createCollection("users");
 db.users.insertMany([
-    { name: "Alice", age: 25, email: "alice@example.com" },
-    { name: "Bob", age: 30, email: "bob@example.com" }
+    {   name: "fra",
+        ID: 1,
+        email: "fra@mail.com",
+        organization: "myOrg",
+        token: "KaP8CC1n0!",
+        session: "",
+        entryDate: "" }
 ]);
 
 // Collezione "orders"
-db.createCollection("orders");
-db.orders.insertMany([
-    { userId: 1, product: "Laptop", quantity: 1, total: 1000 },
-    { userId: 2, product: "Phone", quantity: 2, total: 1200 }
+db.createCollection("tasks");
+db.tasks.insertMany([
+    {
+        owner: 1,
+        LUID: 1,
+        order: 0,
+        title: "Metodologia",
+        star: 0,
+        status: 0,
+        description: "delineare il metodo testparallelo/mastermind, parametri",
+        progress: 3,
+        lastProgress: "0",
+        expireDate: "",
+        categories: "logic,math",
+        depends: "2"
+    },
+    {
+        owner: 1,
+        LUID: 2,
+        order: 1,
+        title: "Termux",
+        star: 1,
+        status: 1,
+        description: "termux with python and camera input.",
+        progress: 4,
+        lastProgress: "1732720585556",
+        expireDate: "",
+        categories: "python,android",
+        depends: ""
+    },
+    {
+        owner: 1,
+        LUID: 3,
+        order: 0,
+        title: "Rafiki",
+        star: 0,
+        status: 0,
+        description: "app disegna numeri geometrici",
+        progress: 1,
+        lastProgress: "0",
+        expireDate: "25/12/2030",
+        categories: "python,math",
+        depends: "1,2"
+    }
 ]);
