@@ -350,21 +350,22 @@ function enableDynamicActions() {
     });
 
     //star toggler
-    $('button.star-toggler, button.star-toggler i').on("click", function (e) {
+    $('button.star-toggler').on("click", function (e) {
         const target = e.target;
+        
         //identifica se ho cliccato l'icona o il bottone        
-        let star = (target.hasAttribute('starred')) ? $(target) : $(target).find('i');
-
+        let star = (target.hasAttribute('starred')) ? $(target) : $(target).find('i.bx');
         //toggle star
-        if ($(star).attr('starred') == '1') {
-            $(star).attr('starred', 0);
-            $(star).addClass("bx-star");
-            $(star).removeClass("bxs-star");
+        if (star.attr('starred') == '1') {
+            star.attr('starred', 0);
+            star.addClass("bx-star");
+            star.removeClass("bxs-star");
         } else {
-            $(star).attr('starred', 1);
-            $(star).addClass("bxs-star");
-            $(star).removeClass("bx-star");
+            star.attr('starred', 1);
+            star.addClass("bxs-star");
+            star.removeClass("bx-star");
         }
+
     });
 
     //Datepicker toggler
