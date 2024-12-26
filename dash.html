@@ -16,7 +16,6 @@
 
     <title>OffTasks Dashboard</title>
 
-    <!-- TODO: STAR toggle color -->
     <!-- TODO: Modals: settings modal (server + secret + lang) -->
 
     <link href="/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
@@ -24,82 +23,9 @@
     <link rel="stylesheet" href="/css/jquery-ui.css">
     <link rel="stylesheet" href="/css/bootstrap-datepicker.min.css">
     <link rel="stylesheet" href="/css/boxicons.min.css">
+    <link rel="stylesheet" href="/css/mystyle.css">
     <script src="SERVER.js" crossorigin="anonymous"></script>
-    <style>
-        .sortable {
-            list-style-type: none;
-            margin: 0;
-            padding: 0;
-        }
 
-        .grab {
-            cursor: -webkit-grab;
-            cursor: grab;
-        }
-
-    </style>
-
-    <style>
-
-        .showed {
-            display: block!important;
-        }
-
-        .navbar-nav .btn {
-            min-width: 160px;
-            min-height: 56px;
-        }
-
-        /* Categorie nella parte destra */
-        .categories {
-            font-size: 0.87rem;
-            /* Puoi regolare la dimensione del testo */
-        }
-
-        .content {
-            padding: 7px;
-            display: block;
-            height: min-content;
-        }
-
-        .container {
-            color: #ffffffe5;
-        }
-
-        .title {
-            font-weight: bold;
-            height: 2em;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-clamp: 1;
-            -webkit-line-clamp: 1;
-        }
-        .desc{
-            height: 2em;
-            resize: none;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transition: all 0.5s ease; /* Animazione */
-        }
-        .desc.expanded {
-            max-height: max-content; /* Espansione massima */
-            height: 12em;
-            resize: vertical;
-            border: 1px solid rgb(168, 168, 168);
-            transition: all 0.5s ease; /* Animazione */
-        }
-        .divider {
-            height: 1px;
-            background-color: #aaa;
-            margin: 7px 0;
-        }
-        .subgrid .col {
-            padding: 7px;
-        }
-
-
-
-    </style>
 
     <!--Fix min witdth for small devices-->
     <script>
@@ -116,9 +42,6 @@
     <script src="/js/bootstrap-datepicker.min.js" crossorigin="anonymous"></script>
     <script src="/js/myscript.js"></script>
 
-
-    <!-- Custom styles for this template -->
-    <!--  <link href="offcanvas-navbar.css" rel="stylesheet" crossorigin="anonymous"> -->
 </head>
 
 <body class="bg-body-tertiary">
@@ -324,70 +247,7 @@
 
             
             <div class="myitems container sortable">
-                <div class="container mt-3 text-body-secondary myitem border-bottom w-100">
-                    <div class="row">
-
-                        <!-- Grab Item -->
-                        <div class="col-auto mh-100 bd-placeholder grab">
-                            <i class="bx bx-menu bx-sm opacity-50 position-relative top-50 start-50 translate-middle"></i>
-                        </div>
-
-
-                        <!-- Main Content -->
-                        <div class="col">
-                            <div class="content justify-content-between">
-                                <!-- Task Description -->
-                                <div class="row row-cols-3">
-                                    <div class="col-6 title dbclick-editable">${item.title}</div>
-                                    <div class="col-3"></div>
-                                    <div class="col-3 ">
-                                        <div class="input-group date d-flex flex-nowrap">
-                                            <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-body-tertiary text-end" value="" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
-                                            <span class="input-group-text" style="border: 0;">
-                                                <i class="bx bx-calendar opacity-50 datapickertoggler" ></i>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="divider"></div>
-                                <div class="desc text-break dbclick-editable">${item.description}<br/></div>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-3 col-md-3 col-sm-3">
-                            <div class="row row-cols-2">
-                                <!-- Subgrid Section -->
-                                <div class="col-lg-9 col-md-8 col-sm-6">
-                                    <div class="row">
-                                        <div class="position-relative">
-                                            <button class="btn btn-secondary w-75 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Add progress">+++</button>
-                                            <button class="btn btn-primary w-75 m-1 position-relative start-50 translate-middle-x text-truncate" aria-label="Complete task">Completa</button>
-                                        </div>
-                                        <div class="mt-2 categories dbclick-editable position-relativestart-0 bottom-0">
-                                            ${item.categories}
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Toggler Expander -->
-                                <div class="col-lg-3 col-md-4 col-sm-6">
-                                    <div class="row">
-                                        <!-- Delete, Expand actions -->
-                                        <div class="col">
-                                            <button class="btn btn-outline-danger p-2 m-2" aria-label="Toggle details">
-                                                <i class="bx bxs-trash bx-sm" ></i>
-                                            </button>
-                                            <button class="btn btn-outline-primary p-2 m-2" aria-label="Toggle details">
-                                                <i class="bx bx-chevron-down bx-sm"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                <!-- DATA WILL BE LOADED HERE -->
             </div>
 
             <small class="d-block text-end mt-3">
@@ -507,103 +367,8 @@
           </div>
     </div>
 
-
-    <script>
-        var addSubTaskModal = document.getElementById('addSubTaskModal');
-        var confirmDeleteModal = document.getElementById('confirmDeleteModal');
-        confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
-            
-            // Button that triggered the modal
-            var button = event.relatedTarget
-            
-            // Extract info from data-bs-* attributes
-            var deleteID = button.getAttribute('data-bs-deleteID')
-            var deleteName = button.getAttribute('data-bs-deleteName')
-            var modalTitle = confirmDeleteModal.querySelector('.modal-title')
-            var hiddenInput = confirmDeleteModal.querySelector('.modal-body #deleteditemID')
-            var deleteBtn = confirmDeleteModal.querySelector('.modal-footer #sendButton');
-
-            modalTitle.textContent = 'Vuoi davvero eliminare ' + deleteName + ' ?'
-            hiddenInput.value = deleteID
-
-            deleteBtn.addEventListener('click', () => {
-                if (hiddenInput!=='undefined'){
-                    console.log("elimina " + hiddenInput.value);
-                }
-            });
-        });
-
-        addSubTaskModal.addEventListener('show.bs.modal', function (event) {
-            
-            // Button that triggered the modal
-            var button = event.relatedTarget
-
-            // Extract info from data-bs-* attributes
-            var requiredName = button.getAttribute('data-bs-requiredfor')
-            // Extract info from data-bs-* attributes
-            var requiredID = button.getAttribute('data-bs-requiredforID')
-            // Update the modal's content.
-            var modalTitle = addSubTaskModal.querySelector('.modal-title')
-            var closeBtn = addSubTaskModal.querySelector('.modal-footer #closeButton')
-            var hiddenRequiredInput = addSubTaskModal.querySelector('.modal-body #requiredfor')
-
-            var datalist = addSubTaskModal.querySelector('#datalistOptions');
-            var datalistElement = addSubTaskModal.querySelector('.modal-body #exampleDataList');
-            var subtaskSelected = addSubTaskModal.querySelector('.modal-body #selectedTask');
-            var items = document.querySelectorAll('.myitem');
-            var sendBtn = addSubTaskModal.querySelector('.modal-footer #sendButton');
-
-            //remplace required data forms
-            modalTitle.textContent = 'Task Required for ' + requiredName
-            hiddenRequiredInput.value = requiredID
-
-            
-
-            // Pulisci il datalist (opzionale, utile se viene rigenerato dinamicamente)
-            datalist.innerHTML = '';
-            // Mappa per tenere traccia di valore e testo
-            var valueMap = new Map();
-            
-            // Aggiungi ogni titolo come opzione
-            items.forEach(item => {
-                const option = document.createElement('option');
-                var value =  item.getAttribute('data-value'); // Ottieni il valore
-                var title = item.querySelector('.title')
-                var text = title.value.trim(); // Testo del titolo senza spazi
-                option.value = text
-                
-                datalist.appendChild(option);
-                // Aggiungi alla mappa
-                valueMap.set(text, value);
-            });
-
-            // Gestisci il cambio di input
-            datalistElement.addEventListener('input', () => {
-                
-                const text = datalistElement.value; // Testo selezionato dall'utente
-                const value = valueMap.get(text) || 'Nessuno'; // Valore corrispondente
-                subtaskSelected.textContent = value; // Mostra il valore
-                
-                if (value!=='Nessuno'){
-                    sendBtn.removeAttribute('disabled');
-                } else {
-                    sendBtn.setAttribute('disabled', true);
-                }
-            });
-
-            sendBtn.addEventListener('click', () => {
-                if (requiredID==0){
-                    var newDepencyTask = document.querySelector('#newDepencyTask'); 
-                    newDepencyTask.innerHTML = '';
-                    newDepencyTask.setAttribute('href', "#"+subtaskSelected.textContent);
-                    populateDepencies();
-                }
-                closeBtn.click();
-            });
-        })
-
-    </script>
-
+    <!-- Modals JS -->
+    <script src="/js/modal-actions.js" crossorigin="anonymous"></script>
 </body>
 
 </html>

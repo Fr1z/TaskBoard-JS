@@ -1,0 +1,71 @@
+/*sorting*/
+
+.sortable {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.grab {
+    cursor: -webkit-grab;
+    cursor: grab;
+}
+
+
+/* others */
+
+.showed {
+    display: block!important;
+}
+
+.navbar-nav .btn {
+    min-width: 160px;
+    min-height: 56px;
+}
+
+.categories {
+    font-size: 0.87rem;
+}
+
+.content {
+    padding: 7px;
+    display: block;
+    height: min-content;
+}
+
+.container {
+    color: #ffffffe5;
+}
+
+.title {
+    font-weight: bold;
+    height: 2em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-clamp: 1;
+    -webkit-line-clamp: 1;
+}
+.desc{
+    height: 2em;
+    resize: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.5s ease; /* Animazione */
+}
+.desc.expanded {
+    max-height: max-content; /* Espansione massima */
+    height: 12em;
+    resize: vertical;
+    border: 1px solid rgb(168, 168, 168);
+    transition: all 0.5s ease; /* Animazione */
+}
+.divider {
+    height: 1px;
+    background-color: #aaa;
+    margin: 7px 0;
+}
+.subgrid .col {
+    padding: 7px;
+}
+
+
