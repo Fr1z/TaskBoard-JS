@@ -1,29 +1,5 @@
 let initialData = [];
 
-document.addEventListener('DOMContentLoaded', function () {
-        // Fetch the JSON data
-        makeRequest('GET', '/tasks').then(response => {
-                if (response.ok) {
-                    // OK (status 200-299)
-                    return response.json();
-                } else {
-                    console.error(`Error: ${response.status} ${response.statusText}`);
-                }
-            }).then(data => {
-            populateTaskswithData(data);
-
-            //Activate functions for dynamic elements
-            populateDepencies();
-            translateDatePickers();
-            colorAllTopicsBadges();
-            insertNewTopic();
-            enableDynamicActions();
-            console.log("data loaded");
-        }).then(enableSearch()).then(console.log("wainting for json.."))
-        .catch(error => console.error('Error loading JSON:', error));
-
-});
-
 $(function () {
     $(".sortable").sortable({
         cursor: "n-resize",
@@ -43,8 +19,10 @@ $(function () {
 
 function makeRequest(type, endpoint, data){
 
+    const allowedMethods = ["GET", "POST", "PUT", "UPDATE"];
     const cookieName = 'sessionToken';
     const sessionToken = getCookie(cookieName);
+
     console.log(sessionToken);
     
     if (sessionToken===undefined || sessionToken.length==0){
@@ -52,8 +30,8 @@ function makeRequest(type, endpoint, data){
         window.location.replace("./login.html");
         return;
     }
-
-    if (type.toUpperCase.indexOf("GETPOSTPUTDELETE") <= -1) {
+    
+    if (allowedMethods.indexOf(type.toUpperCase()) <= -1) {
         console.error("No valid method: ", type);
         return;
     }
@@ -618,3 +596,28 @@ $(document).on("keydown", function (e) {
     }
 });
 
+
+//LOADING PAGE
+document.addEventListener('DOMContentLoaded', function () {
+    // Fetch the JSON data
+    makeRequest('GET', '/tasks').then(response => {
+            if (response.ok) {
+                // OK (status 200-299)
+                return response.json();
+            } else {
+                console.error(`Error: ${response.status} ${response.statusText}`);
+            }
+        }).then(data => {
+        populateTaskswithData(data);
+
+        //Activate functions for dynamic elements
+        populateDepencies();
+        translateDatePickers();
+        colorAllTopicsBadges();
+        insertNewTopic();
+        enableDynamicActions();
+        console.log("data loaded");
+    }).then(enableSearch()).then(console.log("wainting for json.."))
+    .catch(error => console.error('Error loading JSON:', error));
+
+});

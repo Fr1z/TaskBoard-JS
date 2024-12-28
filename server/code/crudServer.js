@@ -141,40 +141,56 @@ app.put('/update', async (req, res) => {
 
 // Semplice gestione delle sessioni
 // Esegui il login e imposta un cookie di sessione
-app.post('/login', (req, res) => {
-
-    const { mail, token } = req.body;
-    if (!mail || !token) {res.status(401).json({ message: 'Invalid access' });}
-
-    // Ricerca dell'utente nel database
-    const user = User.findOne({ email: mail, token: token , active: 1});
-    console.log("Trying login with: %s - %s", mail, token);
-    if (user) {
-        sessionToken = generaSessione();
-        console.log("userid: [ %s ]", user.ID);
-        const updatedUser = User.findByIdAndUpdate(user.ID, { session: sessionToken });
-        if (!updatedUser) {
-            return res.status(404).json({ message: 'UserID not found' });
+app.post('/login', async (req, res) => {
+    try {
+        const { mail, token } = req.body;
+        if (!mail || !token) {
+            return res.status(401).json({ message: 'Invalid access' });
         }
 
-        res.json({ session: sessionToken });
-    } else {
-        res.status(401).json({ message: 'Invalid access' });
+        console.log("Trying login with: %s - %s", mail, token);
+
+        // Ricerca dell'utente nel database
+        const user = await User.findOne({ email: mail, token: token, active: 1 });
+
+        if (user) {
+            const sessionToken = generaSessione();
+            console.log("userid: [ %s ]", user._id);
+            console.log("userID: [ %s ]", user.ID);
+            const updatedUser = await User.findByIdAndUpdate(user._id, { session: sessionToken }, { new: true });
+
+            if (!updatedUser) {
+                return res.status(404).json({ message: 'UserID not found' });
+            }
+
+            return res.json({ session: sessionToken });
+        } else {
+            return res.status(401).json({ message: 'Invalid access' });
+        }
+    } catch (err) {
+        console.error("Error while login:", err);
+        res.status(500).json({ message: 'Internal server error' });
     }
+
 });
 
 // Esegui il logout e rimuovi il cookie di sessione
-app.post('/logout', (req, res) => {
-    if (!req.isAuthenticated) {
-        return res.status(401).json({ message: 'No valid session found.' });
-    }
+app.post('/logout', async (req, res) => {
+    try {
+        if (!req.isAuthenticated) {
+            return res.status(401).json({ message: 'No valid session found.' });
+        }
 
-    res.clearCookie('sessionToken');
-    const updatedUser = User.findByIdAndUpdate(req.userId, { session: '' });
-    if (!updatedUser) {
-        return res.status(404).json({ message: 'UserID not found' });
+        res.clearCookie('sessionToken');
+        const updatedUser = await User.findByIdAndUpdate(req.userId, { session: '' });
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'UserID not found' });
+        }
+        res.json({ message: 'Logout successful' });
+    } catch (err) {
+        console.error("Error while logout:", err);
+        res.status(500).json({ message: 'Internal server error' });
     }
-    res.json({ message: 'Logout successful' });
 });
 
 // Avvio server
