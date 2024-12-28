@@ -140,11 +140,12 @@ app.put('/update', async (req, res) => {
 // Esegui il login e imposta un cookie di sessione
 app.post('/login', (req, res) => {
 
-    const { email, token } = req.body;
+    const { mail, token } = req.body;
+    if (!mail || !token) {res.status(401).json({ message: 'Invalid access' });}
 
     // Ricerca dell'utente nel database
-    const user = User.findOne({ mail: email, token: token , active: 1});
-  
+    const user = User.findOne({ email: mail, token: token , active: 1});
+    console.log("Trying login with: %s - %s", email, token);
     if (user) {
         sessionToken = generaSessione()
         const updatedUser = User.findByIdAndUpdate(user.ID, { session: sessionToken });
