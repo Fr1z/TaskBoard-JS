@@ -51,31 +51,39 @@ function generaSessione() {
   }
 
 // Middleware per gestire le sessioni autenticate
-app.use((req, res, next) => {
-    //Headers che permettono a tutti i client di inviare richieste al server
-    res.setHeader('Access-Control-Allow-Origin', '*'); 
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+app.use(async (req, res, next) => {
+    try {
+        //Headers che permettono a tutti i client di inviare richieste al server
+        res.setHeader('Access-Control-Allow-Origin', '*'); 
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-        const sessionToken = authHeader.split(' ')[1]; // Estrai il token
-        console.log('try auth with: ' + sessionToken);
-        // Semplice esempio di verifica del token 
-        const user = User.findOne({ session: sessionToken });
-        if (user && user.active > 0) {
-            console.log('Authenticated !');
-            req.isAuthenticated = true;
-            req.userId = user.ID
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            // Token extract
+            const sessionToken = authHeader.split(' ')[1]; 
+            console.log('try auth with: ' + sessionToken);
+
+            // Semplice esempio di verifica del token 
+            const user = await User.findOne({ session: sessionToken });
+            if (user && user.active > 0) {
+                console.log('Authenticated !');
+                req.isAuthenticated = true;
+                req.userId = user.ID
+            } else {
+                console.log('NOT authenticated: ' + user);
+                req.isAuthenticated = false;
+                req.userId = 0
+            }
         } else {
-            console.log('NOT authenticated: ' + user);
             req.isAuthenticated = false;
             req.userId = 0
         }
-    } else {
-        req.isAuthenticated = false;
-        req.userId = 0
+    } catch (err) {
+            console.error('Error in authentication middleware:', err);
+            req.isAuthenticated = false;
+            req.userId = null;
     }
     next();
 });
