@@ -52,16 +52,14 @@ function generaSessione() {
 
 // Middleware per gestire le sessioni autenticate
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*'); //Header che permette a tutti i client di inviare richieste al server
+    //Headers che permettono a tutti i client di inviare richieste al server
+    res.setHeader('Access-Control-Allow-Origin', '*'); 
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Token non fornito o non valido' });
-    }
-
-    const sessionToken = authHeader.split(' ')[1]; // Estrai il token
-
-    if (sessionToken) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const sessionToken = authHeader.split(' ')[1]; // Estrai il token
         // Semplice esempio di verifica del token 
         const user = User.findOne({ session: sessionToken });
         if (user && user.active > 0) {
