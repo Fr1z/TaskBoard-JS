@@ -69,6 +69,7 @@ app.use((req, res, next) => {
             req.isAuthenticated = true;
             req.userId = user.ID
         } else {
+            console.log('NOT authenticated: ' + user);
             req.isAuthenticated = false;
             req.userId = 0
         }
@@ -79,9 +80,11 @@ app.use((req, res, next) => {
     next();
 });
 
-// Rotte
 
-// SELECT: Ottieni tutti gli utenti (solo se autenticato)
+
+// Routes
+
+// SELECT: All user tasks
 app.get('/tasks', async (req, res) => {
     if (!req.isAuthenticated) {
         return res.status(401).json({ message: 'Unauthorized' });
@@ -95,7 +98,7 @@ app.get('/tasks', async (req, res) => {
     }
 });
 
-// UPDATE: Aggiorna un task (solo se autenticato)
+// UPDATE: Tasks update
 app.put('/update', async (req, res) => {
     if (!req.isAuthenticated) {
         return res.status(401).json({ message: 'Unauthorized' });
@@ -145,19 +148,16 @@ app.post('/login', (req, res) => {
 
     // Ricerca dell'utente nel database
     const user = User.findOne({ email: mail, token: token , active: 1});
-    console.log("Trying login with: %s - %s", email, token);
+    console.log("Trying login with: %s - %s", mail, token);
     if (user) {
-        sessionToken = generaSessione()
+        sessionToken = generaSessione();
+        console.log("userid: [ %s ]", user.ID);
         const updatedUser = User.findByIdAndUpdate(user.ID, { session: sessionToken });
         if (!updatedUser) {
             return res.status(404).json({ message: 'UserID not found' });
         }
-        res.cookie('sessionToken', sessionToken, { 
-            httpOnly: false,        // Rende il cookie accessibile solo tramite HTTP (non da JavaScript)
-            secure: false,          // Richiede HTTPS (TODO make it work with true)
-            sameSite: 'None'     // Consente l'invio cross-origin del cookie
-        });
-        res.json({ message: 'Login successfull: '+ sessionToken });
+
+        res.json({ session: sessionToken });
     } else {
         res.status(401).json({ message: 'Invalid access' });
     }

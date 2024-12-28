@@ -50,6 +50,11 @@
                 body: JSON.stringify(data)
             }).then(response => {
                 if (response.ok) { // Se la risposta è 200-299 (OK)
+                    // Creazione del cookie sessione
+                    sessionToken = response.session;
+                    document.cookie = `sessionToken=${sessionToken}; Path=/`;
+                    // Verifica
+                    console.log("Cookie impostato:", sessionToken);
                     window.location.href = './dash.html'; // Reindirizza alla pagina dash.html
                 } else {
                     return response.json(); // Ottieni il messaggio di errore (se presente)

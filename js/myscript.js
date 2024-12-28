@@ -1,24 +1,15 @@
 let initialData = [];
 
 document.addEventListener('DOMContentLoaded', function () {
-    // Fetch the JSON data
-    const cookieName = 'sessionToken';
-    const sessionToken = getCookie(cookieName);
-    console.log(sessionToken);
-    if (sessionToken===undefined || sessionToken.length==0){
-        window.location.replace("./login.html");
-        return;
-    }
-
-    fetch(serverAddress+'/tasks', {
-            method: 'GET',
-            headers:{   'Authorization': `Bearer ${sessionToken}`, // Imposta l'header Authorization
-                        'Content-Type' : 'application/json'
-                    }
-        })
-        .then(
-            response => response.json()
-        ).then(data => {
+        // Fetch the JSON data
+        makeRequest('GET', '/tasks').then(response => {
+                if (response.ok) {
+                    // OK (status 200-299)
+                    return response.json();
+                } else {
+                    console.error(`Error: ${response.status} ${response.statusText}`);
+                }
+            }).then(data => {
             populateTaskswithData(data);
 
             //Activate functions for dynamic elements
@@ -50,6 +41,43 @@ $(function () {
     } );
 });
 
+function makeRequest(type, endpoint, data){
+
+    const cookieName = 'sessionToken';
+    const sessionToken = getCookie(cookieName);
+    console.log(sessionToken);
+    
+    if (sessionToken===undefined || sessionToken.length==0){
+        console.log("no session token");
+        window.location.replace("./login.html");
+        return;
+    }
+
+    if (type.toUpperCase.indexOf("GETPOSTPUTDELETE") <= -1) {
+        console.error("No valid method: ", type);
+        return;
+    }
+
+    if (data===undefined){
+        return fetch(serverAddress+endpoint, {
+            method: type.toUpperCase(),
+            headers:{
+                        'Authorization': `Bearer ${sessionToken}`, 
+                        'Content-Type' : 'application/json'
+                    }
+        })
+    }else{
+        return fetch(serverAddress+endpoint, {
+            method: type.toUpperCase(),
+            headers:{
+                        'Authorization': `Bearer ${sessionToken}`,
+                        'Content-Type' : 'application/json'
+                    },
+            body: data
+        })
+    }
+
+}
 // Leggi il valore del cookie
 function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -471,7 +499,25 @@ function enableSearch() {
     });
 }
 
-
+function logout(){
+    makeRequest('POST',"/logout")
+    .then(response => {
+        if (response.ok) {
+            sessionToken = '';
+            document.cookie = `sessionToken=${sessionToken}; Path=/`;
+            setTimeout( function() { window.location = "./login.html" }, 1500 );
+        } else {
+            // La risposta non è OK
+            console.error("Errore di risposta:", response.statusText);
+        }
+    }).catch(error => {
+        $('#saveBtn').prop('disabled', false);
+        $('#saveBtn i').removeClass('bx-loader-circle bx-spin').addClass('bxs-save');
+        $('#toastFailure.text-message').html("error on logout :(");
+        new bootstrap.Toast($('#toastFailure')).show();
+        console.error("Errore durante il logout:", error);
+    });;
+}
 // Funzione per inviare la richiesta di aggiornamento
 function sendUpdate() {
     
@@ -479,26 +525,31 @@ function sendUpdate() {
     $('#saveBtn').prop('disabled', true);
     const modifiedItems = getModifiedItems();
 
-    $.ajax({
-        url: serverAddress+"/update",
-        method: "POST",
-        contentType: "application/json",
-        data: JSON.stringify({ modifiedItems }),
-        success: function (response) {
+    makeRequest('POST',"/update", JSON.stringify({ modifiedItems }))
+    .then(response => {
+        if (response.ok) {
+            //stop spinning save button and show toasts
             $('#saveBtn').prop('disabled', false);
             $('#saveBtn i').removeClass('bx-loader-circle bx-spin').addClass('bxs-save');
             $('#toastSuccess.text-message').html("changes have been saved :)");
             new bootstrap.Toast($('#toastSuccess')).show();
-            console.log("Aggiornamento inviato:", response);
-        },
-        error: function (error) {
-            $('#saveBtn').prop('disabled', false);
-            $('#saveBtn i').removeClass('bx-loader-circle bx-spin').addClass('bxs-save');
-            $('#toastFailure.text-message').html("changes have been saved :)");
-            new bootstrap.Toast($('#toastFailure')).show();
-            console.error("Errore durante l'invio:", error);
-        },
+            return response.json();
+        } else {
+            console.error("Errore di risposta:", response.statusText);
+        }
+    })
+    .then(data => {
+        // Qui puoi utilizzare i dati della risposta
+        console.log('Risposta dal server:', response);
+    })
+    .catch(error => {
+        $('#saveBtn').prop('disabled', false);
+        $('#saveBtn i').removeClass('bx-loader-circle bx-spin').addClass('bxs-save');
+        $('#toastFailure.text-message').html("changes aren't saved :(");
+        new bootstrap.Toast($('#toastFailure')).show();
+        console.error("Errore durante l'invio:", error);
     });
+    
 }
 
 //Dato un elemento myitem mappa in un oggetto i valori interessati
