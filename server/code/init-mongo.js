@@ -3,13 +3,15 @@ db = db.getSiblingDB("my_database"); // Nome del database
 // Collezione "users"
 db.createCollection("users");
 db.users.insertMany([
-    {   name: "fra",
+    {   name: "admin",
         ID: 1,
-        email: "fra@mail.com",
+        email: "admin@mail.com",
         organization: "myOrg",
-        token: "KaP8CC1n0!",
+        token: "admin",
         session: "",
-        entryDate: "" }
+        entryDate: "",
+        active: 1
+    }
 ]);
 
 // Collezione "orders"
@@ -33,7 +35,7 @@ db.tasks.insertMany([
         owner: 1,
         LUID: 2,
         order: 1,
-        title: "Termux",
+        title: "Termux v2",
         star: 1,
         status: 1,
         description: "termux with python and camera input.",

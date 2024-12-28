@@ -26,7 +26,8 @@ const userSchema = new mongoose.Schema({
     organization: String,
     token: String,
     session: String,
-    entryDate: Date
+    entryDate: Date,
+    active: Number,
 });
 const taskSchema = new mongoose.Schema({
     owner: Number,
@@ -51,11 +52,19 @@ function generaSessione() {
 
 // Middleware per gestire le sessioni autenticate
 app.use((req, res, next) => {
-    const sessionToken = req.cookies.sessionToken;
-    if (sessionToken && !(res.isAuthenticated)) {
+    res.setHeader('Access-Control-Allow-Origin', '*'); //Header che permette a tutti i client di inviare richieste al server
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Token non fornito o non valido' });
+    }
+
+    const sessionToken = authHeader.split(' ')[1]; // Estrai il token
+
+    if (sessionToken) {
         // Semplice esempio di verifica del token 
         const user = User.findOne({ session: sessionToken });
-        if (user.length == 1) {
+        if (user && user.active > 0) {
             req.isAuthenticated = true;
             req.userId = user.ID
         } else {
@@ -78,7 +87,7 @@ app.get('/tasks', async (req, res) => {
     }
 
     try {
-        const tasks = await Task.find({ LUID: req.userId });
+        const tasks = await Task.find({ LUID: req.userId }).select('-owner');
         res.json(tasks);
     } catch (err) {
         res.status(500).json({ message: 'Error retrieving tasks', error: err });
@@ -117,7 +126,11 @@ app.post('/login', (req, res) => {
     if (user) {
         sessionToken = generaSessione()
         user.session = sessionToken
-        res.cookie('sessionToken', sessionToken, { httpOnly: true });
+        res.cookie('sessionToken', sessionToken, { 
+            httpOnly: false,        // Rende il cookie accessibile solo tramite HTTP (non da JavaScript)
+            secure: true,          // Richiede HTTPS
+            sameSite: 'None'     // Consente l'invio cross-origin del cookie
+        });
         res.json({ message: 'Login successful' });
     } else {
         res.status(401).json({ message: 'Invalid credentials' });

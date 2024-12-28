@@ -1,136 +1,24 @@
-
 let initialData = [];
 
 document.addEventListener('DOMContentLoaded', function () {
     // Fetch the JSON data
-    fetch('data.json')
-        .then(response => response.json())
-        .then(data => {
-            const tableBody = document.querySelector('.myitems');
-            let rows = '';
+    const cookieName = 'sessionToken';
+    const sessionToken = getCookie(cookieName);
 
-            // Ordina per 'order' in modo decrescente
-            data.sort((a, b) => b.order - a.order);
- 
-            // Loop through the JSON data and create rows
-            data.forEach((item) => {
+    if (sessionToken===undefined || sessionToken.length==0){
+        window.location.replace("./login.html");
+    }
 
-                //salva uno snapshot dei dati ricevuti indicizzati per LUID
-                initialData[item.LUID] = item;
-
-                var progress = item.progress;
-                //hide 0 if no progress 
-                if (item.progress==0){
-                    progress = ''
-                }
-
-                //if progress was added recently disable the button
-                var disabledProgress = "";
-                var differenceTimeToProgress = 40*60*60*1000; //4-hours
-                var difference = (new Date().getTime()) - item.lastProgress;
-                if (difference<differenceTimeToProgress){
-                    disabledProgress = "disabled";
-                }
-
-                var starred = (item.star==1) ? 's' : '';
-
-                var depenciesHTML = '';
-                var hideDepencies = (item.depends.length) ? '' : 'd-none';
-                if (hideDepencies.length==0){
-                    var depencies = item.depends.split(',').map(dep_id => dep_id.trim());
-                    // Genera il link alle dipendenze
-                    depenciesHTML += depencies.map(dep_id => {return "<a class=\"depency\" href=\"#"+dep_id+"\"></a>";}).join(',&nbsp');
-                }
-
-
-                rows += `
-                <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${item.LUID}" order="${item.order}">
-                    <div class="row flex-nowrap">
-                        <!-- Grab Item -->
-                        <div class="col-auto mh-100 bd-placeholder grab"  style="width: 32px;">
-                            <i class="bx bx-menu bx-sm opacity-50 position-relative top-50 start-50 translate-middle"></i>
-                        </div>
-
-
-                        <!-- Main Content -->
-                        <div class="flex-grow-1" style="flex-basis: 0;">
-                            <div class="content justify-content-between">
-                                <!-- Task Description -->
-                                <div class="row g-0" style="max-height: 1.2em;">
-                                    <div class="col-6 col-sm-6 col-md-7 col-lg-6 flex-nowrap">
-                                        <input type="text" class="form-control title bg-transparent border-0 px-1 opacity-75" placeholder="Titolo" aria-label="Title of task" value="${item.title}">
-                                    </div>
-                                    <div class="col-1 col-sm-1 col-md-1 col-lg-3 flex-nowrap"></div>
-                                    <div class="col-5 col-sm-5 col-md-4 col-lg-3 flex-nowrap" style="max-height: 1em;">
-                                        <div class="input-group date d-flex flex-nowrap justify-content-end">
-                                            <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-transparent float-end text-end exp-date" value="${item.expireDate}" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
-                                            <span class="input-group-text" style="border: 0;">
-                                                <i class="bx bx-calendar opacity-50 datapickertoggler" role="button"></i>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="divider"></div>
-                                
-                                <textarea class="form-control bg-transparent border-0 text-break p-1 desc" aria-label="Description" rows="1">${item.description}</textarea>
-                                
-                            </div>
-                        </div>
-
-                        <div class="col" style="flex-basis: 0; max-width: min-content; overflow: auto;">
-                            <div class="row flex-wrap">
-                                <div class="col collapse">
-                                    <div class="row mt-2 justify-content-center">
-                                        <div class="row mb-2" >
-                                            <div class="col m-0 px-1">
-                                                <button class="btn btn-primary w-100 m-0 text-truncate" aria-label="Complete task">Completa</button>
-                                            </div>
-                                            <div class="col m-0 px-1">
-                                                <button class="btn btn-secondary w-100 m-0 text-truncate advance" aria-label="Add progress" ${disabledProgress} value="${item.progress}">+ ${item.progress}</button>
-                                            </div>
-                                        </div>
-                                        <div class="row p-0 mb-2">
-                                            <div class="m-0 mb-1 font-lighter categories col-auto">
-                                                ${item.categories}
-                                            </div>
-                                            <input class="p-0 px-3 bg-transparent text-center addcategory" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value=""">
-                                            <div class="col-auto"></div>
-                                        </div>
-                                        <div class="row p-0 mb-2">
-                                            <div class="mt-2 ${hideDepencies}">
-                                                <span><b>Depends on:</b>&ensp;${depenciesHTML}</span> 
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- Toggler Expander -->
-                                <div class="col">
-                                    <div class="d-flex flex-row-reverse">
-                                        <!-- Delete, Expand actions -->
-                                            <button class="btn btn-outline-primary p-2 m-1 m-md-2 expand-toggler" aria-label="Toggle details" style="max-width: max-content;" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
-                                                <i class="bx bx-chevron-down bx-sm expand-toggler"></i>
-                                            </button>
-                                            <button class="btn btn-outline-warning p-2 m-1 m-md-2 collapse star-toggler" aria-label="Star" style="max-width: max-content;">
-                                                <i class='bx bx${starred}-star bx-sm' starred="${item.star}" ></i>
-                                            </button>
-                                            <button class="btn btn-outline-primary p-2 m-1 m-md-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.title}" data-bs-requiredforID="${item.LUID}">
-                                                <i class='bx bx-plus-circle bx-sm ' ></i>
-                                            </button>
-                                            <button class="btn btn-outline-danger p-2 m-1 m-md-2 collapse" aria-label="Trash" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-deleteName="${item.title}" data-bs-deleteID="${item.LUID}">
-                                                <i class="bx bxs-trash bx-sm" ></i>
-                                            </button>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                `;
-            });
-            // Insert rows into the table body
-            tableBody.innerHTML = rows;
+    fetch(serverAddress+'/tasks', {
+            method: 'GET',
+            headers:{   'Authorization': `Bearer ${sessionToken}`, // Imposta l'header Authorization
+                        'Content-Type' : 'application/json'
+                    }
+        })
+        .then(
+            response => response.json()
+        ).then(data => {
+            populateTaskswithData(data);
 
             //Activate functions for dynamic elements
             populateDepencies();
@@ -161,6 +49,140 @@ $(function () {
     } );
 });
 
+// Leggi il valore del cookie
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function populateTaskswithData(data) {
+    const tableBody = document.querySelector('.myitems');
+    let rows = '';
+
+    // Ordina per 'order' in modo decrescente
+    data.sort((a, b) => b.order - a.order);
+
+    // Loop through the JSON data and create rows
+    data.forEach((item) => {
+
+        //salva uno snapshot dei dati ricevuti indicizzati per LUID
+        initialData[item.LUID] = item;
+
+        var progress = item.progress;
+        //hide 0 if no progress 
+        if (item.progress==0){
+            progress = ''
+        }
+
+        //if progress was added recently disable the button
+        var disabledProgress = "";
+        var differenceTimeToProgress = 40*60*60*1000; //4-hours
+        var difference = (new Date().getTime()) - item.lastProgress;
+        if (difference<differenceTimeToProgress){
+            disabledProgress = "disabled";
+        }
+
+        var starred = (item.star==1) ? 's' : '';
+
+        var depenciesHTML = '';
+        var hideDepencies = (item.depends.length) ? '' : 'd-none';
+        if (hideDepencies.length==0){
+            var depencies = item.depends.split(',').map(dep_id => dep_id.trim());
+            // Genera il link alle dipendenze
+            depenciesHTML += depencies.map(dep_id => {return "<a class=\"depency\" href=\"#"+dep_id+"\"></a>";}).join(',&nbsp');
+        }
+
+
+        rows += `
+        <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${item.LUID}" order="${item.order}">
+            <div class="row flex-nowrap">
+                <!-- Grab Item -->
+                <div class="col-auto mh-100 bd-placeholder grab"  style="width: 32px;">
+                    <i class="bx bx-menu bx-sm opacity-50 position-relative top-50 start-50 translate-middle"></i>
+                </div>
+
+
+                <!-- Main Content -->
+                <div class="flex-grow-1" style="flex-basis: 0;">
+                    <div class="content justify-content-between">
+                        <!-- Task Description -->
+                        <div class="row g-0" style="max-height: 1.2em;">
+                            <div class="col-6 col-sm-6 col-md-7 col-lg-6 flex-nowrap">
+                                <input type="text" class="form-control title bg-transparent border-0 px-1 opacity-75" placeholder="Titolo" aria-label="Title of task" value="${item.title}">
+                            </div>
+                            <div class="col-1 col-sm-1 col-md-1 col-lg-3 flex-nowrap"></div>
+                            <div class="col-5 col-sm-5 col-md-4 col-lg-3 flex-nowrap" style="max-height: 1em;">
+                                <div class="input-group date d-flex flex-nowrap justify-content-end">
+                                    <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-transparent float-end text-end exp-date" value="${item.expireDate}" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
+                                    <span class="input-group-text" style="border: 0;">
+                                        <i class="bx bx-calendar opacity-50 datapickertoggler" role="button"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+                        
+                        <textarea class="form-control bg-transparent border-0 text-break p-1 desc" aria-label="Description" rows="1">${item.description}</textarea>
+                        
+                    </div>
+                </div>
+
+                <div class="col" style="flex-basis: 0; max-width: min-content; overflow: auto;">
+                    <div class="row flex-wrap">
+                        <div class="col collapse">
+                            <div class="row mt-2 justify-content-center">
+                                <div class="row mb-2" >
+                                    <div class="col m-0 px-1">
+                                        <button class="btn btn-primary w-100 m-0 text-truncate" aria-label="Complete task">Completa</button>
+                                    </div>
+                                    <div class="col m-0 px-1">
+                                        <button class="btn btn-secondary w-100 m-0 text-truncate advance" aria-label="Add progress" ${disabledProgress} value="${item.progress}">+ ${item.progress}</button>
+                                    </div>
+                                </div>
+                                <div class="row p-0 mb-2">
+                                    <div class="m-0 mb-1 font-lighter categories col-auto">
+                                        ${item.categories}
+                                    </div>
+                                    <input class="p-0 px-3 bg-transparent text-center addcategory" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value=""">
+                                    <div class="col-auto"></div>
+                                </div>
+                                <div class="row p-0 mb-2">
+                                    <div class="mt-2 ${hideDepencies}">
+                                        <span><b>Depends on:</b>&ensp;${depenciesHTML}</span> 
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Toggler Expander -->
+                        <div class="col">
+                            <div class="d-flex flex-row-reverse">
+                                <!-- Delete, Expand actions -->
+                                    <button class="btn btn-outline-primary p-2 m-1 m-md-2 expand-toggler" aria-label="Toggle details" style="max-width: max-content;" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
+                                        <i class="bx bx-chevron-down bx-sm expand-toggler"></i>
+                                    </button>
+                                    <button class="btn btn-outline-warning p-2 m-1 m-md-2 collapse star-toggler" aria-label="Star" style="max-width: max-content;">
+                                        <i class='bx bx${starred}-star bx-sm' starred="${item.star}" ></i>
+                                    </button>
+                                    <button class="btn btn-outline-primary p-2 m-1 m-md-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.title}" data-bs-requiredforID="${item.LUID}">
+                                        <i class='bx bx-plus-circle bx-sm ' ></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger p-2 m-1 m-md-2 collapse" aria-label="Trash" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-deleteName="${item.title}" data-bs-deleteID="${item.LUID}">
+                                        <i class="bx bxs-trash bx-sm" ></i>
+                                    </button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        `;
+    });
+    // Insert rows into the table body
+    tableBody.innerHTML = rows;
+}
 
 function translateDatePickers() {
     // Initialize date picker
