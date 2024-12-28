@@ -54,15 +54,18 @@ function generaSessione() {
 app.use((req, res, next) => {
     //Headers che permettono a tutti i client di inviare richieste al server
     res.setHeader('Access-Control-Allow-Origin', '*'); 
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'); 
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const sessionToken = authHeader.split(' ')[1]; // Estrai il token
+        console.log('try auth with: ' + sessionToken);
         // Semplice esempio di verifica del token 
         const user = User.findOne({ session: sessionToken });
         if (user && user.active > 0) {
+            console.log('Authenticated !');
             req.isAuthenticated = true;
             req.userId = user.ID
         } else {
@@ -150,7 +153,7 @@ app.post('/login', (req, res) => {
         }
         res.cookie('sessionToken', sessionToken, { 
             httpOnly: false,        // Rende il cookie accessibile solo tramite HTTP (non da JavaScript)
-            secure: true,          // Richiede HTTPS
+            secure: false,          // Richiede HTTPS (TODO make it work with true)
             sameSite: 'None'     // Consente l'invio cross-origin del cookie
         });
         res.json({ message: 'Login successfull: '+ sessionToken });

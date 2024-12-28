@@ -4,9 +4,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Fetch the JSON data
     const cookieName = 'sessionToken';
     const sessionToken = getCookie(cookieName);
-
+    console.log(sessionToken);
     if (sessionToken===undefined || sessionToken.length==0){
         window.location.replace("./login.html");
+        return;
     }
 
     fetch(serverAddress+'/tasks', {
