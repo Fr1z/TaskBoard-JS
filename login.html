@@ -48,11 +48,23 @@
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(data)
+            }).then(response => {
+                if (response.ok) { // Se la risposta è 200-299 (OK)
+                    window.location.href = './dash.html'; // Reindirizza alla pagina dash.html
+                } else {
+                    return response.json(); // Ottieni il messaggio di errore (se presente)
+                }
             })
-           .then((response) => response.json())
-           .then((datas) => console.log(datas))
-           .catch((error) => console.error('Errore:', error));
-           //window.location.replace("dash.html");
+            .then(data => {
+                // Mostra il messaggio di errore nel caso in cui non sia 200
+                if (data && data.message) {
+                    console.error('Errore:', data.message);
+                }
+            })
+            .catch(error => {
+                // Gestisci eventuali errori di rete o altre eccezioni
+                console.error('Errore nella richiesta:', error);
+            });
         });
     </script>
 </body>

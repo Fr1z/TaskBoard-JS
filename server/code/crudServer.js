@@ -92,23 +92,44 @@ app.get('/tasks', async (req, res) => {
     }
 });
 
-// UPDATE: Aggiorna un utente (solo se autenticato)
-app.put('/users/:id', async (req, res) => {
+// UPDATE: Aggiorna un task (solo se autenticato)
+app.put('/update', async (req, res) => {
     if (!req.isAuthenticated) {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const userId = req.params.id;
-    const updates = req.body;
-
     try {
-        const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
-        if (!updatedUser) {
-            return res.status(404).json({ message: 'User not found' });
+        const tasksToUpdate = req.body; // Questo è l'array JSON di oggetti con i dati da aggiornare
+
+        // Usa una transazione per aggiornare i documenti in modo sicuro
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        const updatePromises = tasksToUpdate.map(async (task) => {
+            // Trova il documento da aggiornare e aggiorna
+            await Task.findOneAndUpdate(
+                { owner: req.userId, LUID: task.LUID }, // Usa 'owner della sessione' e 'LUID' come identificatore
+                { $set: task }, // Imposta i dati aggiornati
+                { new: true, session } // 'new: true' restituisce il documento aggiornato
+            );
+        });
+
+        // Aspetta che tutte le promesse siano risolte
+        await Promise.all(updatePromises);
+
+        // Commit della transazione
+        await session.commitTransaction();
+        session.endSession();
+
+        // Risposta di successo
+        res.status(200).json({ message: 'Tasks updated successfully' });
+    } catch (error) {
+        // In caso di errore, rollback della transazione
+        if (session) {
+            await session.abortTransaction();
+            session.endSession();
         }
-        res.json(updatedUser);
-    } catch (err) {
-        res.status(500).json({ message: 'Error updating user', error: err });
+        res.status(500).json({ error: 'An error occurred while updating tasks', details: error.message });
     }
 });
 
@@ -119,25 +140,36 @@ app.post('/login', (req, res) => {
     const { email, token } = req.body;
 
     // Ricerca dell'utente nel database
-    const user = User.findOne({ mail: email, token: token });
+    const user = User.findOne({ mail: email, token: token , active: 1});
   
     if (user) {
         sessionToken = generaSessione()
-        user.session = sessionToken
+        const updatedUser = User.findByIdAndUpdate(user.ID, { session: sessionToken });
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'UserID not found' });
+        }
         res.cookie('sessionToken', sessionToken, { 
             httpOnly: false,        // Rende il cookie accessibile solo tramite HTTP (non da JavaScript)
             secure: true,          // Richiede HTTPS
             sameSite: 'None'     // Consente l'invio cross-origin del cookie
         });
-        res.json({ message: 'Login successful' });
+        res.json({ message: 'Login successfull: '+ sessionToken });
     } else {
-        res.status(401).json({ message: 'Invalid credentials' });
+        res.status(401).json({ message: 'Invalid access' });
     }
 });
 
 // Esegui il logout e rimuovi il cookie di sessione
 app.post('/logout', (req, res) => {
+    if (!req.isAuthenticated) {
+        return res.status(401).json({ message: 'No valid session found.' });
+    }
+
     res.clearCookie('sessionToken');
+    const updatedUser = User.findByIdAndUpdate(req.userId, { session: '' });
+    if (!updatedUser) {
+        return res.status(404).json({ message: 'UserID not found' });
+    }
     res.json({ message: 'Logout successful' });
 });
 
