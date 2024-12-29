@@ -513,26 +513,26 @@ function sendUpdate() {
     const modifiedItems = getModifiedItems();
 
     //If no data has been modified, exit
-    if (getModifiedItems.length === 0){
-        saveStartSpinning();
+    if (modifiedItems.length === 0){
+        saveStopSpinning();
         return;
     }
 
     makeRequest('PUT',"/update", JSON.stringify({ modifiedItems }))
     .then(response => {
         if (response.ok) {
-            //stop spinning save button and show toasts
-            saveStopSpinning();
+            //show toasts
             $('#toastSuccess.text-message').html("changes have been saved :)");
             new bootstrap.Toast($('#toastSuccess')).show();
-            return response.json();
         } else {
             console.error("Errore di risposta:", response.statusText);
         }
+        return response.json();
     })
     .then(response => {
         // Qui puoi utilizzare i dati della risposta
         console.log('Risposta dal server:', response);
+        saveStopSpinning();
     })
     .catch(error => {
         saveStopSpinning();
@@ -550,16 +550,20 @@ function mapItemData(item) {
 
     item_obj.LUID = myitem.data("value");
     item_obj.order = myitem.attr('order');
+    item_obj.order = parseInt(item_obj.order); //is int
     item_obj.title = myitem.find("input.title").val();
     item_obj.star = myitem.find("button.star-toggler i.bx").attr('starred');
+    item_obj.star = (item_obj.star=="false") ? false : true; //is boolean
     //item_obj.status = myitem.find(".status").value();
     item_obj.description = myitem.find("textarea.desc").val();
     item_obj.progress = myitem.find("button.advance").val();
+    item_obj.progress = parseInt(item_obj.progress); //is int
     item_obj.expireDate = myitem.find("input.exp-date").val();
 
-    item_obj.categories = myitem.find(".categories span.badge i").map(
-        function () {return $(this).text().trim();}
-        ).get().join(','); // Unisce i testi separati da ','
+    item_obj.categories = myitem.find(".categories span.badge i")
+    .map(
+        function () { return $(this).text().trim(); }
+    ).get().join(','); // Unisce i testi separati da ','
 
     const depency = myitem.find("a.depency").attr('href');
     item_obj.depends = (depency !== undefined) ? depency.replace('#','') : '';
