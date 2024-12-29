@@ -49,24 +49,22 @@
                 },
                 body: JSON.stringify(data)
             }).then(response => {
-                if (response.ok) { // Se la risposta è 200-299 (OK)
-                    return response.json(); // Ottieni il messaggio di errore (se presente)
-                } else {
+                if (!response.ok) { // Se la risposta è 200-299 (OK)
                     console.error("error: "+response)
                 }
+                return response.json(); // Ottieni il messaggio di errore (se presente)
             })
             .then(data => {
                 // Mostra il messaggio di errore nel caso in cui non sia 200
                 if (data && data.session) {
                     // Creazione del cookie sessione
                     sessionToken = data.session;
-                    console.log("session: "+sessionToken);
                     document.cookie = `sessionToken=${sessionToken}; Path=/`;
-                    // Verifica
-                    console.log("Cookie impostato:", sessionToken);
+                    // Reindirizza alla dashboard
                     window.location.href = './dash.html'; // Reindirizza alla pagina dash.html
                 }else if (data.message){
                     console.warn('Warning:', data.message);
+                    alert(data.message);
                 }else{
                     console.error('Error:', data.message);
                 }

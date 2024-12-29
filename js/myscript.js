@@ -496,19 +496,33 @@ function logout(){
         console.error("Errore durante il logout:", error);
     });;
 }
+
+function saveStartSpinning(){
+    $('#saveBtn i').removeClass('bxs-save').addClass('bx-loader-circle bx-spin');
+    $('#saveBtn').prop('disabled', true);
+}
+function saveStopSpinning(){
+    $('#saveBtn').prop('disabled', false);
+    $('#saveBtn i').removeClass('bx-loader-circle bx-spin').addClass('bxs-save');
+}
+
 // Funzione per inviare la richiesta di aggiornamento
 function sendUpdate() {
     
-    $('#saveBtn i').removeClass('bxs-save').addClass('bx-loader-circle bx-spin');
-    $('#saveBtn').prop('disabled', true);
+    saveStartSpinning();
     const modifiedItems = getModifiedItems();
+
+    //If no data has been modified, exit
+    if (getModifiedItems.length === 0){
+        saveStartSpinning();
+        return;
+    }
 
     makeRequest('PUT',"/update", JSON.stringify({ modifiedItems }))
     .then(response => {
         if (response.ok) {
             //stop spinning save button and show toasts
-            $('#saveBtn').prop('disabled', false);
-            $('#saveBtn i').removeClass('bx-loader-circle bx-spin').addClass('bxs-save');
+            saveStopSpinning();
             $('#toastSuccess.text-message').html("changes have been saved :)");
             new bootstrap.Toast($('#toastSuccess')).show();
             return response.json();
@@ -521,8 +535,7 @@ function sendUpdate() {
         console.log('Risposta dal server:', response);
     })
     .catch(error => {
-        $('#saveBtn').prop('disabled', false);
-        $('#saveBtn i').removeClass('bx-loader-circle bx-spin').addClass('bxs-save');
+        saveStopSpinning();
         $('#toastFailure.text-message').html("changes aren't saved :(");
         new bootstrap.Toast($('#toastFailure')).show();
         console.error("Errore durante l'invio:", error);
@@ -564,7 +577,11 @@ function getModifiedItems() {
         if (
             mod_item.title !== initialData[mod_id].title ||
             mod_item.description !== initialData[mod_id].description ||
-            mod_item.categories !== initialData[mod_id].categories
+            mod_item.categories !== initialData[mod_id].categories ||
+            mod_item.order !== initialData[mod_id].order ||
+            mod_item.star !== initialData[mod_id].star ||
+            mod_item.expireDate !== initialData[mod_id].expireDate ||
+            mod_item.depends !== initialData[mod_id].depends
         ) {
             modifiedItems.push(mod_item);
         }

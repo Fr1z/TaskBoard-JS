@@ -58,11 +58,7 @@ const authenticateJWT = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("decoded obj\n");
-        console.log(decoded);
-        console.log("uid\n");
-        console.log(decoded.userId);
-        req.userId = decoded.userId;
+        req.userId = decoded.userId; //Set the validated session
 
         next();
     } catch (err) {
