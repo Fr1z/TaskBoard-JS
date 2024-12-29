@@ -503,7 +503,7 @@ function sendUpdate() {
     $('#saveBtn').prop('disabled', true);
     const modifiedItems = getModifiedItems();
 
-    makeRequest('POST',"/update", JSON.stringify({ modifiedItems }))
+    makeRequest('PUT',"/update", JSON.stringify({ modifiedItems }))
     .then(response => {
         if (response.ok) {
             //stop spinning save button and show toasts
@@ -516,7 +516,7 @@ function sendUpdate() {
             console.error("Errore di risposta:", response.statusText);
         }
     })
-    .then(data => {
+    .then(response => {
         // Qui puoi utilizzare i dati della risposta
         console.log('Risposta dal server:', response);
     })
@@ -549,7 +549,7 @@ function mapItemData(item) {
         ).get().join(','); // Unisce i testi separati da ','
 
     const depency = myitem.find("a.depency").attr('href');
-    item_obj.depends = (depency !== 'undefined') ? depency : '';
+    item_obj.depends = (depency !== undefined) ? depency.replace('#','') : '';
     return item_obj;
 
 }

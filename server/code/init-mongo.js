@@ -4,21 +4,24 @@ db = db.getSiblingDB("my_database"); // Nome del database
 db.createCollection("users");
 db.users.insertMany([
     {   name: "admin",
-        ID: 1,
-        email: "admin@mail.com",
+        mail: "admin",
         organization: "myOrg",
-        token: "admin",
+        password: "",
+        token: "",
         session: "",
-        entryDate: "",
+        entryDate: new Date(),
         active: 1
     }
 ]);
+
+// Recupera l'_id dell'utente "admin"
+const adminUser = db.users.findOne({ name: "admin" });
 
 // Collezione "orders"
 db.createCollection("tasks");
 db.tasks.insertMany([
     {
-        owner: 1,
+        owner: adminUser._id, // Usa l'_id recuperato,
         LUID: 1,
         order: 0,
         title: "Metodologia",
@@ -32,7 +35,7 @@ db.tasks.insertMany([
         depends: "2"
     },
     {
-        owner: 1,
+        owner: adminUser._id, // Usa l'_id recuperato,
         LUID: 2,
         order: 1,
         title: "Termux v2",
@@ -46,7 +49,7 @@ db.tasks.insertMany([
         depends: ""
     },
     {
-        owner: 1,
+        owner: adminUser._id, // Usa l'_id recuperato,
         LUID: 3,
         order: 0,
         title: "Rafiki",

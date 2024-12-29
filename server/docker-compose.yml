@@ -23,6 +23,8 @@ services:
     ports:
       - "8090:8090"
     command: >
-      sh -c "npm install express helmet mongoose cookie-parser && node crudServer.js"
+      sh -c "npm install express helmet mongoose cookie-parser jsonwebtoken bcrypt && node crudServer.js"
+    env_file:
+      - .env
     depends_on:
       - mongodb
