@@ -47,6 +47,30 @@ const User = mongoose.model('User', userSchema);
 const Task = mongoose.model('Task', taskSchema);
 
 
+const authenticateJWT = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Token missing or invalid' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("decoded obj\n");
+        console.log(decoded);
+        console.log("uid\n");
+        console.log(decoded.userId);
+        req.userId = decoded.userId;
+
+        next();
+    } catch (err) {
+        console.error('Invalid session:', err);
+        return res.status(401).json({ message: 'Session invalid or expired' });
+    }
+};
+
 
 // Middleware per gestire le sessioni autenticate
 app.use(async (req, res, next) => {
@@ -64,9 +88,9 @@ app.use(async (req, res, next) => {
 
 
 
-// Routes
+// ROUTES
 
-// SELECT: All user tasks
+// Select All user tasks
 app.get('/tasks', authenticateJWT, async (req, res) => {
     try {
         const tasks = await Task.find({ owner: req.userId }).select('-owner');
@@ -145,7 +169,7 @@ app.post('/login', async (req, res) => {
         console.log("Trying login with: %s - %s", mail, pass);
 
         // Ricerca dell'utente nel database
-        const user = await User.findOne({ mail: mail, active: 1 });
+        let user = await User.findOne({ mail: mail, active: 1 });
 
         if (user) {
             // First login or password reset
@@ -154,7 +178,7 @@ app.post('/login', async (req, res) => {
                     // Hash della password
                     const hashedPassword = await bcrypt.hash(pass, 10);
             
-                    const user = await User.findByIdAndUpdate(user._id, { password: hashedPassword }, { new: true });
+                    user = await User.findByIdAndUpdate(user._id, { password: hashedPassword }, { new: true });
 
                     if (!user) {
                         return res.status(404).json({ message: 'Error after setting password' });
@@ -162,7 +186,7 @@ app.post('/login', async (req, res) => {
         
                 } catch (err) {
                     console.error('Error during setting password:', err);
-                    res.status(500).json({ message: 'Internal server error' });
+                    return res.status(500).json({ message: 'Internal server error' });
                 }
             }
 
@@ -218,31 +242,6 @@ app.post('/signup', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
-const authenticateJWT = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Token missing or invalid' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("decoded obj\n");
-        console.log(decoded);
-        console.log("uid\n");
-        console.log(decoded.userId);
-        req.userId = decoded.userId;
-
-        next();
-    } catch (err) {
-        console.error('Invalid session:', err);
-        return res.status(401).json({ message: 'Session invalid or expired' });
-    }
-};
-
 
 // Avvio server
 const PORT = 8090;
