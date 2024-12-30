@@ -19,7 +19,15 @@ confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
 
     deleteBtn.addEventListener('click', () => {
         if (hiddenInput!=='undefined'){
-            console.log("elimina " + hiddenInput.value);
+            const taskLUID = hiddenInput.value;
+            console.log("elimina " + taskLUID);
+            
+            const deleted = deleteTask(taskLUID);
+            if (deleted){
+                $(`.myitem[data-value="${taskLUID}"]`).hide();
+                $('#toastSuccess .text-message').html("Task deleted succesfully!");
+                new bootstrap.Toast($('#toastSuccess')).show();
+            }
         }
     });
 });

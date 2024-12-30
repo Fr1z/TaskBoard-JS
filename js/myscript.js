@@ -2,7 +2,7 @@ let initialData = [];
 
 const makeRequest = (type, endpoint, data = undefined) => {
 
-    const allowedMethods = ["GET", "POST", "PUT", "UPDATE"];
+    const allowedMethods = ["GET", "POST", "PUT", "DELETE"];
     const cookieName = 'sessionToken';
     const sessionToken = getCookie(cookieName);
 
@@ -124,7 +124,7 @@ function populateTaskswithData(data) {
                             <div class="row mt-2 justify-content-center">
                                 <div class="row mb-2" >
                                     <div class="col m-0 px-1">
-                                        <button class="btn btn-primary w-100 m-0 text-truncate" aria-label="Complete task">Completa</button>
+                                        <button class="btn btn-primary w-100 m-0 text-truncate completer" aria-label="Complete task">Completa</button>
                                     </div>
                                     <div class="col m-0 px-1">
                                         <button class="btn btn-secondary w-100 m-0 text-truncate advance" aria-label="Add progress" ${disabledProgress} value="${item.progress}">+ ${item.progress}</button>
@@ -405,12 +405,32 @@ function enableDynamicActions() {
         }
     });
 
+    //Complete task progress
+    $('button.completer').on("click", function (e) {
+            const btnComplete = e.target;
+            const taskLUID = $(btnComplete).closest('.myitem').attr('data-value');
+            const completed = completeTask(taskLUID);
+            if (completed){
+                $(btnComplete).closest('.myitem').hide();
+                $('#toastSuccess .text-message').html("Task completed, GREAT! :)");
+                new bootstrap.Toast($('#toastSuccess')).show();
+            }
+    });
+
     //Advance task progress
     $('button.advance').on("click", function (e) {
+
         const btnProgress = e.target;
-        $(btnProgress).val(parseInt($(btnProgress).val())+1);
-        $(btnProgress).html('+ '+ $(btnProgress).val());
-        $(btnProgress).prop('disabled', true);
+        const taskLUID = $(btnProgress).closest('.myitem').attr('data-value');
+        const upgraded = upgradeTask(taskLUID);
+        if (upgraded){
+            $(btnProgress).val(parseInt($(btnProgress).val())+1);
+            $(btnProgress).html('+ '+ $(btnProgress).val());
+            $(btnProgress).prop('disabled', true);
+            $('#toastSuccess .text-message').html("Task upgraded! :)");
+            new bootstrap.Toast($('#toastSuccess')).show();
+        }
+
     });
 
     //DESC expander
@@ -576,6 +596,73 @@ function getModifiedItems() {
     return modifiedItems;
 }
 
+function completeTask(taskLUID){
+
+    if (taskLUID===undefined){
+        console.error("task undefined");
+        return;
+    }
+
+    let taskItem = new Object();
+    taskItem.LUID = taskLUID;
+
+    makeRequest('PUT',"/complete", JSON.stringify({ taskItem }))
+    .then(response => {
+        if (!response.ok) {
+            $('#toastFailure .text-message').html("Task cannot be completed now.");
+            new bootstrap.Toast($('#toastFailure')).show();
+            return false;
+        }
+        return true;
+    }
+    ).catch(error => console.error('Error completing task:', error));
+}
+
+function upgradeTask(taskLUID){
+
+    if (taskLUID===undefined){
+        console.error("task undefined");
+        return;
+    }
+
+    let taskItem = new Object();
+    taskItem.LUID = taskLUID;
+
+    console.log(taskItem);
+
+    makeRequest('PUT',"/progress", JSON.stringify({ taskItem }))
+    .then(response => {
+        if (!response.ok) {
+            $('#toastFailure .text-message').html("Task cannot be upgraded now");
+            new bootstrap.Toast($('#toastFailure')).show();
+            return false;
+        }
+        return true;
+    }
+    ).catch(error => console.error('Error upgrading task:', error));
+}
+
+function deleteTask(taskLUID){
+
+    if (taskLUID===undefined){
+        console.error("task undefined");
+        return;
+    }
+
+    let taskItem = new Object();
+    taskItem.LUID = taskLUID;
+
+    makeRequest('DELETE',"/delete", JSON.stringify({ taskItem }))
+    .then(response => {
+        if (!response.ok) {
+            $('#toastFailure .text-message').html("Task cannot be deleted now.");
+            new bootstrap.Toast($('#toastFailure')).show();
+            return false;
+        }
+        return true;
+    }
+    ).catch(error => console.error('Error deleting task:', error));
+}
 // Funzione per inviare la richiesta di aggiornamento
 function insertNewTask() {
     
@@ -619,15 +706,16 @@ function insertNewTask() {
             $('#collapseEditor #newTopicsSpan').html('');
             $('#collapseEditor #newDepencyTask').attr('href','#');
             $('#collapseEditor').collapse('toggle');
-            
+            return true;
         } else {
             console.error("Error on response:", response.statusText);
+            return false;
         }
-        return response.json();
     })
-    .then(response => {
-        // Qui puoi utilizzare i dati della risposta
-        console.log('Server response:', response);
+    .then(success => {
+        if (success){
+            loadAllTask();
+        }
     })
     .catch(error => {
         $('#toastFailure .text-message').html("Something has gone wrong :(");
@@ -676,27 +764,30 @@ $(function () {
 });
 
 
-//LOADING PAGE
-document.addEventListener('DOMContentLoaded', function () {
+function loadAllTask() {
     // Fetch the JSON data
     makeRequest('GET', '/tasks').then(response => {
-            if (response.ok) {
-                // OK (status 200-299)
-                return response.json();
-            } else {
-                console.error(`Error: ${response.status} ${response.statusText}`);
-            }
-        }).then(data => {
-        populateTaskswithData(data);
+        if (response.ok) {
+            // OK (status 200-299)
+            return response.json();
+        } else {
+            console.error(`Error: ${response.status} ${response.statusText}`);
+        }
+    }).then(data => {
+    populateTaskswithData(data);
 
-        //Activate functions for dynamic elements
-        populateDepencies();
-        translateDatePickers();
-        colorAllTopicsBadges();
-        insertNewTopic();
-        enableDynamicActions();
-        console.log("data loaded");
-    }).then(enableSearch()).then(console.log("wainting for json.."))
-    .catch(error => console.error('Error loading JSON:', error));
+    //Activate functions for dynamic elements
+    populateDepencies();
+    translateDatePickers();
+    colorAllTopicsBadges();
+    insertNewTopic();
+    enableDynamicActions();
+    console.log("data loaded");
+}).then(enableSearch()).then(console.log("wainting for json.."))
+.catch(error => console.error('Error loading JSON:', error));
 
+}
+//LOADING PAGE
+document.addEventListener('DOMContentLoaded', function () {
+    loadAllTask();
 });

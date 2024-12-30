@@ -7,9 +7,6 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 //TODO
-//insert new task
-//task progress
-//task status
 //task pagination
 //import export tasks
 //drag and drop for mobile
@@ -91,7 +88,7 @@ async function getMaxLUIDAndOrderByOwner(ownerIdString) {
                 }
             }
         ]);
-        
+
         if (result.length === 0) {
             return { newLUID: null, newOrder: null }; // Nessun risultato
         }
@@ -128,7 +125,7 @@ app.use(async (req, res, next) => {
 // Select All user tasks
 app.get('/tasks', authenticateJWT, async (req, res) => {
     try {
-        const tasks = await Task.find({ owner: req.userId }).select('-owner');
+        const tasks = await Task.find({ owner: req.userId, status: { $gt: 0 }}).select('-owner -_id');
         res.json(tasks);
     } catch (err) {
         res.status(500).json({ message: 'Error retrieving tasks', error: err });
@@ -205,16 +202,122 @@ app.post('/insert', authenticateJWT, async (req, res) => {
             lastEdit: new Date()
         });
 
-        await task.save();
-        // Risposta di successo
-        res.status(200).json({ message: 'Tasks added successfully' });
+        const saved = await task.save();
+
+        if (saved){
+            // Risposta di successo
+            res.status(200).json({ message: 'Task added successfully' });
+        }else{
+            res.status(501).json({ message: 'Task not added' });
+        }
+
     } catch (error) {
         // In caso di errore, rollback della transazione
         res.status(500).json({ error: 'An error occurred while inserting a task', details: error.message });
     }
 });
 
+//PROGRESS: Tasks progress
+app.put('/progress', authenticateJWT, async (req, res) => {
+    try {
+        const { taskItem } = req.body; 
 
+        if (taskItem.length === 0) {
+            return res.status(400).json({ message: 'Invalid or empty taskItem ' });
+        }
+
+        //timeAgo setted by default at 1days ago (max 1 update x day)
+        const timeAgo = new Date();
+        timeAgo.setDate(timeAgo.getDate() - 1);
+
+        const deletedTask = await Task.findOneAndUpdate(
+            {   owner: req.userId,// Usa 'owner' e 'LUID' come identificatore del task
+                LUID: taskItem.LUID ,  
+                lastProgress: { $lt: timeAgo } // lastProgress più vecchio di un giorno
+            }, 
+            { $inc: { progress: 1 } },  //incrementa il progress
+            { $set: {
+                lastEdit: new Date()  }
+            }
+        );
+       
+        // Risposta di successo
+        if (deletedTask){
+            res.status(200).json({ message: 'Task upgraded successfully' });
+        } else {
+            res.status(503).json({ message: 'Task cannot be upgraded now' });
+        }
+        
+    } catch (error) {
+        res.status(500).json({ error: 'An error occurred while upgrading a task', details: error.message });
+    }
+});
+
+// COMPLETE: Task complete 
+app.put('/complete', authenticateJWT, async (req, res) => {
+    try {
+        const { taskItem } = req.body; 
+
+        if (taskItem.length === 0) {
+            return res.status(400).json({ message: 'Invalid or empty taskItem ' });
+        }
+
+        const completedTask = await Task.findOneAndUpdate(
+            {   owner: req.userId,// Usa 'owner' e 'LUID' come identificatore del task
+                LUID: taskItem.LUID ,  
+            },
+            { $set: 
+                {
+                    lastEdit: new Date(),
+                    status: 2
+                }
+            }
+        );
+       
+        // Risposta di successo
+        if (completedTask){
+            res.status(200).json({ message: 'Task completed successfully' });
+        } else {
+            res.status(503).json({ message: 'Task cannot be completed' });
+        }
+        
+    } catch (error) {
+        res.status(500).json({ error: 'An error occurred while upgrading a task', details: error.message });
+    }
+});
+
+// DELETE: Task delete ( logical delete )
+app.delete('/delete', authenticateJWT, async (req, res) => {
+    try {
+        const { taskItem } = req.body; 
+
+        if (taskItem.length === 0) {
+            return res.status(400).json({ message: 'Invalid or empty taskItem ' });
+        }
+
+        const progressedTask = await Task.findOneAndUpdate(
+            {   owner: req.userId,// Usa 'owner' e 'LUID' come identificatore del task
+                LUID: taskItem.LUID ,  
+            },
+            { $set: 
+                {
+                    lastEdit: new Date(),
+                    status: 0
+                }
+            }
+        );
+       
+        // Risposta di successo
+        if (progressedTask){
+            res.status(200).json({ message: 'Task deleted successfully' });
+        } else {
+            res.status(503).json({ message: 'Task cannot be deleted' });
+        }
+        
+    } catch (error) {
+        res.status(500).json({ error: 'An error occurred while upgrading a task', details: error.message });
+    }
+});
 
 // Gestione delle sessioni
 
