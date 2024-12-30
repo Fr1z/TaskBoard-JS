@@ -303,12 +303,12 @@ function insertNewTopic(){
             return false;  
         }
     });   
-    $('input#newtopic').keypress(function (e) {
+    $('input#newTopics').keypress(function (e) {
         var key = e.which;
         if(key == 13)  // the enter key code
         {
             var inputElement = e.target
-            var reletedCategories = $(inputElement).parent().find('#topics')
+            var reletedCategories = $(inputElement).parent().find('#newTopicsSpan')
             var new_topic = $(inputElement).val().trim()
             if (new_topic.length > 0) {
                 reletedCategories.append(' '+new_topic)
@@ -603,7 +603,6 @@ function insertNewTask() {
         return;
     }
 
-    return;
     makeRequest('POST',"/insert", JSON.stringify({ newTask }))
     .then(response => {
         if (response.ok) {

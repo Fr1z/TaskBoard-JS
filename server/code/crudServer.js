@@ -178,8 +178,8 @@ app.put('/update', authenticateJWT, async (req, res) => {
     }
 });
 
-// UPDATE: Tasks update
-app.put('/insert', authenticateJWT, async (req, res) => {
+// INSERT: Add a Task
+app.post('/insert', authenticateJWT, async (req, res) => {
     try {
         const { newTask } = req.body; // Questo è l'array JSON di oggetti con i dati da aggiornare
 
