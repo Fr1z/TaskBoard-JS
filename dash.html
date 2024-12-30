@@ -192,19 +192,19 @@
                             <div class="row row-cols-3 flex-nowrap">
                                 <div class="col-6">
                                     <div class="input-group mb-3">
-                                        <span class="input-group-text fw-light" id="new_title">Title</span>
-                                        <input type="text" class="form-control " placeholder="Title" aria-label="Titolo" aria-describedby="new_title">
+                                        <span class="input-group-text fw-light" id="newTitleSpan">Title</span>
+                                        <input type="text" class="form-control" id="newTitle" placeholder="Title" aria-label="Titolo" aria-describedby="newTitleSpan">
                                       </div>                                      
                                 </div>
                                 <div class="col-3">
                                     <div class="input-group mb-3 font-light ">
-                                    <input type="text" class="form-control" placeholder="+ Topic" id="newtopic" aria-label="Categories" aria-describedby="topics">
-                                    <span class="input-group-text" id="topics" style="overflow-x: scroll;min-width: 3em;"></span>
+                                    <input type="text" class="form-control" placeholder="+ Topic" id="newTopics" aria-label="Categories" aria-describedby="newTopicsSpan">
+                                    <span class="input-group-text" id="newTopicsSpan" style="overflow-x: scroll;min-width: 3em;"></span>
                                   </div>
                                 </div>
                                 <div class="col-3">
-                                    <div class="input-group date d-flex flex-nowrap">
-                                        <input type="text" class="form-control fw-light pe-none text-body-secondary bg-body-tertiary float-end text-end" value="" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
+                                    <div class="input-group date d-flex flex-nowrap datapickertoggler">
+                                        <input type="text" class="form-control fw-light pe-none text-body-secondary bg-body-tertiary float-end text-end" value="" id="newExpireDate" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
                                         <span class="input-group-text datapickertoggler" style="border: 0;">
                                             <i class="bx bx-calendar bx-sm opacity-50 datapickertoggler" ></i>
                                         </span>
@@ -214,8 +214,8 @@
          
                             <div class="col">
                                 <div class="form-floating">
-                                    <textarea class="form-control" placeholder="Description here" id="floatingTextarea" ></textarea>
-                                    <label for="floatingTextarea" style="color: var(--bs-gray)">Description</label>
+                                    <textarea class="form-control" placeholder="Description here" id="newDesc" ></textarea>
+                                    <label for="newDesc" style="color: var(--bs-gray)">Description</label>
                                 </div>
                             </div>
                             <div class="row mt-3">
@@ -235,9 +235,9 @@
                                 
                                 </div>
                                 <div class="col d-flex justify-content-end">
-                                    <button type="button" class="btn btn-lg btn-outline-primary text-uppercase">
+                                    <button type="button" class="btn btn-lg btn-outline-primary text-uppercase" onClick="insertNewTask();">
                                         &ensp;Insert&ensp;<i class='bx bx-fw bx-plus-circle bx-sm'></i>
-                                </button>
+                                    </button>
                                 </div>
                             </div>
 

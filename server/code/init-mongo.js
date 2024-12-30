@@ -32,7 +32,8 @@ db.tasks.insertMany([
         lastProgress: "0",
         expireDate: "",
         categories: "logic,math",
-        depends: "2"
+        depends: "2",
+        lastEdit: new Date(),
     },
     {
         owner: adminUser._id, // Usa l'_id recuperato,
@@ -46,7 +47,8 @@ db.tasks.insertMany([
         lastProgress: "1732720585556",
         expireDate: "",
         categories: "python,android",
-        depends: ""
+        depends: "",
+        lastEdit: new Date(),
     },
     {
         owner: adminUser._id, // Usa l'_id recuperato,
@@ -60,6 +62,7 @@ db.tasks.insertMany([
         lastProgress: "0",
         expireDate: "25/12/2030",
         categories: "python,math",
-        depends: "1,2"
+        depends: "1,2",
+        lastEdit: new Date(),
     }
 ]);

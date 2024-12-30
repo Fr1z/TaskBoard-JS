@@ -6,6 +6,14 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const app = express();
+//TODO
+//insert new task
+//task progress
+//task status
+//task pagination
+//import export tasks
+//drag and drop for mobile
+
 
 // Middleware
 app.use(helmet());
@@ -41,7 +49,8 @@ const taskSchema = new mongoose.Schema({
     lastProgress: String,
     expireDate: String,
     categories: String,
-    depends: String
+    depends: String,
+    lastEdit: Date
 });
 const User = mongoose.model('User', userSchema);
 const Task = mongoose.model('Task', taskSchema);
@@ -66,6 +75,37 @@ const authenticateJWT = (req, res, next) => {
         return res.status(401).json({ message: 'Session invalid or expired' });
     }
 };
+
+//funzione che ottiene un nuovo localId, e nuovo order (in alto)
+async function getMaxLUIDAndOrderByOwner(ownerId) {
+    try {
+        // Assicurati che ownerId sia un ObjectId valido
+        const castedOwnerId = new mongoose.Types.ObjectId(ownerId);
+
+        const result = await Task.aggregate([
+            { $match: { owner: castedOwnerId } }, // Filtra per owner
+            {
+                $group: {
+                    _id: "$owner", // Raggruppa per owner
+                    maxLUID: { $max: "$LUID" },
+                    maxOrder: { $max: "$order" }
+                }
+            }
+        ]);
+
+        if (result.length === 0) {
+            return { newLUID: null, newOrder: null }; // Nessun risultato
+        }
+
+        return {
+            newLUID: (result[0].newLUID + 1),
+            newOrder: (result[0].maxOrder + 1)
+        };
+    } catch (err) {
+        console.error("Errore:", err);
+        throw err;
+    }
+}
 
 
 // Middleware per gestire le sessioni autenticate
@@ -111,6 +151,8 @@ app.put('/update', authenticateJWT, async (req, res) => {
 
         const updatePromises = modifiedItems.map(async (task) => {
             // Trova il documento da aggiornare e aggiorna
+            task.lastEdit = new Date(); //Update lastEdit prop.
+
             await Task.findOneAndUpdate(
                 { owner: req.userId, LUID: task.LUID }, // Usa 'owner della sessione' e 'LUID' come identificatore
                 { $set: task }
@@ -136,7 +178,46 @@ app.put('/update', authenticateJWT, async (req, res) => {
     }
 });
 
-// Semplice gestione delle sessioni
+// UPDATE: Tasks update
+app.put('/insert', authenticateJWT, async (req, res) => {
+    try {
+        const { newTask } = req.body; // Questo è l'array JSON di oggetti con i dati da aggiornare
+
+        if (!newTask || newTask.title.length === 0) {
+            return res.status(400).json({ message: 'Invalid task object' });
+        }
+
+        //put new task at the top of all, increment local_id by 1
+        const {newLUID, newOrder} = await getMaxLUIDAndOrderByOwner(req.userId);
+
+        const task = new Task({
+            owner: req.userId,
+            LUID: newLUID,
+            order: newOrder,
+            title: newTask.title,
+            star: false,
+            status: 1,
+            description: newTask.description,
+            progress: 0,
+            lastProgress: '',
+            expireDate: newTask.expireDate,
+            categories: newTask.categories,
+            depends: newTask.depency,
+            lastEdit: new Date()
+        });
+
+        await task.save();
+        // Risposta di successo
+        res.status(200).json({ message: 'Tasks added successfully' });
+    } catch (error) {
+        // In caso di errore, rollback della transazione
+        res.status(500).json({ error: 'An error occurred while inserting a task', details: error.message });
+    }
+});
+
+
+
+// Gestione delle sessioni
 
 // Esegui il logout e rimuovi il cookie di sessione
 app.post('/logout', authenticateJWT, async (req, res) => {

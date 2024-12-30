@@ -1,32 +1,13 @@
 let initialData = [];
 
-$(function () {
-    $(".sortable").sortable({
-        cursor: "n-resize",
-        handle: ".bd-placeholder"
-    });
-
-    //set the order based from the element bottom, if any, else order 0 -> no fallback update for backend
-    $( ".sortable" ).on( "sortstop", function( event, ui ) {
-        nextOrder = $(ui.item).next('div.container').attr('order');
-        if (nextOrder){
-            $(ui.item).attr('order', parseInt(nextOrder)+1);
-        }else{
-            $(ui.item).attr('order', 0);
-        }
-    } );
-});
-
-function makeRequest(type, endpoint, data){
+const makeRequest = (type, endpoint, data = undefined) => {
 
     const allowedMethods = ["GET", "POST", "PUT", "UPDATE"];
     const cookieName = 'sessionToken';
     const sessionToken = getCookie(cookieName);
 
-    console.log(sessionToken);
-    
     if (sessionToken===undefined || sessionToken.length==0){
-        console.log("no session token");
+        console.warn("no session token");
         window.location.replace("./login.html");
         return;
     }
@@ -44,7 +25,7 @@ function makeRequest(type, endpoint, data){
                         'Content-Type' : 'application/json'
                     }
         })
-    }else{
+    } else {
         return fetch(serverAddress+endpoint, {
             method: type.toUpperCase(),
             headers:{
@@ -56,6 +37,7 @@ function makeRequest(type, endpoint, data){
     }
 
 }
+
 // Leggi il valore del cookie
 function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -491,7 +473,7 @@ function logout(){
     }).catch(error => {
         $('#saveBtn').prop('disabled', false);
         $('#saveBtn i').removeClass('bx-loader-circle bx-spin').addClass('bxs-save');
-        $('#toastFailure.text-message').html("error on logout :(");
+        $('#toastFailure .text-message').html("error on logout :(");
         new bootstrap.Toast($('#toastFailure')).show();
         console.error("Errore durante il logout:", error);
     });;
@@ -522,7 +504,7 @@ function sendUpdate() {
     .then(response => {
         if (response.ok) {
             //show toasts
-            $('#toastSuccess.text-message').html("changes have been saved :)");
+            $('#toastSuccess .text-message').html("changes have been saved :)");
             new bootstrap.Toast($('#toastSuccess')).show();
         } else {
             console.error("Errore di risposta:", response.statusText);
@@ -536,7 +518,7 @@ function sendUpdate() {
     })
     .catch(error => {
         saveStopSpinning();
-        $('#toastFailure.text-message').html("changes aren't saved :(");
+        $('#toastFailure .text-message').html("changes aren't saved :(");
         new bootstrap.Toast($('#toastFailure')).show();
         console.error("Errore durante l'invio:", error);
     });
@@ -594,8 +576,59 @@ function getModifiedItems() {
     return modifiedItems;
 }
 
+// Funzione per inviare la richiesta di aggiornamento
+function insertNewTask() {
+    
+    let newTask = new Object();
 
+    const newTitle = $('#collapseEditor #newTitle').val();
+    let newDesc = $('#collapseEditor #newDesc').val();
+    let newTopics = $('#collapseEditor #newTopics').val();
+    let newExpireDate = $('#collapseEditor #newExpireDate').val();
+    let newDepencyTask = $('#collapseEditor #newDepencyTask').val();
 
+    newDepencyTask = (newDepencyTask !== undefined) ? newDepencyTask.replace('#','') : '';
+
+    //assign task object props
+    newTask.title = newTitle;
+    newTask.description = newDesc;
+    newTask.categories = newTopics;
+    newTask.expireDate = newExpireDate;
+    newTask.depency = newDepencyTask;
+
+    //If no data has been modified, exit
+    if (newTitle.length === 0){
+        $('#toastFailure .text-message').html("Title is required.");
+        new bootstrap.Toast($('#toastFailure')).show();
+        return;
+    }
+
+    return;
+    makeRequest('POST',"/insert", JSON.stringify({ newTask }))
+    .then(response => {
+        if (response.ok) {
+            //show toasts
+            $('#toastSuccess .text-message').html("Task Added :)");
+            new bootstrap.Toast($('#toastSuccess')).show();
+            //close the editor
+            $('#collapseEditor').collapse('toggle');
+            
+        } else {
+            console.error("Error on response:", response.statusText);
+        }
+        return response.json();
+    })
+    .then(response => {
+        // Qui puoi utilizzare i dati della risposta
+        console.log('Server response:', response);
+    })
+    .catch(error => {
+        $('#toastFailure .text-message').html("Something has gone wrong :(");
+        new bootstrap.Toast($('#toastFailure')).show();
+        console.error("Error while sending data:", error);
+    });
+    
+}
 
 
 // Ripristino con CTRL+Z
@@ -615,6 +648,24 @@ $(document).on("keydown", function (e) {
         console.log('CTRL + S');
         $('#saveBtn').click();
     }
+});
+
+//Order items
+$(function () {
+    $(".sortable").sortable({
+        cursor: "n-resize",
+        handle: ".bd-placeholder"
+    });
+
+    //set the order based from the element bottom, if any, else order 0 -> no fallback update for backend
+    $( ".sortable" ).on( "sortstop", function( event, ui ) {
+        nextOrder = $(ui.item).next('div.container').attr('order');
+        if (nextOrder){
+            $(ui.item).attr('order', parseInt(nextOrder)+1);
+        }else{
+            $(ui.item).attr('order', 0);
+        }
+    } );
 });
 
 
