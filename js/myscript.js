@@ -39,6 +39,11 @@ const makeRequest = (type, endpoint, data = undefined) => {
 
 }
 
+function switchToTab(tab){
+    selectedTab = tab;
+    loadAllTask();
+}
+
 // Leggi il valore del cookie
 function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -663,6 +668,7 @@ function deleteTask(taskLUID) {
         }
         ).catch(error => console.error('Error deleting task:', error));
 }
+
 // Funzione per inviare la richiesta di aggiornamento
 function insertNewTask() {
 
