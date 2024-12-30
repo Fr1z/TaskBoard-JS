@@ -79,11 +79,9 @@ const authenticateJWT = (req, res, next) => {
 //funzione che ottiene un nuovo localId, e nuovo order (in alto)
 async function getMaxLUIDAndOrderByOwner(ownerId) {
     try {
-        // Assicurati che ownerId sia un ObjectId valido
-        const castedOwnerId = new mongoose.Types.ObjectId(ownerId);
 
         const result = await Task.aggregate([
-            { $match: { owner: castedOwnerId } }, // Filtra per owner
+            { $match: { owner: ownerId } }, // Filtra per owner
             {
                 $group: {
                     _id: "$owner", // Raggruppa per owner
@@ -98,7 +96,7 @@ async function getMaxLUIDAndOrderByOwner(ownerId) {
         }
 
         return {
-            newLUID: (result[0].newLUID + 1),
+            newLUID: (result[0].maxLUID + 1),
             newOrder: (result[0].maxOrder + 1)
         };
     } catch (err) {
@@ -188,7 +186,7 @@ app.post('/insert', authenticateJWT, async (req, res) => {
         }
 
         //put new task at the top of all, increment local_id by 1
-        const {newLUID, newOrder} = await getMaxLUIDAndOrderByOwner(req.userId);
+        const {newLUID, newOrder} = await getMaxLUIDAndOrderByOwner(req.userId) || {};;
 
         const task = new Task({
             owner: req.userId,
