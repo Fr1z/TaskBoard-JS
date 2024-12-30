@@ -125,7 +125,7 @@ app.use(async (req, res, next) => {
 // Select All user tasks
 app.get('/tasks', authenticateJWT, async (req, res) => {
     try {
-        const tasks = await Task.find({ owner: req.userId, status: { $gt: 0 }}).select('-owner');
+        const tasks = await Task.find({ owner: req.userId }).select('-owner');
         res.json(tasks);
     } catch (err) {
         res.status(500).json({ message: 'Error retrieving tasks', error: err });

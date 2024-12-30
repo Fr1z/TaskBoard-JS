@@ -1,4 +1,5 @@
 let initialData = [];
+let selectedTab = "ALL";
 
 const makeRequest = (type, endpoint, data = undefined) => {
 
@@ -61,7 +62,7 @@ function populateTaskswithData(data) {
         //if progress was added recently disable the button
         var disabledProgress = "";
         var differenceTimeToProgress = 24 * 60 * 60 * 1000; //24-hours
-        var difference = (new Date().getTime()) - item.lastProgress;
+        var difference = (new Date().getTime()) - (new Date(item.lastProgress));
         if (difference < differenceTimeToProgress) {
             disabledProgress = "disabled";
         }
@@ -76,6 +77,8 @@ function populateTaskswithData(data) {
             depenciesHTML += depencies.map(dep_id => { return "<a class=\"depency\" href=\"#" + dep_id + "\"></a>"; }).join(',&nbsp');
         }
 
+        if ( (item.status !== 1 && selectedTab == "ALL") || (item.status !== 2 && selectedTab == "COMPLETED") || ((item.status !== 1 || item.star !== 1 ) && selectedTab == "STARRED")  ) { return; }
+        
         rows += `
         <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${item.LUID}" order="${item.order}">
             <div class="row flex-nowrap">

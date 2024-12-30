@@ -119,13 +119,13 @@
                     <div class="navbarToggler justify-content-center" id="navbarToggler1">
                         <div class="navbar-nav">
                             <div class="btn-group fs-4" role="group" aria-label="toggle button group">
-                                <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off">
+                                <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off" onclick="selectedTab='STARRED';">
                                 <label class="btn btn btn-primary border border-light rounded-left nav-link text-white" for="failed"><i class="bx bx-star bx-sm"></i>&nbspStarred</label>
 
-                                <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" checked>
+                                <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" onclick="selectedTab='ALL';" checked>
                                 <label class="btn btn-primary border border-light border-left-0 border-right-0 nav-link text-white" for="todos">Da fare</label>
                             
-                                <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off">
+                                <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off" onclick="selectedTab='COMPLETED';">
                                 <label class="btn btn-primary border border-light rounded-right nav-link text-white" for="completed">Completati</label>
                             
                             </div>
