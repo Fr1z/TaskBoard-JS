@@ -39,11 +39,13 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
     var hiddenRequiredInput = addSubTaskModal.querySelector('.modal-body #requiredfor')
 
     var datalist = addSubTaskModal.querySelector('#datalistOptions');
-    var datalistElement = addSubTaskModal.querySelector('.modal-body #exampleDataList');
+    var datalistElement = addSubTaskModal.querySelector('.modal-body #subTaskDataList');
     var subtaskSelected = addSubTaskModal.querySelector('.modal-body #selectedTask');
     var items = document.querySelectorAll('.myitem');
     var sendBtn = addSubTaskModal.querySelector('.modal-footer #sendButton');
 
+    //reset subtask value
+    datalistElement.value = '';
     //remplace required data forms
     modalTitle.textContent = 'Task Required for ' + requiredName
     hiddenRequiredInput.value = requiredID

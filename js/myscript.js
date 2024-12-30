@@ -583,9 +583,12 @@ function insertNewTask() {
 
     const newTitle = $('#collapseEditor #newTitle').val();
     let newDesc = $('#collapseEditor #newDesc').val();
-    let newTopics = $('#collapseEditor #newTopics').val();
+    let newTopics = $('#collapseEditor #newTopicsSpan').find('span.badge i').map(
+        function () { return $(this).text().trim(); }
+    ).get().join(','); // Unisce i topic separati da ',';
+
     let newExpireDate = $('#collapseEditor #newExpireDate').val();
-    let newDepencyTask = $('#collapseEditor #newDepencyTask').val();
+    let newDepencyTask = $('#collapseEditor #newDepencyTask').attr('href');
 
     newDepencyTask = (newDepencyTask !== undefined) ? newDepencyTask.replace('#','') : '';
 
@@ -609,7 +612,12 @@ function insertNewTask() {
             //show toasts
             $('#toastSuccess .text-message').html("Task Added :)");
             new bootstrap.Toast($('#toastSuccess')).show();
-            //close the editor
+            //reset & close the editor
+            $('#collapseEditor #newTitle').val('');
+            $('#collapseEditor #newDesc').val('');
+            $('#collapseEditor #newExpireDate').val('');
+            $('#collapseEditor #newTopicsSpan').html('');
+            $('#collapseEditor #newDepencyTask').attr('href','#');
             $('#collapseEditor').collapse('toggle');
             
         } else {

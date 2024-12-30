@@ -77,20 +77,21 @@ const authenticateJWT = (req, res, next) => {
 };
 
 //funzione che ottiene un nuovo localId, e nuovo order (in alto)
-async function getMaxLUIDAndOrderByOwner(ownerId) {
+async function getMaxLUIDAndOrderByOwner(ownerIdString) {
     try {
+        const ownerId = new mongoose.Types.ObjectId(ownerIdString);
 
         const result = await Task.aggregate([
             { $match: { owner: ownerId } }, // Filtra per owner
             {
                 $group: {
-                    _id: "$owner", // Raggruppa per owner
-                    maxLUID: { $max: "$LUID" },
-                    maxOrder: { $max: "$order" }
+                    _id: null, //nessun raggruppamento specifico
+                    maxLUID: { $max: '$LUID' },
+                    maxOrder: { $max: '$order' }
                 }
             }
         ]);
-
+        
         if (result.length === 0) {
             return { newLUID: null, newOrder: null }; // Nessun risultato
         }
