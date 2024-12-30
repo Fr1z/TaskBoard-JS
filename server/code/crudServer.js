@@ -43,7 +43,7 @@ const taskSchema = new mongoose.Schema({
     status: Number,
     description: String,
     progress: Number,
-    lastProgress: String,
+    lastProgress: Date,
     expireDate: String,
     categories: String,
     depends: String,
@@ -125,7 +125,7 @@ app.use(async (req, res, next) => {
 // Select All user tasks
 app.get('/tasks', authenticateJWT, async (req, res) => {
     try {
-        const tasks = await Task.find({ owner: req.userId, status: { $gt: 0 }}).select('-owner -_id');
+        const tasks = await Task.find({ owner: req.userId, status: { $gt: 0 }}).select('-owner');
         res.json(tasks);
     } catch (err) {
         res.status(500).json({ message: 'Error retrieving tasks', error: err });
@@ -184,7 +184,7 @@ app.post('/insert', authenticateJWT, async (req, res) => {
         }
 
         //put new task at the top of all, increment local_id by 1
-        const {newLUID, newOrder} = await getMaxLUIDAndOrderByOwner(req.userId) || {};;
+        const {newLUID, newOrder} = await getMaxLUIDAndOrderByOwner(req.userId) || {};
 
         const task = new Task({
             owner: req.userId,
@@ -194,8 +194,8 @@ app.post('/insert', authenticateJWT, async (req, res) => {
             star: false,
             status: 1,
             description: newTask.description,
-            progress: 0,
-            lastProgress: '',
+            progress: 1,
+            lastProgress: new Date('1990-01-01'),
             expireDate: newTask.expireDate,
             categories: newTask.categories,
             depends: newTask.depency,
