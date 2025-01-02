@@ -31,9 +31,9 @@
     <!--Fix min witdth for small devices-->
     <script>
     window.onload = function() {
-        if (screen.width < 550) {
+        if (screen.width < 575) {
             var mvp = document.getElementById('vp');
-            mvp.setAttribute('content','user-scalable=no,width=550');
+            mvp.setAttribute('content','user-scalable=no,width=575');
         }
     }
     </script>
@@ -107,7 +107,7 @@
     <main class="container">
         <div class="row">
             <nav class="navbar navbar-expand-lg navbar-light bg-primary rounded mt-1 p-3">
-                <div class="col">
+                <div class="col order-1 order-md-1">
                     <a class="navbar-brand">
                         <svg width="72" height="72">
                             <use href="#taskicon"></use>
@@ -116,7 +116,7 @@
                     </a>
                 </div>
 
-                <div class="col">
+                <div class="col order-3 order-md-2">
                     <div class="navbarToggler justify-content-center" id="navbarToggler1">
                         <div class="navbar-nav">
                             <div class="btn-group fs-4" role="group" aria-label="toggle button group">
@@ -133,10 +133,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col order-2 order-md-3">
                     <div class="row m-0 py-2">
-                        <div class="col-1 col-sm-1 col-md-2 col-lg-3"></div>
-                        <div class="col-11 col-sm-11 col-md-10 col-lg-9">
+                        <div class="col-1 col-md-2 col-lg-3"></div>
+                        <div class="col-11 col-md-10 col-lg-9">
                             <div class="navbarToggler justify-content-end subgrid" id="navbarToggler2">
                                 <div class="col input-group">
                                     <input id="mysearch" class="form-control shadow-sm" type="search" placeholder="Search" aria-label="Search" style="border: 0; min-width: 0px!important;">
@@ -155,8 +155,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                        
                     </div>
                 </div>
                 

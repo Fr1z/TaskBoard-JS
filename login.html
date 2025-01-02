@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup to TaskBoard</title>
+    <title>TaskBoard</title>
     <link href="css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 </head>
 <body>
@@ -12,17 +12,21 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                        <h4>Signup to TaskBoard</h4>
+                        <h4 style="margin-bottom: 12px;">Login to TaskBoard</h4>
                         <form id="login-form">
                             <div class="form-group">
-                                <label for="email">Mail:</label>
-                                <input type="text" id="email" name="email" class="form-control" required>
+                                <label for="email"><b>Mail:</b></label>
+                                <input type="text" id="email" name="email" class="form-control" maxlength="82" placeholder="mail" required >
                             </div>
-                            <div class="form-group">
-                                <label for="password">Token:</label>
-                                <input type="password" id="password" name="password" class="form-control" required>
+
+                            <div class="form-group" style="margin-top: 8px;">
+                                <label for="password"><b>Password:</b></label>
+                                <input type="password" id="password" name="password" class="form-control" maxlength="64" placeholder="password" required>
                             </div>
-                            <button type="submit" class="btn btn-primary">Login</button>
+                            <br />
+                            <button type="submit" class="btn btn-primary" style="padding-right: 1em;padding-left: 1em; float: right;">Login</button>
+                            <br>
+                            <span><i>New User? <a href="#signup">Click Here</a> to Signup</i></span>
                         </form>
                     </div>
                 </div>
