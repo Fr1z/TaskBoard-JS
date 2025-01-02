@@ -41,6 +41,7 @@ const makeRequest = (type, endpoint, data = undefined) => {
 
 function switchToTab(tab){
     selectedTab = tab;
+    $(".currentTab").text(tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase());
     loadAllTask();
 }
 

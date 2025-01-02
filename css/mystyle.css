@@ -12,7 +12,7 @@
 }
 
 
-/* others */
+/* Many others */
 
 .showed {
     display: block!important;
@@ -53,7 +53,6 @@
     transition: all 0.5s ease; /* Animazione */
 }
 .desc.expanded {
-    max-height: max-content; /* Espansione massima */
     height: 12em;
     resize: vertical;
     border: 1px solid rgb(168, 168, 168);
@@ -68,4 +67,11 @@
     padding: 7px;
 }
 
-
+ /* TOASTS */
+.toast {
+    left: 50%;
+    position: fixed;
+    bottom:1em;
+    transform: translate(-50%, 0px);
+    z-index: 9999;
+}
