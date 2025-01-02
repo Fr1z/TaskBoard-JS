@@ -82,7 +82,7 @@ function populateTaskswithData(data) {
             depenciesHTML += depencies.map(dep_id => { return "<a class=\"depency\" href=\"#" + dep_id + "\"></a>"; }).join(',&nbsp');
         }
 
-        if ( (item.status !== 1 && selectedTab == "ALL") || (item.status !== 2 && selectedTab == "COMPLETED") || ((item.status !== 1 || item.star !== 1 ) && selectedTab == "STARRED")  ) { return; }
+        if ( (item.status !== 1 && selectedTab == "ALL") || (item.status !== 2 && selectedTab == "COMPLETED") || ((item.status !== 1 || item.star === false ) && selectedTab == "STARRED")  ) { return; }
         
         rows += `
         <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${item.LUID}" order="${item.order}">
