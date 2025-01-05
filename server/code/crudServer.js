@@ -263,25 +263,31 @@ app.put('/complete', authenticateJWT, async (req, res) => {
             {   owner: req.userId,// Usa 'owner' e 'LUID' come identificatore del task
                 LUID: taskItem.LUID ,  
             },
-            { $set: 
-                {
-                    lastEdit: new Date(),
-                    status: {
-                        $cond: {
-                            if: { $eq: ["$status", 1] }, // if status 1 (TODO)
-                            then: 2,                    // set Completed
-                            else: 1                     // else is TODO!
-                        }   
-                    } 
+            [
+                { $set: 
+                    {
+                        lastEdit: new Date(),
+                        status: {
+                            $cond: {
+                                if: { $eq: ["$status", 1] }, // if status 1 (TODO)
+                                then: 2,                    // set Completed
+                                else: 1                     // else is TODO!
+                            }   
+                        } 
+                    }
                 }
+            ],
+            {
+                new: true, // Ritorna il documento aggiornato
+                useFindAndModify: false // Necessario per l'aggregation pipeline
             }
         );
        
         // Risposta di successo
         if (completedTask){
-            res.status(200).json({ message: 'Task completed successfully' });
+            res.status(200).json({ message: 'Task updated successfully' });
         } else {
-            res.status(503).json({ message: 'Task cannot be completed' });
+            res.status(503).json({ message: 'Task cannot be updated now' });
         }
         
     } catch (error) {
