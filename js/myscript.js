@@ -506,24 +506,34 @@ function logout() {
         });;
 }
 
-function saveStartSpinning() {
-    $('#saveBtn i').removeClass('bxs-save').addClass('bx-loader-circle bx-spin');
-    $('#saveBtn').prop('disabled', true);
+function startSpinning(queryElement) {
+    $(queryElement).prop('disabled', true);
+    // Controlla se l'icona è già presente
+    if ($(queryElement).find('.bx-loader-circle').length === 0) {
+        $(queryElement).data('original-content', $(queryElement).html()); // Salva il contenuto originale
+        $(queryElement).html('<i class="bx bx-loader-circle bx-spin"></i>');
+    }
+    
 }
-function saveStopSpinning() {
-    $('#saveBtn').prop('disabled', false);
-    $('#saveBtn i').removeClass('bx-loader-circle bx-spin').addClass('bxs-save');
+
+function stopSpinning(queryElement) {
+    $(queryElement).prop('disabled', false);
+    // Ripristina il contenuto originale se esiste
+    if ($(queryElement).data('original-content')) {
+        $(queryElement).html($(queryElement).data('original-content')); // Ripristina il contenuto
+        $(queryElement).removeData('original-content'); // Rimuove il dato salvato
+    }
 }
 
 // Funzione per inviare la richiesta di aggiornamento
 function sendUpdate() {
 
-    saveStartSpinning();
+    startSpinning('#saveBtn');
     const modifiedItems = getModifiedItems();
 
     //If no data has been modified, exit
     if (modifiedItems.length === 0) {
-        saveStopSpinning();
+        stopSpinning('#saveBtn');
         return;
     }
 
@@ -541,15 +551,46 @@ function sendUpdate() {
         .then(response => {
             // Qui puoi utilizzare i dati della risposta
             console.log('Risposta dal server:', response);
-            saveStopSpinning();
+            stopSpinning('#saveBtn');
         })
         .catch(error => {
-            saveStopSpinning();
+            stopSpinning('#saveBtn');
             $('#toastFailure .text-message').html("changes aren't saved :(");
             new bootstrap.Toast($('#toastFailure')).show();
             console.error("Errore durante l'invio:", error);
         });
 
+}
+
+function exportTaskAsFile(){
+
+    // Fetch the JSON data
+    makeRequest('GET', '/tasks').then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            console.error(`Error: ${response.status} ${response.statusText}`);
+        }
+    }).then(data => {
+        // Converti i dati in una stringa JSON
+        const jsonString = JSON.stringify(data);
+        // Crea un blob con i dati JSON
+        const blob = new Blob([jsonString], { type: "application/json" });
+    
+        // Crea un link per scaricare il file
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "myTasks.json";
+    
+        // Simula un clic sul link per avviare il download
+        link.click();
+    
+        // Rilascia l'oggetto URL per evitare memory leak
+        URL.revokeObjectURL(link.href);
+    
+        console.log("File salvato con successo!");
+    })
+    .catch(error => console.error('Error loading JSON:', error));
 }
 
 //Dato un elemento myitem mappa in un oggetto i valori interessati

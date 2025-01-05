@@ -1,6 +1,7 @@
 var addSubTaskModal = document.getElementById('addSubTaskModal');
 var confirmDeleteModal = document.getElementById('confirmDeleteModal');
 var settingsModal = document.getElementById('settingsModal');
+var importTaskModal = document.getElementById('importTaskModal');
 
 confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
     
@@ -134,6 +135,61 @@ settingsModal.addEventListener('show.bs.modal', function (event) {
         const theme = datalistThemeElement.value;
         //* Save the theme to local storage */
         localStorage.setItem('theme', theme)
+        closeBtn.click(); //close modal
+    });
+});
+
+
+importTaskModal.addEventListener('show.bs.modal', function (event) {
+    
+    // Button that triggered the modal
+    var sendBtn = importTaskModal.querySelector('.modal-footer #sendButton');
+    var closeBtn = importTaskModal.querySelector('.modal-footer #closeButton');
+
+    var selectedFile = importTaskModal.querySelector('.modal-body #inputFile');
+
+    sendBtn.addEventListener('click', async () => {
+        const file = selectedFile.files[0]; // Prendi il primo file selezionato
+
+        if (file) {
+            try {
+                // Leggi il contenuto del file
+                const fileContent = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = () => reject(reader.error);
+                    reader.readAsText(file);
+                });
+                // Convalida il contenuto come JSON (opzionale)
+                const jsonData = JSON.parse(fileContent);
+                startSpinning('.modal-body #fileInfo');
+                console.log(jsonData);
+                // Invia il contenuto del file al server
+                makeRequest('POST', "/import", JSON.stringify({ jsonData }))
+                .then(response => {
+                    if (response.ok) {
+                        //show toasts
+                        $('#toastSuccess .text-message').html("Tasks are now imported :)");
+                        new bootstrap.Toast($('#toastSuccess')).show();
+                    } else {
+                        $('#toastFailure .text-message').html("Error on importing tasks :(");
+                        new bootstrap.Toast($('#toastFailure')).show();
+                        console.error("Errore di risposta:", response.statusText);
+                    }
+                    stopSpinning('.modal-body #fileInfo');
+                }).catch(error => {
+                    stopSpinning('.modal-body #fileInfo');
+                    $('#toastFailure .text-message').html("Error while uploading :(");
+                    new bootstrap.Toast($('#toastFailure')).show();
+                    console.error("Error while sending:", error);
+                });
+            } catch (error) {
+                stopSpinning('.modal-body #fileInfo');
+                console.error("Errore:", error.message);
+            }
+        } else {
+            console.error("Nessun file selezionato.");
+        }
         closeBtn.click(); //close modal
     });
 });

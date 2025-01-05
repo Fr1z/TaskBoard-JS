@@ -7,10 +7,7 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 //TODO
-//task pagination
-//import export tasks
-//drag and drop for mobile
-
+//task pagination (optional)
 
 // Middleware
 app.use(helmet());
@@ -325,6 +322,36 @@ app.delete('/delete', authenticateJWT, async (req, res) => {
     }
 });
 
+// IMPORT: Import many task 
+app.post('/import', authenticateJWT, async (req, res) => {
+    try {
+        const tasks = req.body; // Ottieni l'array di task dal corpo della richiesta
+
+        // Valida che il body contenga un array di oggetti
+        if (!Array.isArray(tasks)) {
+            return res.status(400).json({ message: "Input must be an array of tasks" });
+        }
+
+        // Rimuove il campo _id da ciascun task (se presente)
+        const sanitizedTasks = tasks.map(task => {
+            const { _id, ...rest } = task; // Escludi _id
+            return rest;
+        });
+
+        // Inserisci i task nel database
+        const insertedTasks = await Task.insertMany(sanitizedTasks);
+
+        // Risposta di successo
+        if (insertedTasks ){
+            res.status(201).json({ message: 'Task added successfully' });
+        } else {
+            res.status(503).json({ message: 'Task cannot be added' });
+        }
+        
+    } catch (error) {
+        res.status(500).json({ error: 'An error occurred while upgrading a task', details: error.message });
+    }
+});
 // Gestione delle sessioni
 
 // Esegui il logout e rimuovi il cookie di sessione
