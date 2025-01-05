@@ -66,7 +66,7 @@
     </svg>
     
 
-    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3" style="z-index: 1500;">
+    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 d-none d-lg-block" style="z-index: 1500;">
         <button class="btn btn-primary py-2 dropdown-toggle align-items-center shadow" id="bd-theme" type="button"
             aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)">
             <div class="theme-icon-active">
@@ -167,7 +167,7 @@
             <div class="row mt-3 border-0 shadow-sm">
                 <div class="row m-0 flex-nowrap">
                     <div class="col" data-bs-toggle="collapse" href="#collapseEditor" role="button" aria-expanded="false" aria-controls="collapseEditor">
-                        <button type="button" class="btn btn-lg btn-outline-primary text-nowrap my-2" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
+                        <button type="button" class="btn btn-lg btn-outline-primary text-nowrap my-2 fw-bold" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
                         &ensp;Add Task <i class='bx bx-fw bx-add-to-queue bx-sm' ></i>
                         </button>
                     </div>
@@ -176,7 +176,7 @@
                     </div>
 
                     <div class="col d-flex justify-content-end">
-                        <button type="button" class="btn btn-lg btn-outline-warning text-nowrap my-2" id="saveBtn" onclick="sendUpdate();">
+                        <button type="button" class="btn btn-lg btn-outline-warning text-nowrap my-2 fw-bold" id="saveBtn" onclick="sendUpdate();" style="[data-bs-theme='light'] {color: #cfb555;}">
                             &ensp;Save&ensp;<i class='bx bx-fw bxs-save bx-sm'></i>
                     </button>
                     </div>
@@ -261,9 +261,9 @@
 
     <script src="js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 
-    <blockquote class="blockquote text-center footer mt-5" id="justafooter">
-        <p class="mb-1"><em>"I have to re-invent this wheel"</em></p>
-        <footer class="blockquote-footer">A developer just before <cite title="mindlost">falling to insanity</cite></footer>
+    <blockquote class="blockquote text-center footer mt-5 " id="justafooter">
+        <p class="mb-1 small"><em>"I need to organize my tasks better"</em></p>
+        <footer class="blockquote-footer small"><cite title="mindlost">me</cite></footer>
     </blockquote>
 
 
@@ -348,6 +348,7 @@
                   <div class="mb-3">
                     Do you really want to delete these records? This process cannot be undone.</p>
                   <input class="form-control" id="deleteditemID" type="hidden" aria-label="hide input" readonly value="">
+                  </div>
                 </form>
               </div>
               <div class="modal-footer">
@@ -373,24 +374,22 @@
                     <input class="form-control" id="currentServer" placeholder="IP:port" readonly>
                     <hr><br />
                     <label for="langDataList" class="form-label">Language</label>
-                    <input class="form-control" list="langDataListOptions" id="langDataList">
-                    <datalist id="langDataListOptions">
-                        <option value="en">English</option>
-                    </datalist>  
+                    <select class="form-select" id="langDataList">
+                        <option value="en" selected>English</option>
+                    </select>  
                     <hr><br />
                     <label for="themeDataList" class="form-label">Theme color</label>
-                    <input class="form-control" list="themeDataListOptions" id="themeDataList">
-                    <datalist id="themeDataListOptions">
-                        <option value="Dark">Dark</option>
-                        <option value="Light">Light</option>
-                    </datalist>  
-                </div>
+                    <select class="form-select" id="themeDataList">
+                        <option value="dark" class="themeOpt">Dark</option>
+                        <option value="light" class="themeOpt">Light</option>
+                    </select>  
+                    </div>
                   <p class="mt-3">Organization: <span id="currentOrganization">None</span></p>
                 </form>
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="closeButton" data-bs-dismiss="modal">Close</button>
-                <button type="button" id="sendButton" class="btn btn-primary" disabled>Save Settings</button>
+                <button type="button" id="sendButton" class="btn btn-primary">Save Settings</button>
               </div>
             </div>
         </div>

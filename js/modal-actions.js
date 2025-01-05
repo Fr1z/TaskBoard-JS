@@ -111,9 +111,17 @@ settingsModal.addEventListener('show.bs.modal', function (event) {
 
     var serverAddr = settingsModal.querySelector('.modal-body #currentServer');
     var datalistThemeElement = settingsModal.querySelector('.modal-body #themeDataList');
+    var themeOptions = settingsModal.querySelectorAll('.modal-body .themeOpt');
 
     serverAddr.innerHTML = serverAddress;
     serverAddr.value = serverAddress;
+
+
+    themeOptions.forEach(item => {
+        if (item.value == getPreferredTheme() ){
+            item.setAttribute('selected', true); //theme selected
+        }
+    });
 
     // Gestisci il cambio di input
     datalistThemeElement.addEventListener('input', () => {
