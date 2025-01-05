@@ -269,7 +269,13 @@ app.put('/complete', authenticateJWT, async (req, res) => {
             { $set: 
                 {
                     lastEdit: new Date(),
-                    status: 2
+                    status: {
+                        $cond: {
+                            if: { $eq: ["$status", 1] }, // if status 1 (TODO)
+                            then: 2,                    // set Completed
+                            else: 1                     // else is TODO!
+                        }   
+                    } 
                 }
             }
         );

@@ -1,6 +1,6 @@
 var addSubTaskModal = document.getElementById('addSubTaskModal');
 var confirmDeleteModal = document.getElementById('confirmDeleteModal');
-
+var settingsModal = document.getElementById('settingsModal');
 
 confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
     
@@ -8,10 +8,10 @@ confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
     var button = event.relatedTarget
     
     // Extract info from data-bs-* attributes
-    var deleteID = button.getAttribute('data-bs-deleteID')
-    var deleteName = button.getAttribute('data-bs-deleteName')
-    var modalTitle = confirmDeleteModal.querySelector('.modal-title')
-    var hiddenInput = confirmDeleteModal.querySelector('.modal-body #deleteditemID')
+    var deleteID = button.getAttribute('data-bs-deleteID');
+    var deleteName = button.getAttribute('data-bs-deleteName');
+    var modalTitle = confirmDeleteModal.querySelector('.modal-title');
+    var hiddenInput = confirmDeleteModal.querySelector('.modal-body #deleteditemID');
     var deleteBtn = confirmDeleteModal.querySelector('.modal-footer #sendButton');
 
     modalTitle.textContent = 'Vuoi davvero eliminare ' + deleteName + ' ?'
@@ -38,13 +38,13 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
     var button = event.relatedTarget
 
     // Extract info from data-bs-* attributes
-    var requiredName = button.getAttribute('data-bs-requiredfor')
+    var requiredName = button.getAttribute('data-bs-requiredfor');
     // Extract info from data-bs-* attributes
-    var requiredID = button.getAttribute('data-bs-requiredforID')
+    var requiredID = button.getAttribute('data-bs-requiredforID');
     // Update the modal's content.
-    var modalTitle = addSubTaskModal.querySelector('.modal-title')
-    var closeBtn = addSubTaskModal.querySelector('.modal-footer #closeButton')
-    var hiddenRequiredInput = addSubTaskModal.querySelector('.modal-body #requiredfor')
+    var modalTitle = addSubTaskModal.querySelector('.modal-title');
+    var closeBtn = addSubTaskModal.querySelector('.modal-footer #closeButton');
+    var hiddenRequiredInput = addSubTaskModal.querySelector('.modal-body #requiredfor');
 
     var datalist = addSubTaskModal.querySelector('#datalistOptions');
     var datalistElement = addSubTaskModal.querySelector('.modal-body #subTaskDataList');
@@ -69,7 +69,7 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
     items.forEach(item => {
         const option = document.createElement('option');
         var value =  item.getAttribute('data-value'); // Ottieni il valore
-        var title = item.querySelector('.title')
+        var title = item.querySelector('.title');
         var text = title.value.trim(); // Testo del titolo senza spazi
         option.value = text
         
@@ -102,3 +102,30 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
         closeBtn.click();
     });
 })
+
+settingsModal.addEventListener('show.bs.modal', function (event) {
+    
+    // Button that triggered the modal
+    var sendBtn = settingsModal.querySelector('.modal-footer #sendButton');
+    var closeBtn = settingsModal.querySelector('.modal-footer #closeButton');
+
+    var serverAddr = settingsModal.querySelector('.modal-body #currentServer');
+    var datalistThemeElement = settingsModal.querySelector('.modal-body #themeDataList');
+
+    serverAddr.innerHTML = serverAddress;
+    serverAddr.value = serverAddress;
+
+    // Gestisci il cambio di input
+    datalistThemeElement.addEventListener('input', () => {
+        const theme = datalistThemeElement.value;
+        console.log("Selected theme: "+theme);
+        setTheme(theme);
+    });
+    
+    sendBtn.addEventListener('click', () => {
+        const theme = datalistThemeElement.value;
+        //* Save the theme to local storage */
+        localStorage.setItem('theme', theme)
+        closeBtn.click(); //close modal
+    });
+});

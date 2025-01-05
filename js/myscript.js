@@ -82,7 +82,8 @@ function populateTaskswithData(data) {
             // Genera il link alle dipendenze
             depenciesHTML += depencies.map(dep_id => { return "<a class=\"depency\" href=\"#" + dep_id + "\"></a>"; }).join(',&nbsp');
         }
-
+        var completeAction = (selectedTab == "COMPLETED") ? "Uncomplete" : "Complete";
+        
         if ( (item.status !== 1 && selectedTab == "ALL") || (item.status !== 2 && selectedTab == "COMPLETED") || ((item.status !== 1 || item.star === false ) && selectedTab == "STARRED")  ) { return; }
         
         rows += `
@@ -126,7 +127,7 @@ function populateTaskswithData(data) {
                             <div class="row mt-2 justify-content-center">
                                 <div class="row mb-2" >
                                     <div class="col m-0 px-1">
-                                        <button class="btn btn-primary w-100 m-0 text-truncate completer" aria-label="Complete task">Completa</button>
+                                        <button class="btn btn-primary w-100 m-0 text-truncate completer" aria-label="Complete task">${completeAction}</button>
                                     </div>
                                     <div class="col m-0 px-1">
                                         <button class="btn btn-secondary w-100 m-0 text-truncate advance" aria-label="Add progress" ${disabledProgress} value="${item.progress}">+ ${item.progress}</button>
