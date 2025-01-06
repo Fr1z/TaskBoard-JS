@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta id="vp" name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Dashboard things to do">
-    <meta name="author" content="Frax">
+    <meta name="author" content="Fr1z">
 
     <!-- Favicons -->
     <link rel="icon" href="res/favicon.ico">
@@ -220,11 +220,11 @@
                             <div class="row mt-3">
                                 <div class="col">
                                     <div class="input-group mb-3 font-light">
-                                    <p class="mt-3 font-light">SubTask per: 
-                                        <button type="button" class="m-0 p-0 bg-transparent border-0 text-body-secondary text-end" aria-label="Close" onClick="$('#newDepencyTask').attr('href', '#').text('Nessuno');">
+                                    <p class="mt-3 font-light">SubTask: 
+                                        <button type="button" class="m-0 p-0 bg-transparent border-0 text-body-secondary text-end" aria-label="Close" onClick="$('#newDepencyTask').attr('href', '#').text('NoTask');">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
-                                        <a id="newDepencyTask" class="depency alert z-0 m-0 p-0" href="#">Nessuno</a>
+                                        <a id="newDepencyTask" class="depency alert z-0 m-0 p-0" href="#">NoTask</a>
                                     </p>
 
                                     <button class="btn btn-outline-primary p-2 m-2 text-nowrap" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="New Task" data-bs-requiredforID="0">
@@ -340,20 +340,20 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="confirmDeleteModalLabel">Vuoi davvero eliminare?</h5>
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Are you sure to DELETE?</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
                 <form>
                   <div class="mb-3">
-                    Do you really want to delete these records? This process cannot be undone.</p>
+                    Do you really want to delete these records?</p>
                   <input class="form-control" id="deleteditemID" type="hidden" aria-label="hide input" readonly value="">
                   </div>
                 </form>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-danger" id="sendButton" data-bs-dismiss="modal">Elimina</button>
-                <button type="button" class="btn btn-info" data-bs-dismiss="modal">Ignora</button>
+                <button type="button" class="btn btn-danger" id="sendButton" data-bs-dismiss="modal">Delete</button>
+                <button type="button" class="btn btn-info" data-bs-dismiss="modal">Cancel</button>
               </div>
             </div>
         </div>
@@ -375,7 +375,8 @@
                     <hr><br />
                     <label for="langDataList" class="form-label">Language</label>
                     <select class="form-select" id="langDataList">
-                        <option value="en" selected>English</option>
+                        <option value="en" class="langOpt">English</option>
+                        <option value="it" class="langOpt">Italiano</option>
                     </select>  
                     <hr><br />
                     <label for="themeDataList" class="form-label">Theme color</label>

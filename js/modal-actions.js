@@ -69,24 +69,24 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
     // Aggiungi ogni titolo come opzione
     items.forEach(item => {
         const option = document.createElement('option');
-        var value =  item.getAttribute('data-value'); // Ottieni il valore
+        var value =  item.getAttribute('data-value');
         var title = item.querySelector('.title');
-        var text = title.value.trim(); // Testo del titolo senza spazi
+        var text = title.value.trim(); //Title text with no spaces
         option.value = text
         
         datalist.appendChild(option);
-        // Aggiungi alla mappa
+        // Add to mapping
         valueMap.set(text, value);
     });
 
-    // Gestisci il cambio di input
+    // manage input
     datalistElement.addEventListener('input', () => {
         
-        const text = datalistElement.value; // Testo selezionato dall'utente
-        const value = valueMap.get(text) || 'Nessuno'; // Valore corrispondente
-        subtaskSelected.textContent = value; // Mostra il valore
+        const text = datalistElement.value; // Find selected task
+        const value = valueMap.get(text) || 'NoTask'; 
+        subtaskSelected.textContent = value; //Show value
         
-        if (value!=='Nessuno'){
+        if (value!=='NoTask'){
             sendBtn.removeAttribute('disabled');
         } else {
             sendBtn.setAttribute('disabled', true);
@@ -111,30 +111,33 @@ settingsModal.addEventListener('show.bs.modal', function (event) {
     var closeBtn = settingsModal.querySelector('.modal-footer #closeButton');
 
     var serverAddr = settingsModal.querySelector('.modal-body #currentServer');
-    var datalistThemeElement = settingsModal.querySelector('.modal-body #themeDataList');
+    var datalistTheme = settingsModal.querySelector('.modal-body #themeDataList');
     var themeOptions = settingsModal.querySelectorAll('.modal-body .themeOpt');
-
+    var datalistLang = settingsModal.querySelector('.modal-body #langDataList');
+    var langOptions = settingsModal.querySelectorAll('.modal-body .langOpt');
     serverAddr.innerHTML = serverAddress;
     serverAddr.value = serverAddress;
 
-
+    //Select current option in the SELECTS
     themeOptions.forEach(item => {
         if (item.value == getPreferredTheme() ){
             item.setAttribute('selected', true); //theme selected
         }
     });
 
-    // Gestisci il cambio di input
-    datalistThemeElement.addEventListener('input', () => {
-        const theme = datalistThemeElement.value;
-        console.log("Selected theme: "+theme);
-        setTheme(theme);
+    langOptions.forEach(item => {
+        if (item.value == getStoredLang() ){
+            item.setAttribute('selected', true); //lang selected
+        }
     });
-    
+
     sendBtn.addEventListener('click', () => {
-        const theme = datalistThemeElement.value;
+        const theme = datalistTheme.value;
+        const lang = datalistLang.value;
         //* Save the theme to local storage */
-        localStorage.setItem('theme', theme)
+        localStorage.setItem('theme', theme);
+        setTheme(theme);
+        setStoredLang();
         closeBtn.click(); //close modal
     });
 });
@@ -150,19 +153,18 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
     selectedFile.value = ""; //reset file field
 
     sendBtn.addEventListener('click', async () => {
-        const file = selectedFile.files[0]; // Prendi il primo file selezionato
+        const file = selectedFile.files[0]; //Take the first (and only) file selected
 
         if (file) {
             try {
-                // Leggi il contenuto del file
+                //Read File content
                 const fileContent = await new Promise((resolve, reject) => {
                     const reader = new FileReader();
                     reader.onload = () => resolve(reader.result);
                     reader.onerror = () => reject(reader.error);
                     reader.readAsText(file);
                 });
-                // Convalida il contenuto come JSON (opzionale)
-                //const jsonData = JSON.parse(fileContent);
+
                 startSpinning('.modal-body #fileInfo');
 
                 //Upload JSON To server
@@ -175,7 +177,7 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
                     } else {
                         $('#toastFailure .text-message').html("Error on importing tasks :(");
                         new bootstrap.Toast($('#toastFailure')).show();
-                        console.error("Errore di risposta:", response.statusText);
+                        console.error("Error response:", response.statusText);
                     }
                     stopSpinning('.modal-body #fileInfo');
                 }).catch(error => {
@@ -186,10 +188,10 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
                 });
             } catch (error) {
                 stopSpinning('.modal-body #fileInfo');
-                console.error("Errore:", error.message);
+                console.error("Error:", error.message);
             }
         } else {
-            console.error("Nessun file selezionato.");
+            console.error("No file selected");
         }
         closeBtn.click(); //close modal
     });

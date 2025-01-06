@@ -445,7 +445,7 @@ app.post('/signup', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Crea un nuovo utente
-        const user = new User({
+        const newUser = new User({
             mail: mail,
             password: hashedPassword,
             name: name,
@@ -453,8 +453,27 @@ app.post('/signup', async (req, res) => {
             entryDate: new Date(),
             active: 1
         });
+        await newUser.save();
 
-        await user.save();
+        const firstTask = new Task(
+            {
+                owner: newUser._id, // Usa l'_id del nuovo utente,
+                LUID: 1,
+                order: 0,
+                title: "My First Task",
+                star: 0,
+                status: 1,
+                description: "Look, I can edit this simple clicking where I need to work :)",
+                progress: 1,
+                lastProgress: new Date('1990-01-01'),
+                expireDate: "",
+                categories: "tutorial,demo",
+                depends: "",
+                lastEdit: new Date(),
+            }
+        );
+        await firstTask.save();
+
         res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
         console.error('Error during registration:', err);
