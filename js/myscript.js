@@ -1,6 +1,6 @@
 let initialData = [];
 let selectedTab = "ALL";
-let getStoredLang = () => (localStorage.getItem('lang')!==undefined) ? localStorage.getItem('lang') : 'en';
+let getStoredLang = () => (localStorage.getItem('lang')!==null) ? localStorage.getItem('lang') : 'en';
 let setStoredLang = lang => localStorage.setItem('lang', lang);
 
 const makeRequest = (type, endpoint, data = undefined) => {
@@ -108,7 +108,7 @@ function populateTaskswithData(data) {
                             <div class="col-1 col-sm-1 col-md-1 col-lg-3 flex-nowrap"></div>
                             <div class="col-5 col-sm-5 col-md-4 col-lg-3 flex-nowrap" style="max-height: 1em;">
                                 <div class="input-group date d-flex flex-nowrap justify-content-end">
-                                    <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-transparent float-end text-end exp-date" value="${item.expireDate}" placeholder="No Scadenza" style="border: 0; min-width: 0px!important;">
+                                    <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-transparent float-end text-end exp-date" value="${item.expireDate}" placeholder="" style="border: 0; min-width: 0px!important;">
                                     <span class="input-group-text" style="border: 0;">
                                         <i class="bx bx-calendar opacity-50 datapickertoggler" role="button"></i>
                                     </span>
