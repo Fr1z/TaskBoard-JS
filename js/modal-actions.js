@@ -15,14 +15,13 @@ confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
     var hiddenInput = confirmDeleteModal.querySelector('.modal-body #deleteditemID');
     var deleteBtn = confirmDeleteModal.querySelector('.modal-footer #sendButton');
 
-    modalTitle.textContent = 'Vuoi davvero eliminare ' + deleteName + ' ?'
+    modalTitle.textContent = 'Are you sure to delete ' + deleteName + ' ?'
     hiddenInput.value = deleteID
 
     deleteBtn.addEventListener('click', () => {
         if (hiddenInput!=='undefined'){
             const taskLUID = hiddenInput.value;
-            console.log("elimina " + taskLUID);
-            
+
             const deleted = deleteTask(taskLUID);
             if (deleted){
                 $(`.myitem[data-value="${taskLUID}"]`).hide();
