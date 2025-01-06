@@ -340,8 +340,9 @@ app.post('/import', authenticateJWT, async (req, res) => {
 
         // Rimuove il campo _id da ciascun task (se presente)
         const sanitizedTasks = tasks.map(task => {
-            const { _id, ...rest } = task; // Escludi _id
-            return rest;
+            const { _id, ...taskData } = task; // Escludi _id
+            taskData.owner = req.userId;
+            return taskData;
         });
 
         // Inserisci i task nel database

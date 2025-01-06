@@ -147,6 +147,7 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
     var closeBtn = importTaskModal.querySelector('.modal-footer #closeButton');
 
     var selectedFile = importTaskModal.querySelector('.modal-body #inputFile');
+    selectedFile.value = ""; //reset file field
 
     sendBtn.addEventListener('click', async () => {
         const file = selectedFile.files[0]; // Prendi il primo file selezionato
@@ -161,11 +162,11 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
                     reader.readAsText(file);
                 });
                 // Convalida il contenuto come JSON (opzionale)
-                const jsonData = JSON.parse(fileContent);
+                //const jsonData = JSON.parse(fileContent);
                 startSpinning('.modal-body #fileInfo');
-                console.log(jsonData);
-                // Invia il contenuto del file al server
-                makeRequest('POST', "/import", JSON.stringify({ jsonData }))
+
+                //Upload JSON To server
+                makeRequest('POST', "/import", fileContent)
                 .then(response => {
                     if (response.ok) {
                         //show toasts

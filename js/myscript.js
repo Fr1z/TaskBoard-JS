@@ -813,8 +813,9 @@ $(function () {
 });
 
 
-function loadAllTask() {
+async function loadAllTask() {
     // Fetch the JSON data
+    $('#loader').show();
     makeRequest('GET', '/tasks').then(response => {
         if (response.ok) {
             // OK (status 200-299)
@@ -832,10 +833,10 @@ function loadAllTask() {
         colorAllTopicsBadges();
         insertNewTopic();
         enableDynamicActions();
+        $('#loader').hide();
         console.log("data loaded");
-    }).then(enableSearch()).then(console.log("wainting for json.."))
-        .catch(error => console.error('Error loading JSON:', error));
-
+    }).then(enableSearch())
+    .catch(error => console.error('Error loading JSON:', error));
 }
 //LOADING PAGE
 document.addEventListener('DOMContentLoaded', function () {
