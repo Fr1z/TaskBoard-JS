@@ -40,7 +40,8 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
     // Extract info from data-bs-* attributes
     var requiredName = button.getAttribute('data-bs-requiredfor');
     // Extract info from data-bs-* attributes
-    var requiredID = button.getAttribute('data-bs-requiredforID');
+    var requiredID = null; //reset this value
+    requiredID = button.getAttribute('data-bs-requiredforID');
     // Update the modal's content.
     var modalTitle = addSubTaskModal.querySelector('.modal-title');
     var closeBtn = addSubTaskModal.querySelector('.modal-footer #closeButton');
@@ -52,12 +53,13 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
     var items = document.querySelectorAll('.myitem');
     var sendBtn = addSubTaskModal.querySelector('.modal-footer #sendButton');
 
+
     //reset subtask value
     datalistElement.value = '';
+    subtaskSelected.innerHTML = '';
     //remplace required data forms
     modalTitle.textContent = 'Task Required for ' + requiredName
     hiddenRequiredInput.value = requiredID
-
     
 
     // Pulisci il datalist (opzionale, utile se viene rigenerato dinamicamente)
@@ -94,11 +96,22 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
 
     sendBtn.addEventListener('click', () => {
         if (requiredID==0){
+            //New Task
             var newDepencyTask = document.querySelector('#newDepencyTask'); 
             newDepencyTask.innerHTML = '';
             newDepencyTask.setAttribute('href', "#"+subtaskSelected.textContent);
-            populateDepencies();
+            
+        }else if (requiredID!==null){
+            //If Existing Task
+            const depenciesSpan = document.querySelector(`.myitem[data-value="${requiredID}"] .deps`);
+            depenciesSpan.parentElement.parentElement.classList.remove("d-none"); //show parent div
+            depenciesSpan.innerHTML = depenciesSpan.innerHTML + 
+            "&nbsp<a class=\"depency alert\" role=\"alert\" href=\"#" + subtaskSelected.textContent + "\"></a>";
+            //show toasts
+            $('#toastSuccess .text-message').html("Remember to save your edits :)");
+            new bootstrap.Toast($('#toastSuccess')).show();
         }
+        populateDepenciesTitles();
         closeBtn.click();
     });
 })

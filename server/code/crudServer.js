@@ -461,7 +461,7 @@ app.post('/signup', async (req, res) => {
                 LUID: 1,
                 order: 0,
                 title: "My First Task",
-                star: 0,
+                star: false,
                 status: 1,
                 description: "Look, I can edit this simple clicking where I need to work :)",
                 progress: 1,

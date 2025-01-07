@@ -75,14 +75,14 @@ function populateTaskswithData(data) {
             disabledProgress = "disabled";
         }
 
-        var starred = (item.star == 1) ? 's' : '';
+        var starred = (item.star == true) ? 's' : '';
 
         var depenciesHTML = '';
         var hideDepencies = (item.depends.length) ? '' : 'd-none';
         if (hideDepencies.length == 0) {
             var depencies = item.depends.split(',').map(dep_id => dep_id.trim());
             // Depency link generation
-            depenciesHTML += depencies.map(dep_id => { return "<a class=\"depency\" href=\"#" + dep_id + "\"></a>"; }).join(',&nbsp');
+            depenciesHTML += depencies.map(dep_id => { return "<a class=\"depency alert\" role=\"alert\" href=\"#" + dep_id + "\"></a>"; }).join('&nbsp');
         }
         var completeAction = (selectedTab == "COMPLETED") ? "Uncomplete" : "Complete";
         
@@ -139,12 +139,12 @@ function populateTaskswithData(data) {
                                     <div class="m-0 mb-1 font-lighter categories col-auto">
                                         ${item.categories}
                                     </div>
-                                    <input class="p-0 px-3 bg-transparent text-center addcategory" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value=""">
+                                    <input class="p-0 px-3 bg-transparent text-center addcategory" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value="">
                                     <div class="col-auto"></div>
                                 </div>
                                 <div class="row p-0 mb-2">
                                     <div class="mt-2 ${hideDepencies}">
-                                        <span><b>Depends on:</b>&ensp;${depenciesHTML}</span> 
+                                        <span><b>Depends on:</b>&ensp;<span class="deps">${depenciesHTML}</span></span>
                                     </div>
                                 </div>
                             </div>
@@ -275,7 +275,7 @@ function colorTopicsBadges(categoryElement) {
     return;
 }
 
-function populateDepencies() {
+function populateDepenciesTitles() {
     document.querySelectorAll('.depency').forEach(depencyElement => {
 
         if (depencyElement.hasAttribute('href') && depencyElement.textContent.length == 0) {
@@ -284,12 +284,14 @@ function populateDepencies() {
             href = href.split('#')[1];
             //get title from id
             var title = document.querySelector(`.myitem[data-value="${href}"] .title`);
-            if (title!==null){
+            if (title !== null){
                 depencyElement.innerHTML = title.value.trim();
             } else {
-                depencyElement.innerHTML = 'Completed Task';
+                const completedTaskTitle = (initialData[href].title!==null) ? initialData[href].title : '';
+                depencyElement.innerHTML = `${completedTaskTitle} (Completed)`;
             }
-            
+            depencyElement.innerHTML = depencyElement.innerHTML + `
+            <button type="button" class="m-0 p-0 bg-transparent border-0" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>`;
         }
     });
 
@@ -376,12 +378,12 @@ function enableDynamicActions() {
         //Check if clicked button or icon      
         let star = (target.hasAttribute('starred')) ? $(target) : $(target).find('i.bx');
         //toggle star
-        if (star.attr('starred') == '1') {
-            star.attr('starred', 0);
+        if (star.attr('starred') == "true") {
+            star.attr('starred', false);
             star.addClass("bx-star");
             star.removeClass("bxs-star");
         } else {
-            star.attr('starred', 1);
+            star.attr('starred', true);
             star.addClass("bxs-star");
             star.removeClass("bx-star");
         }
@@ -613,8 +615,12 @@ function mapItemData(item) {
             function () { return $(this).text().trim(); }
         ).get().join(','); // merge topics separated by ','
 
-    const depency = myitem.find("a.depency").attr('href');
-    item_obj.depends = (depency !== undefined) ? depency.replace('#', '') : '';
+    const depencies = myitem.find("span.deps a.depency");
+    const depends = depencies.map(
+        function () { return $(this).attr('href').replace('#', ''); }
+    ).get().join(','); // merge topics separated by ','
+     
+    item_obj.depends = (depends !== null) ? depends : '';
     return item_obj;
 
 }
@@ -644,7 +650,7 @@ function getModifiedItems() {
 
 function completeTask(taskLUID) {
 
-    if (taskLUID === undefined) {
+    if (taskLUID === null) {
         console.error("task undefined");
         return;
     }
@@ -666,7 +672,7 @@ function completeTask(taskLUID) {
 
 function upgradeTask(taskLUID) {
 
-    if (taskLUID === undefined) {
+    if (taskLUID === null) {
         console.error("task undefined");
         return;
     }
@@ -688,7 +694,7 @@ function upgradeTask(taskLUID) {
 
 function deleteTask(taskLUID) {
 
-    if (taskLUID === undefined) {
+    if (taskLUID === null) {
         console.error("task undefined");
         return;
     }
@@ -722,7 +728,7 @@ function insertNewTask() {
     let newExpireDate = $('#collapseEditor #newExpireDate').val();
     let newDepencyTask = $('#collapseEditor #newDepencyTask').attr('href');
 
-    newDepencyTask = (newDepencyTask !== undefined) ? newDepencyTask.replace('#', '') : '';
+    newDepencyTask = (newDepencyTask !== null) ? newDepencyTask.replace('#', '') : '';
 
     //Assign task object props
     newTask.title = newTitle;
@@ -822,7 +828,7 @@ async function loadAllTask() {
         populateTaskswithData(data);
 
         //Activate functions for dynamic elements
-        populateDepencies();
+        populateDepenciesTitles();
         translateDatePickers();
         colorAllTopicsBadges();
         insertNewTopic();
