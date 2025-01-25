@@ -127,6 +127,10 @@ settingsModal.addEventListener('show.bs.modal', function (event) {
     var themeOptions = settingsModal.querySelectorAll('.modal-body .themeOpt');
     var datalistLang = settingsModal.querySelector('.modal-body #langDataList');
     var langOptions = settingsModal.querySelectorAll('.modal-body .langOpt');
+
+    var datalistInitialTab = settingsModal.querySelector('.modal-body #initalTabDataList');
+    var tabOptions = settingsModal.querySelectorAll('.modal-body .tabOpt');
+
     serverAddr.innerHTML = serverAddress;
     serverAddr.value = serverAddress;
 
@@ -143,13 +147,21 @@ settingsModal.addEventListener('show.bs.modal', function (event) {
         }
     });
 
+    tabOptions.forEach(item => {
+        if (item.value == getStoredInitialTab() ){
+            item.setAttribute('selected', true); //lang selected
+        }
+    });
+
     sendBtn.addEventListener('click', () => {
         const theme = datalistTheme.value;
         const lang = datalistLang.value;
+        const initialTab = datalistInitialTab.value;
         //* Save the theme to local storage */
         localStorage.setItem('theme', theme);
         setTheme(theme);
-        setStoredLang();
+        setStoredLang(lang);
+        setStoredInitialTab(initialTab);
         closeBtn.click(); //close modal
     });
 });

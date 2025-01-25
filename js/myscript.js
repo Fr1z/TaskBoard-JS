@@ -1,7 +1,13 @@
-let initialData = [];
-let selectedTab = "ALL";
+//LOAD LOCAL STORED SETTINGS
+let getStoredInitialTab = () => (localStorage.getItem('initialTab') !== null) ? localStorage.getItem('initialTab') : 'ALL';
+let setStoredInitialTab = tab => localStorage.setItem('initialTab', tab);
 let getStoredLang = () => (localStorage.getItem('lang') !== null) ? localStorage.getItem('lang') : 'en';
 let setStoredLang = lang => localStorage.setItem('lang', lang);
+
+
+let initialData = [];
+let selectedTab = getStoredInitialTab();
+
 
 const makeRequest = (type, endpoint, data = undefined) => {
 
@@ -44,6 +50,11 @@ const makeRequest = (type, endpoint, data = undefined) => {
 function switchToTab(tab) {
     selectedTab = tab;
     $(".currentTab").text(tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase());
+    //uncheck all and check the one with property tab = selectedTab
+    $('.navbar-nav .btn-check').prop('checked', false);
+    $('.navbar-nav .btn-check[tab="' + selectedTab + '"]').prop('checked', true);
+
+    //finally load all data
     loadAllTask();
 }
 
@@ -816,6 +827,9 @@ $(function () {
 //Scroll to item when click to #href
 $(document).on('click', 'a', function (event) {
     var href = $(this).attr('href');
+
+    if (href == 'undefined') return;
+
     var id = href.split('#')[1];
     if (id) {
         scrollToItem(id);
@@ -876,5 +890,5 @@ async function loadAllTask() {
 }
 //LOADING PAGE
 document.addEventListener('DOMContentLoaded', function () {
-    loadAllTask();
+    switchToTab(selectedTab);
 });
