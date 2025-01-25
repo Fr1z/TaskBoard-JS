@@ -120,13 +120,13 @@
                     <div class="navbarToggler justify-content-center" id="navbarToggler1">
                         <div class="navbar-nav">
                             <div class="btn-group fs-3 fw-bold" role="group" aria-label="toggle button group">
-                                <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off" onclick="switchToTab('STARRED');">
+                                <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off" tab="STARRED" onclick="switchToTab('STARRED');">
                                 <label class="btn btn btn-primary border border-light rounded-left nav-link text-white" for="failed"><i class="bx bx-star bx-fw bx-sm"></i>&nbspStarred</label>
 
-                                <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" onclick="switchToTab('ALL');" checked>
+                                <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" tab="ALL" onclick="switchToTab('ALL');" checked>
                                 <label class="btn btn-primary border border-light border-left-0 border-right-0 nav-link text-white" for="todos">TO DO</label>
                             
-                                <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off" onclick="switchToTab('COMPLETED');">
+                                <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off" tab="COMPLETED" onclick="switchToTab('COMPLETED');">
                                 <label class="btn btn-primary border border-light rounded-right nav-link text-white" for="completed">Completed</label>
                             
                             </div>
@@ -369,21 +369,28 @@
               </div>
               <div class="modal-body">
                 <form>
-                  <div class="mb-3">
-                    <label for="currentServer" class="form-label">Task Server</label>
-                    <input class="form-control" id="currentServer" placeholder="IP:port" readonly>
-                    <hr><br />
-                    <label for="langDataList" class="form-label">Language</label>
-                    <select class="form-select" id="langDataList">
-                        <option value="en" class="langOpt">English</option>
-                        <option value="it" class="langOpt">Italiano</option>
-                    </select>  
-                    <hr><br />
-                    <label for="themeDataList" class="form-label">Theme color</label>
-                    <select class="form-select" id="themeDataList">
-                        <option value="dark" class="themeOpt">Dark</option>
-                        <option value="light" class="themeOpt">Light</option>
-                    </select>  
+                    <div class="mb-3">
+                        <label for="currentServer" class="form-label">Task Server</label>
+                        <input class="form-control" id="currentServer" placeholder="IP:port" readonly>
+                        <hr><br />
+                        <label for="langDataList" class="form-label">Language</label>
+                        <select class="form-select" id="langDataList">
+                            <option value="en" class="langOpt">English</option>
+                            <option value="it" class="langOpt">Italiano</option>
+                        </select>  
+                        <hr><br />
+                        <label for="themeDataList" class="form-label">Theme color</label>
+                        <select class="form-select" id="themeDataList">
+                            <option value="dark" class="themeOpt">Dark</option>
+                            <option value="light" class="themeOpt">Light</option>
+                        </select>
+                        <hr><br />
+                        <label for="initalTabDataList" class="form-label">Initial Tab</label>
+                        <select class="form-select" id="initalTabDataList">
+                            <option value="STARRED" class="tabOpt">Starred</option>
+                            <option value="ALL" class="tabOpt">Todo</option>
+                            <option value="COMPLETED" class="tabOpt">Completed</option>
+                        </select>  
                     </div>
                   <p class="mt-3">Organization: <span id="currentOrganization">None</span></p>
                 </form>
