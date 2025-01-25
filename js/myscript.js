@@ -1,6 +1,6 @@
 let initialData = [];
 let selectedTab = "ALL";
-let getStoredLang = () => (localStorage.getItem('lang')!==null) ? localStorage.getItem('lang') : 'en';
+let getStoredLang = () => (localStorage.getItem('lang') !== null) ? localStorage.getItem('lang') : 'en';
 let setStoredLang = lang => localStorage.setItem('lang', lang);
 
 const makeRequest = (type, endpoint, data = undefined) => {
@@ -41,7 +41,7 @@ const makeRequest = (type, endpoint, data = undefined) => {
 
 }
 
-function switchToTab(tab){
+function switchToTab(tab) {
     selectedTab = tab;
     $(".currentTab").text(tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase());
     loadAllTask();
@@ -85,9 +85,9 @@ function populateTaskswithData(data) {
             depenciesHTML += depencies.map(dep_id => { return "<a class=\"depency alert\" role=\"alert\" href=\"#" + dep_id + "\"></a>"; }).join('&nbsp');
         }
         var completeAction = (selectedTab == "COMPLETED") ? "Uncomplete" : "Complete";
-        
-        if ( (item.status !== 1 && selectedTab == "ALL") || (item.status !== 2 && selectedTab == "COMPLETED") || ((item.status !== 1 || item.star === false ) && selectedTab == "STARRED")  ) { return; }
-        
+
+        if ((item.status !== 1 && selectedTab == "ALL") || (item.status !== 2 && selectedTab == "COMPLETED") || ((item.status !== 1 || item.star === false) && selectedTab == "STARRED")) { return; }
+
         rows += `
         <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${item.LUID}" order="${item.order}">
             <div class="row flex-nowrap">
@@ -284,10 +284,10 @@ function populateDepenciesTitles() {
             href = href.split('#')[1];
             //get title from id
             var title = document.querySelector(`.myitem[data-value="${href}"] .title`);
-            if (title !== null){
+            if (title !== null) {
                 depencyElement.innerHTML = title.value.trim();
             } else {
-                const completedTaskTitle = (initialData[href].title!==null) ? initialData[href].title : '';
+                const completedTaskTitle = (initialData[href].title !== null) ? initialData[href].title : '';
                 depencyElement.innerHTML = `${completedTaskTitle} (Completed)`;
             }
             depencyElement.innerHTML = depencyElement.innerHTML + `
@@ -516,7 +516,7 @@ function startSpinning(queryElement) {
         $(queryElement).data('original-content', $(queryElement).html()); // Save original content
         $(queryElement).html('<i class="bx bx-loader-circle bx-spin"></i>');
     }
-    
+
 }
 
 function stopSpinning(queryElement) {
@@ -563,7 +563,7 @@ function sendUpdate() {
 
 }
 
-function exportTaskAsFile(){
+function exportTaskAsFile() {
 
     // Fetch the JSON data
     makeRequest('GET', '/tasks').then(response => {
@@ -577,21 +577,21 @@ function exportTaskAsFile(){
         const jsonString = JSON.stringify(data);
         // Make a blob with that data
         const blob = new Blob([jsonString], { type: "application/json" });
-    
+
         // Build a link for this BLOB
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = "myTasks.json";
-    
+
         // autoclick the link
         link.click();
-    
+
         // Remove URL object to free mem
         URL.revokeObjectURL(link.href);
-    
+
         console.log("File saved!");
     })
-    .catch(error => console.error('Error loading JSON:', error));
+        .catch(error => console.error('Error loading JSON:', error));
 }
 
 //given an item object, maps all relevant data for the request
@@ -619,7 +619,7 @@ function mapItemData(item) {
     const depends = depencies.map(
         function () { return $(this).attr('href').replace('#', ''); }
     ).get().join(','); // merge topics separated by ','
-     
+
     item_obj.depends = (depends !== null) ? depends : '';
     return item_obj;
 
@@ -813,6 +813,43 @@ $(function () {
     });
 });
 
+//Scroll to item when click to #href
+$(document).on('click', 'a', function (event) {
+    var href = $(this).attr('href');
+    var id = href.split('#')[1];
+    if (id) {
+        scrollToItem(id);
+    }
+});
+
+function scrollToItem(itemId) {
+    console.log(itemId);
+    let item = document.querySelector(`.myitem[data-value="${itemId}"]`);
+    if (item !== 'undefined') {
+        item.scrollIntoView({block: "start", behavior: "smooth"});
+        blinkElement(item, 1200);
+    }
+
+}
+
+function blinkElement(el, time = 200) {
+    const o_borderWidth = el.borderWidth;
+    const p_borderStyle = el.borderStyle;
+    const o_borderColor = el.borderColor;
+    el.animate({
+        borderWidth: '5px',
+        borderStyle: 'solid',
+        borderColor: 'var(--bs-link-color)'
+    }, time, function () {
+        $(this).animate({
+            borderWidth: o_borderWidth,
+            borderStyle: p_borderStyle,
+            borderColor: o_borderColor
+        }, time, function () {
+            setTimeout(blinkElement, 0);
+        });
+    });
+}
 
 async function loadAllTask() {
     // Fetch the JSON data
@@ -835,7 +872,7 @@ async function loadAllTask() {
         enableDynamicActions();
         $('#loader').hide();
     }).then(enableSearch())
-    .catch(error => console.error('Error loading JSON:', error));
+        .catch(error => console.error('Error loading JSON:', error));
 }
 //LOADING PAGE
 document.addEventListener('DOMContentLoaded', function () {
