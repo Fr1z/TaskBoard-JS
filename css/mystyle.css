@@ -37,6 +37,10 @@
     color: #ffffffe5;
 }
 
+.myitem {
+    scroll-margin-top: 3em;
+}
+
 .title {
     font-weight: bold;
     height: 2em;
