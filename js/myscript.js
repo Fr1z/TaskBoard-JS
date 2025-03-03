@@ -4,6 +4,7 @@ let setStoredInitialTab = tab => localStorage.setItem('initialTab', tab);
 let getStoredLang = () => (localStorage.getItem('lang') !== null) ? localStorage.getItem('lang') : 'en';
 let setStoredLang = lang => localStorage.setItem('lang', lang);
 
+const cachedDataKey = 'JData';
 
 let initialData = [];
 let selectedTab = getStoredInitialTab();
@@ -63,6 +64,23 @@ function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function saveDataToLocalStorage(freshData){
+
+    const cachedData = localStorage.getItem(cachedDataKey);
+    const parsedData = JSON.parse(cachedData);
+    const MAX_CACHE_AGE = 60 * 1000; // Can save every minute.
+
+    if (cachedData==null || Date.now() - parsedData.timestamp > MAX_CACHE_AGE) {
+        // Save data on localStorage
+        localStorage.setItem(cachedDataKey, JSON.stringify({
+            data: freshData,
+            timestamp: Date.now()
+        }));
+    }
+
+
 }
 
 function populateTaskswithData(data) {
@@ -602,7 +620,27 @@ function exportTaskAsFile() {
 
         console.log("File saved!");
     })
-        .catch(error => console.error('Error loading JSON:', error));
+    .catch(error => {
+        //try to export offline
+
+        const jsonString = JSON.stringify(data);
+        // Make a blob with that data
+        const blob = new Blob([jsonString], { type: "application/json" });
+
+        // Build a link for this BLOB
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "myTasks.json";
+
+        // autoclick the link
+        link.click();
+
+        // Remove URL object to free mem
+        URL.revokeObjectURL(link.href);
+        $('#toastFailure .text-message').html("cannot be exported now :(");
+        new bootstrap.Toast($('#toastFailure')).show();
+        console.error('Error loading JSON:', error);
+    });
 }
 
 //given an item object, maps all relevant data for the request
@@ -678,7 +716,12 @@ function completeTask(taskLUID) {
             }
             return true;
         }
-        ).catch(error => console.error('Error completing task:', error));
+        ).catch(error => {
+            console.error('Error completing task:', error);
+            $('#toastFailure .text-message').html("Task cannot be completed now.");
+            new bootstrap.Toast($('#toastFailure')).show();
+            return false;
+        });
 }
 
 function upgradeTask(taskLUID) {
@@ -700,7 +743,12 @@ function upgradeTask(taskLUID) {
             }
             return true;
         }
-        ).catch(error => console.error('Error upgrading task:', error));
+        ).catch(error => {
+            console.error('Error upgrading task:', error);
+            $('#toastFailure .text-message').html("Task cannot be upgraded now.");
+            new bootstrap.Toast($('#toastFailure')).show();
+            return false;
+        });
 }
 
 function deleteTask(taskLUID) {
@@ -722,7 +770,12 @@ function deleteTask(taskLUID) {
             }
             return true;
         }
-        ).catch(error => console.error('Error deleting task:', error));
+        ).catch(error => {
+            console.error('Error deleting task:', error);
+            $('#toastFailure .text-message').html("Task cannot be deleted now.");
+            new bootstrap.Toast($('#toastFailure')).show();
+            return false;
+        });
 }
 
 // Send new task
@@ -780,7 +833,7 @@ function insertNewTask() {
             }
         })
         .catch(error => {
-            $('#toastFailure .text-message').html("Something has gone wrong :(");
+            $('#toastFailure .text-message').html("Task cannot be created now.");
             new bootstrap.Toast($('#toastFailure')).show();
             console.error("Error while sending data:", error);
         });
@@ -873,11 +926,14 @@ async function loadAllTask() {
             // OK (status 200-299)
             return response.json();
         } else {
+            $('#toastFailure .text-message').html(`Error: ${response.status} ${response.statusText}`);
+            new bootstrap.Toast($('#toastFailure')).show();
             console.error(`Error: ${response.status} ${response.statusText}`);
         }
     }).then(data => {
-        populateTaskswithData(data);
 
+        populateTaskswithData(data);
+        saveDataToLocalStorage(data);
         //Activate functions for dynamic elements
         populateDepenciesTitles();
         translateDatePickers();
@@ -886,7 +942,29 @@ async function loadAllTask() {
         enableDynamicActions();
         $('#loader').hide();
     }).then(enableSearch())
-        .catch(error => console.error('Error loading JSON:', error));
+    .catch(error => {
+
+        // Fallback to localStorage if server is unreachable
+        const cachedData = localStorage.getItem(cachedDataKey);
+
+        if (cachedData) {
+            const storageData = JSON.parse(cachedData);
+            console.log('Using cached data from:', new Date(storageData.timestamp));
+            data = storageData.data;
+            populateTaskswithData(data);
+            populateDepenciesTitles();
+            translateDatePickers();
+            colorAllTopicsBadges();
+            insertNewTopic();
+            enableDynamicActions();
+            $('#loader').hide();
+            enableSearch()
+        } else {
+            console.error('Error loading JSON:', error)
+        }
+        $('#toastFailure .text-message').html(`Server Offline ${error}`);
+        new bootstrap.Toast($('#toastFailure')).show();        
+    });
 }
 //LOADING PAGE
 document.addEventListener('DOMContentLoaded', function () {
