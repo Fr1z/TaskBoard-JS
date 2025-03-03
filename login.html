@@ -197,10 +197,10 @@
                     document.cookie = `sessionToken=${sessionToken}; Path=/`;
                     // Reindirizza alla dashboard
                     window.location.href = './dash.html'; // Reindirizza alla pagina dash.html
-                }else if (data.message){
+                } else if (data.message){
                     console.warn('Warning:', data.message);
                     alert(data.message);
-                }else{
+                } else {
                     console.error('Error:', data.message);
                 }
             })
