@@ -143,8 +143,8 @@
             var json = JSON.stringify(jsonObject);
 
             // Send data 
-            fetch(this.action, {
-                method: this.method,
+            fetch(serverAddress+'/signup', {
+                method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: json
             })
@@ -156,7 +156,7 @@
                 }
             })
             .then(data => {
-                alert('Registration done!');
+                alert('Registration done! Try login');
             })
             .catch(error => {
                 console.error('Error:', error);
