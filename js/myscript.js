@@ -67,7 +67,6 @@ function getCookie(name) {
 }
 
 function saveDataToLocalStorage(freshData){
-
     const cachedData = localStorage.getItem(cachedDataKey);
     const parsedData = JSON.parse(cachedData);
     const MAX_CACHE_AGE = 60 * 1000; // Can save every minute.
@@ -79,8 +78,10 @@ function saveDataToLocalStorage(freshData){
             timestamp: Date.now()
         }));
     }
+}
 
-
+function clearLocalStorageData(){
+    localStorage.setItem(cachedDataKey, null);
 }
 
 function populateTaskswithData(data) {
@@ -523,8 +524,11 @@ function logout() {
     makeRequest('POST', "/logout")
         .then(response => {
             if (response.ok) {
+                //clear cookie
                 sessionToken = '';
                 document.cookie = `sessionToken=${sessionToken}; Path=/`;
+                //clear storage data
+                clearLocalStorageData();
                 setTimeout(function () { window.location = "./login.html" }, 1500);
             } else {
                 console.error("Error response:", response.statusText);
