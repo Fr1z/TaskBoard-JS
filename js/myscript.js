@@ -4,9 +4,20 @@ let setStoredInitialTab = tab => localStorage.setItem('initialTab', tab);
 let getStoredLang = () => (localStorage.getItem('lang') !== null) ? localStorage.getItem('lang') : 'en';
 let setStoredLang = lang => localStorage.setItem('lang', lang);
 
+
+// PouchDB Init
+// TODO refactor localstorage with this.
+/*
+import './pouchDB-9.0.0.min.js';
+
+var localDB = new PouchDB('mytask');
+localDB.info().then(function (info) {
+  console.log( 'We have a local database: ' + JSON.stringify(info));
+});
+*/
 const cachedDataKey = 'JData';
 
-let initialData = [];
+let taskData = [];
 let selectedTab = getStoredInitialTab();
 
 
@@ -88,14 +99,18 @@ function populateTaskswithData(data) {
     const tableBody = document.querySelector('.myitems');
     let rows = '';
 
-    // order by DESC date and by user order
+    if (data===undefined){
+        console.error("Error: data undefined.");
+        return;
+    }
+    // order by DESC date and by user order (Note: now should be ordered by server)
     data.sort((a, b) => b.order - a.order);
 
     // Loop through the JSON data and create rows
     data.forEach((item) => {
 
         //save data snapshot indexed by LUID
-        initialData[item.LUID] = item;
+        taskData[item.luid] = item;
 
         //if progress was added recently disable the button
         var disabledProgress = "";
@@ -110,16 +125,15 @@ function populateTaskswithData(data) {
         var depenciesHTML = '';
         var hideDepencies = (item.depends.length) ? '' : 'd-none';
         if (hideDepencies.length == 0) {
-            var depencies = item.depends.split(',').map(dep_id => dep_id.trim());
             // Depency link generation
-            depenciesHTML += depencies.map(dep_id => { return "<a class=\"depency alert\" role=\"alert\" href=\"#" + dep_id + "\"></a>"; }).join('&nbsp');
+            depenciesHTML += item.depends.split(',').map(dep_id => { return "<a class=\"depency alert\" role=\"alert\" href=\"#" + dep_id.trim() + "\"></a>"; }).join('&nbsp');
         }
         var completeAction = (selectedTab == "COMPLETED") ? "Uncomplete" : "Complete";
 
         if ((item.status !== 1 && selectedTab == "ALL") || (item.status !== 2 && selectedTab == "COMPLETED") || ((item.status !== 1 || item.star === false) && selectedTab == "STARRED")) { return; }
 
         rows += `
-        <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${item.LUID}" order="${item.order}">
+        <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${item._id}" rev="${item._rev}" luid="${item.luid}" order="${item.order}">
             <div class="row flex-nowrap">
                 <!-- Grab Item -->
                 <div class="col-auto mh-100 bd-placeholder grab"  style="width: 32px;">
@@ -189,10 +203,10 @@ function populateTaskswithData(data) {
                                     <button class="btn btn-outline-warning p-2 m-1 m-md-2 collapse star-toggler" aria-label="Star" style="max-width: max-content;">
                                         <i class='bx bx${starred}-star bx-sm' starred="${item.star}" ></i>
                                     </button>
-                                    <button class="btn btn-outline-primary p-2 m-1 m-md-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.title}" data-bs-requiredforID="${item.LUID}">
+                                    <button class="btn btn-outline-primary p-2 m-1 m-md-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.title}" data-bs-requiredforID="${item.luid}">
                                         <i class='bx bx-plus-circle bx-sm ' ></i>
                                     </button>
-                                    <button class="btn btn-outline-danger p-2 m-1 m-md-2 collapse" aria-label="Trash" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-deleteName="${item.title}" data-bs-deleteID="${item.LUID}">
+                                    <button class="btn btn-outline-danger p-2 m-1 m-md-2 collapse" aria-label="Trash" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-deleteName="${item.title}" data-bs-deleteID="${item.luid}">
                                         <i class="bx bxs-trash bx-sm" ></i>
                                     </button>
 
@@ -210,7 +224,7 @@ function populateTaskswithData(data) {
 
 function translateDatePickers() {
     // Initialize date picker
-    //It translation
+    // It translation
     $.fn.datepicker.dates['it'] = {
         days: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
         daysShort: ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
@@ -234,8 +248,8 @@ function colorTopicsBadges(categoryElement) {
 
     categoryElement = $(categoryElement); //JQuerize element
     let elementHtml = categoryElement.html();
-    //exit if empty
-    if (elementHtml.length < 1) return;
+    // Exit if empty element
+    if (elementHtml.length == 0) return;
 
     let textContent = '';
     // Find last span
@@ -308,20 +322,24 @@ function colorTopicsBadges(categoryElement) {
 function populateDepenciesTitles() {
     document.querySelectorAll('.depency').forEach(depencyElement => {
 
+        // if depency has empty href populate with depency name
         if (depencyElement.hasAttribute('href') && depencyElement.textContent.length == 0) {
+            // href contain luid
             var href = depencyElement.getAttribute('href');
             //remove # char
             href = href.split('#')[1];
-            //get title from id
-            var title = document.querySelector(`.myitem[data-value="${href}"] .title`);
-            if (title !== null) {
-                depencyElement.innerHTML = title.value.trim();
-            } else {
-                const completedTaskTitle = (initialData[href].title !== null) ? initialData[href].title : '';
-                depencyElement.innerHTML = `${completedTaskTitle} (Completed)`;
+            //get title from luid
+            if (taskData[href] !== undefined && taskData[href].title.length > 0) {
+                var depencyTitle = ( taskData[href].status == 1 ) ? taskData[href].title : `${taskData[href].title} (Completed)`;
+                if (depencyTitle.length > 0) {
+                    // Add depency title name
+                    depencyElement.innerHTML = depencyTitle;
+                    // Add dismiss/close button
+                    depencyElement.innerHTML = depencyElement.innerHTML + `
+                        <button type="button" class="m-0 p-0 bg-transparent border-0" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>`;
+                }
             }
-            depencyElement.innerHTML = depencyElement.innerHTML + `
-            <button type="button" class="m-0 p-0 bg-transparent border-0" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>`;
+            
         }
     });
 
@@ -417,6 +435,7 @@ function enableDynamicActions() {
             star.addClass("bxs-star");
             star.removeClass("bx-star");
         }
+        // TODO: send task update
 
     });
 
@@ -428,7 +447,7 @@ function enableDynamicActions() {
         if (input.length) {
             // is datepicker initialized?
             if (!input.data('datepicker')) {
-                // Inizializza il Datepicker se non è già stato inizializzato
+                // Init datepicker
                 input.datepicker({
                     autoclose: true,
                     format: 'dd/mm/yyyy',
@@ -438,7 +457,7 @@ function enableDynamicActions() {
                     clearBtn: true,
                 });
             }
-            // Mostra il Datepicker
+            // Show datepicker
             input.datepicker('show');
 
         } else {
@@ -449,7 +468,7 @@ function enableDynamicActions() {
     //Complete task progress
     $('button.completer').on("click", function (e) {
         const btnComplete = e.target;
-        const taskLUID = $(btnComplete).closest('.myitem').attr('data-value');
+        const taskLUID = $(btnComplete).closest('.myitem').attr('luid');
         const completed = completeTask(taskLUID);
         if (completed) {
             $(btnComplete).closest('.myitem').hide();
@@ -462,7 +481,7 @@ function enableDynamicActions() {
     $('button.advance').on("click", function (e) {
 
         const btnProgress = e.target;
-        const taskLUID = $(btnProgress).closest('.myitem').attr('data-value');
+        const taskLUID = $(btnProgress).closest('.myitem').attr('luid');
         const upgraded = upgradeTask(taskLUID);
         if (upgraded) {
             $(btnProgress).val(parseInt($(btnProgress).val()) + 1);
@@ -652,7 +671,10 @@ function mapItemData(item) {
     myitem = $(item);
     const item_obj = {};
 
-    item_obj.LUID = myitem.data("value");
+    item_obj._id = myitem.data("value");
+    item_obj._rev = myitem.attr("rev");
+
+    item_obj.luid = myitem.attr("luid");
     item_obj.order = myitem.attr('order');
     item_obj.order = parseInt(item_obj.order); //is int
     item_obj.title = myitem.find("input.title").val();
@@ -668,6 +690,7 @@ function mapItemData(item) {
             function () { return $(this).text().trim(); }
         ).get().join(','); // merge topics separated by ','
 
+    // TODO Check on this depency aggregator
     const depencies = myitem.find("span.deps a.depency");
     const depends = depencies.map(
         function () { return $(this).attr('href').replace('#', ''); }
@@ -684,15 +707,15 @@ function getModifiedItems() {
 
     $(".myitem").each(function (i, e) {
         const mod_item = mapItemData(e);
-        const mod_id = mod_item.LUID;
+        const mod_id = mod_item.luid;
         if (
-            mod_item.title !== initialData[mod_id].title ||
-            mod_item.description !== initialData[mod_id].description ||
-            mod_item.categories !== initialData[mod_id].categories ||
-            mod_item.order !== initialData[mod_id].order ||
-            mod_item.star !== initialData[mod_id].star ||
-            mod_item.expireDate !== initialData[mod_id].expireDate ||
-            mod_item.depends !== initialData[mod_id].depends
+            mod_item.title !== taskData[mod_id].title ||
+            mod_item.description !== taskData[mod_id].description ||
+            mod_item.categories !== taskData[mod_id].categories ||
+            mod_item.order !== taskData[mod_id].order ||
+            mod_item.star !== taskData[mod_id].star ||
+            mod_item.expireDate !== taskData[mod_id].expireDate ||
+            mod_item.depends !== taskData[mod_id].depends
         ) {
             modifiedItems.push(mod_item);
         }
@@ -703,46 +726,71 @@ function getModifiedItems() {
 
 function completeTask(taskLUID) {
 
-    if (taskLUID === null) {
+    if (taskLUID === null || taskData[taskLUID]._id === undefined || taskData[taskLUID]._rev === undefined) {
         console.error("task undefined");
         return;
     }
 
     let taskItem = new Object();
-    taskItem.LUID = taskLUID;
+    taskItem._id = taskData[taskLUID]._id;
+    taskItem._rev = taskData[taskLUID]._rev;
 
-    return makeRequest('PUT', "/complete", JSON.stringify({ taskItem }))
-        .then(response => {
-            if (!response.ok) {
+    // Complete/Uncomplete based by status
+    if (taskData[taskLUID].status == 1){
+        return makeRequest('PUT', "/complete", JSON.stringify({ taskItem }))
+            .then(response => {
+                if (!response.ok) {
+                    $('#toastFailure .text-message').html("Task cannot be completed now.");
+                    new bootstrap.Toast($('#toastFailure')).show();
+                    return false;
+                }
+                taskData[taskLUID].status = 2;
+                return true;
+            }
+            ).catch(error => {
+                console.error('Error completing task:', error);
                 $('#toastFailure .text-message').html("Task cannot be completed now.");
                 new bootstrap.Toast($('#toastFailure')).show();
                 return false;
+            });
+    }
+    if (taskData[taskLUID].status == 2){
+        return makeRequest('PUT', "/uncomplete", JSON.stringify({ taskItem }))
+            .then(response => {
+                if (!response.ok) {
+                    $('#toastFailure .text-message').html("Task cannot be completed now.");
+                    new bootstrap.Toast($('#toastFailure')).show();
+                    return false;
+                }
+                taskData[taskLUID].status = 1;
+                return true;
             }
-            return true;
-        }
-        ).catch(error => {
-            console.error('Error completing task:', error);
-            $('#toastFailure .text-message').html("Task cannot be completed now.");
-            new bootstrap.Toast($('#toastFailure')).show();
-            return false;
-        });
+            ).catch(error => {
+                console.error('Error completing task:', error);
+                $('#toastFailure .text-message').html("Task cannot be completed now.");
+                new bootstrap.Toast($('#toastFailure')).show();
+                return false;
+            });
+    }
 }
 
 function upgradeTask(taskLUID) {
 
-    if (taskLUID === null) {
+    if (taskLUID === null || taskData[taskLUID]._id === undefined || taskData[taskLUID]._rev === undefined) {
         console.error("task undefined");
         return;
     }
 
     let taskItem = new Object();
-    taskItem.LUID = taskLUID;
+    taskItem._id = taskData[taskLUID]._id;
+    taskItem._rev = taskData[taskLUID]._rev;
 
     return makeRequest('PUT', "/progress", JSON.stringify({ taskItem }))
         .then(response => {
             if (!response.ok) {
                 $('#toastFailure .text-message').html("Task cannot be upgraded now");
                 new bootstrap.Toast($('#toastFailure')).show();
+                taskData[taskLUID].progress = taskData[taskLUID].progress + 1;
                 return false;
             }
             return true;
@@ -757,13 +805,14 @@ function upgradeTask(taskLUID) {
 
 function deleteTask(taskLUID) {
 
-    if (taskLUID === null) {
+    if (taskLUID === null || taskData[taskLUID]._id === undefined || taskData[taskLUID]._rev === undefined) {
         console.error("task undefined");
         return;
     }
 
     let taskItem = new Object();
-    taskItem.LUID = taskLUID;
+    taskItem._id = taskData[taskLUID]._id;
+    taskItem._rev = taskData[taskLUID]._rev;
 
     return makeRequest('DELETE', "/delete", JSON.stringify({ taskItem }))
         .then(response => {
@@ -848,7 +897,7 @@ function insertNewTask() {
 // Restore with CTRL+Z
 $(document).on("keydown", function (e) {
     if (e.ctrlKey && e.key === "z") {
-        //TODO : Nice To Have revert function
+        //TODO : Nice To Have revert function (use revs?)
     }
 });
 
@@ -885,7 +934,7 @@ $(function () {
 $(document).on('click', 'a', function (event) {
     var href = $(this).attr('href');
 
-    if (href == 'undefined') return;
+    if (href ===  undefined) return;
 
     var id = href.split('#')[1];
     if (id) {
@@ -894,9 +943,9 @@ $(document).on('click', 'a', function (event) {
 });
 
 function scrollToItem(itemId) {
-    console.log(itemId);
-    let item = document.querySelector(`.myitem[data-value="${itemId}"]`);
-    if (item !== 'undefined') {
+
+    let item = document.querySelector(`.myitem[luid="${itemId}"]`);
+    if (item !== undefined) {
         item.scrollIntoView({block: "start", behavior: "smooth"});
         blinkElement(item, 1200);
     }
@@ -973,4 +1022,4 @@ async function loadAllTask() {
 //LOADING PAGE
 document.addEventListener('DOMContentLoaded', function () {
     switchToTab(selectedTab);
-});
+}, { once: true } );

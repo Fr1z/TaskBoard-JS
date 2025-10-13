@@ -9,7 +9,7 @@ confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
     var button = event.relatedTarget
     
     // Extract info from data-bs-* attributes
-    var deleteID = button.getAttribute('data-bs-deleteID');
+    var deleteID = button.getAttribute('data-bs-deleteID'); // LUID
     var deleteName = button.getAttribute('data-bs-deleteName');
     var modalTitle = confirmDeleteModal.querySelector('.modal-title');
     var hiddenInput = confirmDeleteModal.querySelector('.modal-body #deleteditemID');
@@ -19,12 +19,12 @@ confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
     hiddenInput.value = deleteID
 
     deleteBtn.addEventListener('click', () => {
-        if (hiddenInput!=='undefined'){
+        if (hiddenInput !== undefined){
             const taskLUID = hiddenInput.value;
 
             const deleted = deleteTask(taskLUID);
             if (deleted){
-                $(`.myitem[data-value="${taskLUID}"]`).hide();
+                $(`.myitem[luid="${taskLUID}"]`).hide();
                 $('#toastSuccess .text-message').html("Task deleted succesfully!");
                 new bootstrap.Toast($('#toastSuccess')).show();
             }
@@ -41,7 +41,7 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
     var requiredName = button.getAttribute('data-bs-requiredfor');
     // Extract info from data-bs-* attributes
     var requiredID = null; //reset this value
-    requiredID = button.getAttribute('data-bs-requiredforID');
+    requiredID = button.getAttribute('data-bs-requiredforID'); //LUID
     // Update the modal's content.
     var modalTitle = addSubTaskModal.querySelector('.modal-title');
     var closeBtn = addSubTaskModal.querySelector('.modal-footer #closeButton');
@@ -70,7 +70,7 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
     // Aggiungi ogni titolo come opzione
     items.forEach(item => {
         const option = document.createElement('option');
-        var value =  item.getAttribute('data-value');
+        var value =  item.getAttribute('luid');
         var title = item.querySelector('.title');
         var text = title.value.trim(); //Title text with no spaces
         option.value = text
@@ -103,7 +103,7 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
             
         }else if (requiredID!==null){
             //If Existing Task
-            const depenciesSpan = document.querySelector(`.myitem[data-value="${requiredID}"] .deps`);
+            const depenciesSpan = document.querySelector(`.myitem[luid="${requiredID}"] .deps`);
             depenciesSpan.parentElement.parentElement.classList.remove("d-none"); //show parent div
             depenciesSpan.innerHTML = depenciesSpan.innerHTML + 
             "&nbsp<a class=\"depency alert\" role=\"alert\" href=\"#" + subtaskSelected.textContent + "\"></a>";
@@ -196,10 +196,10 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
                 .then(response => {
                     if (response.ok) {
                         //show toasts
-                        $('#toastSuccess .text-message').html("Tasks are now imported :)");
+                        $('#toastSuccess .text-message').html(response.message);
                         new bootstrap.Toast($('#toastSuccess')).show();
                     } else {
-                        $('#toastFailure .text-message').html("Error on importing tasks :(");
+                        $('#toastFailure .text-message').html(response.message);
                         new bootstrap.Toast($('#toastFailure')).show();
                         console.error("Error response:", response.statusText);
                     }
@@ -218,5 +218,5 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
             console.error("No file selected");
         }
         closeBtn.click(); //close modal
-    });
+    }, {once : true});
 });
