@@ -1,1 +1,1 @@
-const serverAddress = 'https://task.myro.ooguy.com'; // Change with you Server Address
+const serverAddress = 'http://localhost:8090'; // Change with you Server Address
