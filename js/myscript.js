@@ -130,6 +130,9 @@ function populateTaskswithData(data) {
         }
         var completeAction = (selectedTab == "COMPLETED") ? "Uncomplete" : "Complete";
 
+        var dateCompleted = (selectedTab == "COMPLETED") ? new Date(item.completeDate) : "";
+        dateCompleted = (dateCompleted !== "" && !isNaN(dateCompleted.getDay()) ) ? dateCompleted.getDay()+'/'+dateCompleted.getMonth()+'/'+dateCompleted.getFullYear(): "";
+
         if ((item.status !== 1 && selectedTab == "ALL") || (item.status !== 2 && selectedTab == "COMPLETED") || ((item.status !== 1 || item.star === false) && selectedTab == "STARRED")) { return; }
 
         rows += `
@@ -190,8 +193,16 @@ function populateTaskswithData(data) {
                                     <div class="mt-2 ${hideDepencies}">
                                         <span><b>Depends on:</b>&ensp;<span class="deps">${depenciesHTML}</span></span>
                                     </div>
-                                </div>
-                            </div>
+                                </div>`
+                                +
+                                 ((dateCompleted !== "") ?
+                                `<div class="row p-0 mb-2">
+                                    <div class="mt-2" style="font-size: 0.87rem;">
+                                        <span>Completed on:&ensp;<b>${dateCompleted}</b></span>
+                                    </div>
+                                </div>` : '' )
+                                +
+                            `</div>
                         </div>
                         <!-- Toggler Expander -->
                         <div class="col">
