@@ -358,8 +358,9 @@ function populateDepenciesTitles() {
 
 function insertNewTopic() {
     //Event on ENTER on '+ Add Category'
-    $('input.addcategory').keypress(function (e) {
+    $('input.addcategory').keydown(function (e) {
         var key = e.which;
+        
         if (key == 13)  // the enter key code
         {
             var inputElement = e.target
@@ -373,7 +374,7 @@ function insertNewTopic() {
             return false;
         }
     });
-    $('input#newTopics').keypress(function (e) {
+    $('input#newTopics').keydown(function (e) {
         var key = e.which;
         if (key == 13)  // the enter key code
         {
@@ -559,7 +560,7 @@ function logout() {
                 document.cookie = `sessionToken=${sessionToken}; Path=/`;
                 //clear storage data
                 clearLocalStorageData();
-                setTimeout(function () { window.location = "./login.html" }, 1500);
+                setTimeout(function () { window.location.replace("./login.html");}, 1500);
             } else {
                 console.error("Error response:", response.statusText);
             }
