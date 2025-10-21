@@ -598,10 +598,16 @@ app.post('/login', async (req, res) => {
         }
 
         // Generate and update a new session hash
-        const newSession = uuidv4();
-        user.session = newSession;
-        const update_result = await users.put(user);
-
+        if (user.session === undefined || user.session.length == 0) {
+            const newSession = uuidv4();
+            user.session = newSession;
+            const update_result = await users.put(user);
+            
+            // Check session update
+            if (!update_result.ok) {
+                throw new Error("Cant update user session.");
+            }
+        }
 
         /***
         // Note: with promises should be like this
@@ -632,14 +638,11 @@ app.post('/login', async (req, res) => {
         });
         ***/
 
-        // Check session update
-        if (!update_result.ok) {
-            throw new Error("Cant update user session.");
-        }
+
 
         // Generate JWT
         const jwt_token = jwt.sign(
-            { session: newSession }, // Payload
+            { session: user.session }, // Payload
             process.env.JWT_SECRET, // Secret
             { expiresIn: process.env.JWT_EXPIRATION } // Should be valid until expiration.
         );
