@@ -82,7 +82,7 @@ function saveDataToLocalStorage(freshData){
     const parsedData = JSON.parse(cachedData);
     const MAX_CACHE_AGE = 60 * 1000; // Can save every minute.
 
-    if (cachedData==null || Date.now() - parsedData.timestamp > MAX_CACHE_AGE) {
+    if (cachedData=="null" || parsedData.timestamp === undefined || (Date.now() - parsedData.timestamp > MAX_CACHE_AGE)) {
         // Save data on localStorage
         localStorage.setItem(cachedDataKey, JSON.stringify({
             data: freshData,
