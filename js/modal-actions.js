@@ -75,9 +75,12 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
         var text = title.value.trim(); //Title text with no spaces
         option.value = text
         
-        datalist.appendChild(option);
-        // Add to mapping
-        valueMap.set(text, value);
+        if (value != requiredID){
+            // Add to mapping excluded this task
+            datalist.appendChild(option);
+            valueMap.set(text, value);
+        }
+
     });
 
     // manage input
@@ -87,7 +90,7 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
         const value = valueMap.get(text) || 'NoTask'; 
         subtaskSelected.textContent = value; //Show value
         
-        if (value!=='NoTask'){
+        if (value!=='NoTask') {
             sendBtn.removeAttribute('disabled');
         } else {
             sendBtn.setAttribute('disabled', true);
@@ -112,6 +115,7 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
             new bootstrap.Toast($('#toastSuccess')).show();
         }
         populateDepenciesTitles();
+        requiredID = null; // Reset value
         closeBtn.click();
     });
 })
