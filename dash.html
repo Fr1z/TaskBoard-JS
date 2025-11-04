@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta id="vp" name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta id="viewp" name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Dashboard things to do">
     <meta name="author" content="Fr1z">
 
@@ -24,20 +24,9 @@
     <link rel="stylesheet" href="css/mystyle.css">
     
     <script src="js/color-modes.js"></script>
-    <script src="js/mobile_fix.js"></script>
+    <script src="js/mobile-fix.js"></script>
 
     <script src="SERVER.js" crossorigin="anonymous"></script>
-
-
-    <!--Fix min witdth for small devices-->
-    <script>
-    window.onload = function() {
-        if (screen.width < 575) {
-            var mvp = document.getElementById('vp');
-            mvp.setAttribute('content','user-scalable=no,width=575');
-        }
-    }
-    </script>
 
     <script src="js/jquery-3.7.1.js"></script>
     <script src="js/jquery-ui.js"></script>
