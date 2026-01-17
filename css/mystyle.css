@@ -15,13 +15,43 @@
 /* Many others */
 
 .showed {
-    display: block!important;
+    display: block !important;
 }
 
 .navbar-nav .btn {
-    min-width: 160px;
-    min-height: 56px;
-    line-height: 1em;
+    padding: 6%;
+    min-width: 100px;
+    margin: 0px;
+    line-height: 1.3em;
+    max-height: 3em;
+    font-size: 1.8em;
+}
+
+/* schermi medi */
+@media (max-width: 1576px) {
+    .navbar-nav .btn {
+        font-size: 1.6em;
+    }
+}
+
+/* schermi piccoli */
+@media (max-width: 992px) {
+    .navbar-nav .btn {
+        padding: 5px;
+        font-size: 0.9em;
+        border-radius: 4px !important;
+    }
+
+    #mysearch {
+        width: 100%;
+        margin-bottom: 6px;
+        border-radius: 6px;
+    }
+
+    .btn-dropdown {
+        width: 100%;
+        border-radius: 62px !important;
+    }
 }
 
 .categories {
@@ -50,33 +80,39 @@
     line-clamp: 1;
     -webkit-line-clamp: 1;
 }
-.desc{
+
+.desc {
     height: 2em;
     resize: none;
     overflow: hidden;
     text-overflow: ellipsis;
-    transition: all 0.5s ease; /* Animazione */
+    transition: all 0.5s ease;
+    /* Animazione */
 }
+
 .desc.expanded {
     height: 12em;
     resize: vertical;
     border: 1px solid rgb(168, 168, 168);
-    transition: all 0.5s ease; /* Animazione */
+    transition: all 0.5s ease;
+    /* Animazione */
 }
+
 .divider {
     height: 1px;
     background-color: #aaa;
     margin: 7px 0;
 }
+
 .subgrid .col {
     padding: 7px;
 }
 
- /* TOASTS */
+/* TOASTS */
 .toast {
     left: 50%;
     position: fixed;
-    bottom:1em;
+    bottom: 1em;
     transform: translate(-50%, 0px);
     z-index: 9999;
 }

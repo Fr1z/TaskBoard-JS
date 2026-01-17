@@ -1016,9 +1016,11 @@ async function loadAllTask() {
 
         // Fallback to localStorage if server is unreachable
         const cachedData = localStorage.getItem(cachedDataKey);
-
+        storageData = null;
         if (cachedData) {
-            const storageData = JSON.parse(cachedData);
+            storageData = JSON.parse(cachedData);
+        }
+        if (cachedData && storageData){
             console.log('Using cached data from:', new Date(storageData.timestamp));
             data = storageData.data;
             populateTaskswithData(data);
