@@ -570,7 +570,7 @@ function logout() {
             $('#toastFailure .text-message').html("error on logout :(");
             new bootstrap.Toast($('#toastFailure')).show();
             console.error("Error on logout:", error);
-        });;
+        });
 }
 
 function startSpinning(queryElement) {
@@ -603,6 +603,11 @@ function sendUpdate() {
         stopSpinning('#saveBtn');
         return;
     }
+
+
+    //ping data service
+    //if offline save to localdb
+    //altrimenti aggiorna
 
     makeRequest('PUT', "/update", JSON.stringify({ modifiedItems }))
         .then(response => {

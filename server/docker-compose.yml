@@ -1,0 +1,33 @@
+services:
+  pouchdb:
+    image: eingressio/pouchdb-server
+    container_name: pouchdb
+    hostname: pouchdb-server
+    #ports:
+    #  - "5984:5984"
+    volumes:
+      - ./data:/pouchdb
+    networks:
+      - tasker_network
+    restart: always
+
+  nodejs:
+    image: node:lts-slim
+    container_name: nodejs
+    working_dir: /usr/src/app
+    volumes:
+      - ./app:/usr/src/app
+    ports:
+      - "8090:8090"
+    command: >
+      sh -c "npm install express helmet pouchdb pouchdb-find cookie-parser jsonwebtoken bcrypt console-stamp && node crudServer.js"
+    env_file:
+      - .env
+    networks:
+      - tasker_network
+    restart: always
+
+
+networks:
+  tasker_network:
+    external: false

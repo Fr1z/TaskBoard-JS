@@ -21,6 +21,7 @@
 .navbar-nav .btn {
     min-width: 160px;
     min-height: 56px;
+    line-height: 1em;
 }
 
 .categories {
