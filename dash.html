@@ -9,7 +9,7 @@
 
     <!-- Favicons -->
     <link rel="icon" href="res/favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="res/apple-touch-icon.png">
+    <link rel="app-icon" sizes="180x180" href="res/app-icon.png">
     <meta name="theme-color" content="#712cf9">
 
     <title>OffTasks Dashboard</title>
@@ -78,33 +78,30 @@
     <main class="container">
         <div class="row">
             <nav class="navbar navbar-expand-lg navbar-light bg-primary rounded-bottom mt-0 mt-lg-1 p-3">
-                <div class="col order-1 order-lg-1">
+                <div class="col-3 order-1">
                     <a class="navbar-brand">
                         <a href="#taskicon">
-                            <img width="72" height="72" src="./res/apple-touch-icon.png" />
+                            <img width="72" height="72" src="./res/app-icon.png" />
                         </a>
-                        <span class="text-white fs-4 fw-bold">Dash Tasker</span> 
+                        <span class="text-white fs-2 fw-bold"></span> 
                     </a>
                 </div>
 
-                <div class="col order-3 order-lg-2">
-                    <div class="navbarToggler justify-content-center" id="navbarToggler1">
-                        <div class="navbar-nav">
-                            <div class="btn-group fs-3 fw-bold" role="group" aria-label="toggle button group">
-                                <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off" tab="STARRED" onclick="switchToTab('STARRED');">
-                                <label class="btn btn btn-primary border border-light rounded-left nav-link text-white" for="failed">Starred&nbsp<i class="bx bx-star bx-fw bx-sm"></i></label>
+                <div class="col-6 order-2">
+                    <div class="navbarToggler row justify-content-center" id="navbarToggler1">
+                            <div class="navbar-nav btn-group fw-bold" role="group" aria-label="toggle button group">
+                                <input type="radio" class="col-4 btn-check" name="btnradio" id="failed" autocomplete="off" tab="STARRED" onclick="switchToTab('STARRED');">
+                                <label class="btn btn-primary border border-light rounded-left nav-link text-white p-1" for="failed">Starred<br/><i class="bx bx-star bx-fw bx-sm"></i></label>
 
-                                <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" tab="ALL" onclick="switchToTab('ALL');" checked>
-                                <label class="btn btn-primary border border-light border-left-0 border-right-0 nav-link text-white" for="todos">To Do&nbsp<i class="bx bx-todo bx-fw bx-sm"></i></label>
+                                <input type="radio" class="col-4 btn-check" name="btnradio" id="todos" autocomplete="off" tab="ALL" onclick="switchToTab('ALL');" checked>
+                                <label class="btn btn-primary border border-light border-left-0 border-right-0 nav-link text-white p-1" for="todos">To Do<br/><i class="bx bx-task bx-fw bx-sm"></i></label>
                             
-                                <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off" tab="COMPLETED" onclick="switchToTab('COMPLETED');">
-                                <label class="btn btn-primary border border-light rounded-right nav-link text-white" for="completed">Completed&nbsp<i class="bx bx-checks bx-fw bx-sm"></i></label>
-                            
+                                <input type="radio" class="col-4 btn-check" name="btnradio" id="completed" autocomplete="off" tab="COMPLETED" onclick="switchToTab('COMPLETED');">
+                                <label class="btn btn-primary border border-light rounded-right nav-link text-white p-1" for="completed">Completed<br/><i class="bx bx-check bx-fw bx-sm"></i></label>
                             </div>
-                        </div>
                     </div>
                 </div>
-                <div class="col order-2 order-lg-3">
+                <div class="col-3 order-3">
                     <div class="row m-0 py-2">
                         <div class="col-1 col-md-2 col-lg-3"></div>
                         <div class="col-11 col-md-10 col-lg-9">
@@ -112,7 +109,7 @@
                                 <div class="col input-group">
                                     <input id="mysearch" class="form-control shadow-sm" type="search" placeholder="Search" aria-label="Search" style="border: 0; min-width: 0px!important;">
                                 
-                                    <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <button type="button" class="btn btn-secondary dropdown-toggle btn-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                         <span class="visually-hidden">Toggle Dropdown</span>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end bg-secondary">
