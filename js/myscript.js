@@ -929,7 +929,43 @@ $(document).on("keydown", function (e) {
     }
 });
 
-//Order items
+//Order items for Expire Date
+$(function () {
+    function parseDate(dateStr) {
+        if (!dateStr) return null;
+
+        var parts = dateStr.trim().split('/');
+        if (parts.length !== 3) return null;
+
+        // new Date(anno, mese-1, giorno)
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+    }
+
+    function orderByExpDate() {
+        var items = $('.myitem').get();
+        items.sort(function(a, b) {
+
+            var dateA = parseDate($(a).find('.exp-date').val());
+            var dateB = parseDate($(b).find('.exp-date').val());
+
+            // Se entrambe mancanti
+            if (!dateA && !dateB) return 0;
+
+            // Se A manca → va dopo
+            if (!dateA) return 1;
+
+            // Se B manca → va dopo
+            if (!dateB) return -1;
+
+            return dateA - dateB; // crescente
+        });
+        var $container = $('.myitems');
+        $container.append(items);
+        return;
+    }
+});
+
+//Order items 
 $(function () {
     $(".sortable").sortable({
         cursor: "n-resize",
@@ -1020,7 +1056,7 @@ async function loadAllTask() {
         if (cachedData) {
             storageData = JSON.parse(cachedData);
         }
-        if (cachedData && storageData){
+        if (cachedData && storageData!=null && storageData.timestamp!=null){
             console.log('Using cached data from:', new Date(storageData.timestamp));
             data = storageData.data;
             populateTaskswithData(data);

@@ -14,6 +14,10 @@
 
 /* Many others */
 
+.container {
+    margin: auto!important;
+}
+
 .showed {
     display: block !important;
 }
@@ -25,6 +29,7 @@
     line-height: 1.3em;
     max-height: 3em;
     font-size: 1.8em;
+    margin-bottom: -1px;
 }
 
 /* schermi medi */
@@ -36,6 +41,11 @@
 
 /* schermi piccoli */
 @media (max-width: 992px) {
+    .container, .container-sm {
+        margin: 0px;
+        max-width: 100% !important;
+    }
+
     .navbar-nav .btn {
         padding: 5px;
         font-size: 0.9em;
@@ -52,8 +62,19 @@
         width: 100%;
         border-radius: 62px !important;
     }
+
+    .btn-order {
+        margin-right: 1px !important;;
+    }
+
+    .bx-sm {
+        font-size: 1rem !important;
+    }
 }
 
+.btn-order {
+    margin-right: 1em;
+}
 .categories {
     font-size: 0.87rem;
 }
