@@ -254,9 +254,9 @@ document.addEventListener("click", function (e) {
             // focus
             setTimeout(() => modalTextarea.focus(), 50);
             // click su X
-            document.getElementById("tm-close").addEventListener("click", closeModal);
+            document.getElementById("tm-close").addEventListener("click", closeTextAreaModal);
         }
     }
 });
 // click su overlay
-document.querySelector(".tm-overlay").addEventListener("click", closeModal);
+document.querySelector(".tm-overlay").addEventListener("click", closeTextAreaModal);
