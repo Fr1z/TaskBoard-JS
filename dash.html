@@ -231,11 +231,38 @@
 
     <script src="js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 
-    <blockquote class="blockquote text-center footer mt-5 " id="justafooter">
-        <p class="mb-1 small"><em>"I need to organize my tasks better"</em></p>
-        <footer class="blockquote-footer small"><cite title="mindlost">me</cite></footer>
+    <blockquote class="blockquote text-center footer mt-5" id="justafooter">
+        <p class="mb-1 small">
+            <em id="quoteText">"I need to organize my tasks better"</em>
+        </p>
+        <footer class="blockquote-footer small">
+            <cite id="quoteAuthor" title="mindlost">me</cite>
+        </footer>
     </blockquote>
 
+    <script>
+        const phrases = [
+            ["Ho bisogno di un posto dove tener traccia dei miei task", "Io"],
+            ["Il lavoro si espande fino a riempire il tempo che gli assegni", "Parkinson"],
+            ["Un problema messo per iscritto è un problema dimezzato","Kidlins"],
+            ["Posso risolvere questo problema senza aggiungere nulla?",""],
+            ["Sto risolvendo il problema giusto?",""],
+            ["Devo davvero farlo in quel modo?",""],
+            ["Qual è la soluzione più semplice che potrebbe funzionare?",""],
+            ["Se non riesci a spiegare una cosa in modo semplice non l hai davvero compresa","A. Einstein"],
+            ["Se non avessi corrente, colle o macchine… come lo risolverei?",""],
+            ["Molto meglio voler sempre fare ciò che si fa piuttosto che far sempre ciò che si vuole","Tolstoj"]
+        ];
+        // Pick Random quote
+        setInterval(() => {
+            const randomIndex = Math.floor(Math.random() * phrases.length);
+            const selected = phrases[randomIndex];
+
+            document.getElementById("quoteText").textContent = `"${selected[0]}"`;
+            document.getElementById("quoteAuthor").textContent = selected[1];
+        }, 15000);
+
+    </script>
 
     <div class="toast align-items-center fade bg-success border-0 text-white opacity-75 w-50" role="alert" aria-live="assertive" aria-atomic="true" id="toastSuccess">
         <div class="toast-content p-1">
