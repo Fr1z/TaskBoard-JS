@@ -3,6 +3,10 @@ var confirmDeleteModal = document.getElementById('confirmDeleteModal');
 var settingsModal = document.getElementById('settingsModal');
 var importTaskModal = document.getElementById('importTaskModal');
 
+var textareaModal = document.getElementById("textareaModal");
+var textareaModalInput = document.getElementById("tm-textarea");
+let activeTextarea = null;
+
 confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
     
     // Button that triggered the modal
@@ -224,3 +228,35 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
         closeBtn.click(); //close modal
     }, {once : true});
 });
+
+function closeTextAreaModal() {
+    if (activeTextarea) {
+        activeTextarea.value = modalTextarea.value;
+        textareaModal.classList.add("tm-hidden");
+    }
+    activeTextarea = null;
+}
+
+// intercetta click su QUALSIASI textarea
+document.addEventListener("click", function (e) {
+    if (e.target.tagName === "TEXTAREA") {
+
+        if (window.innerWidth <= 992) {
+            e.preventDefault();
+            // Assegna textarea
+            activeTextarea = e.target;
+
+            // copia contenuto
+            modalTextarea.value = activeTextarea.value;
+
+            // mostra modal
+            textareaModal.classList.remove("tm-hidden");
+            // focus
+            setTimeout(() => modalTextarea.focus(), 50);
+            // click su X
+            document.getElementById("tm-close").addEventListener("click", closeModal);
+        }
+    }
+});
+// click su overlay
+document.querySelector(".tm-overlay").addEventListener("click", closeModal);
