@@ -3,8 +3,8 @@ var confirmDeleteModal = document.getElementById('confirmDeleteModal');
 var settingsModal = document.getElementById('settingsModal');
 var importTaskModal = document.getElementById('importTaskModal');
 
-var textareaModal = document.getElementById("textareaModal");
-var textareaModalInput = document.getElementById("tm-textarea");
+var textareaModal = document.getElementById('textareaModal');
+var textareaModalInput = document.getElementById('tm-textarea');
 let activeTextarea = null;
 
 confirmDeleteModal.addEventListener('show.bs.modal', function (event) {

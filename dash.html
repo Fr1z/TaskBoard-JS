@@ -32,7 +32,7 @@
     <script src="js/jquery-ui.js"></script>
     <script src="js/bootstrap-datepicker.min.js" crossorigin="anonymous"></script>
     <script src="js/jquery.ui.touch-punch.min.js"></script>
-    <script src="js/myscript.js"></script>
+    <script src="js/myscript.js" defer></script>
 </head>
 
 <body class="bg-body-tertiary">
@@ -424,9 +424,6 @@
         </div>
     </div>
 
-    <!-- Modals JS -->
-    <script src="js/modal-actions.js" crossorigin="anonymous"></script>
-
     <!-- TextArea Edit Modal -->
     <div id="textareaModal" class="tm-hidden">
         <div class="tm-overlay"></div>
@@ -435,6 +432,9 @@
             <textarea id="tm-textarea"></textarea>
         </div>
     </div>
+
+    <!-- Modals JS -->
+    <script src="js/modal-actions.js" crossorigin="anonymous" defer></script>
 </body>
 
 </html>
