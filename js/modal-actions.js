@@ -231,7 +231,7 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
 
 function closeTextAreaModal() {
     if (activeTextarea) {
-        activeTextarea.value = modalTextarea.value;
+        activeTextarea.value = textareaModalInput.value;
         textareaModal.classList.add("tm-hidden");
     }
     activeTextarea = null;
@@ -247,12 +247,12 @@ document.addEventListener("click", function (e) {
             activeTextarea = e.target;
 
             // copia contenuto
-            modalTextarea.value = activeTextarea.value;
+            textareaModalInput.value = activeTextarea.value;
 
             // mostra modal
             textareaModal.classList.remove("tm-hidden");
             // focus
-            setTimeout(() => modalTextarea.focus(), 50);
+            setTimeout(() => textareaModalInput.focus(), 50);
             // click su X
             document.getElementById("tm-close").addEventListener("click", closeTextAreaModal);
         }
