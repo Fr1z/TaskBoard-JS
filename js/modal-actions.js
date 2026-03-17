@@ -230,16 +230,16 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
 });
 
 function closeTextAreaModal() {
-    if (activeTextarea) {
+    if (activeTextarea !== 'undefined' && activeTextarea != null) {
         activeTextarea.value = textareaModalInput.value;
         textareaModal.classList.add("tm-hidden");
     }
     activeTextarea = null;
 }
 
-// intercetta click su QUALSIASI textarea
+// intercetta click su QUALSIASI textarea eccetto tm-textarea
 document.addEventListener("click", function (e) {
-    if (e.target.tagName === "TEXTAREA") {
+    if (e.target.tagName === "TEXTAREA" && e.target.id != 'tm-textarea') {
 
         if (window.innerWidth <= 992) {
             e.preventDefault();
