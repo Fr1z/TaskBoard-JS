@@ -20,13 +20,12 @@
 
     <link rel="stylesheet" href="css/jquery-ui.css">
     <link rel="stylesheet" href="css/bootstrap-datepicker.min.css">
-    <link rel="stylesheet" href="css/boxicons.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="css/mystyle.css">
+    <link rel="stylesheet" href="css/transformations.css">
     
     <script src="js/color-modes.js"></script>
     <script src="js/mobile-fix.js"></script>
-
-    <script src="SERVER.js" crossorigin="anonymous"></script>
 
     <script src="js/pouchDB-9.0.0.min.js"></script>
     <script src="js/jquery-3.7.1.js"></script>
@@ -44,32 +43,29 @@
             <div class="theme-icon-active">
                 <use href="#auto"></use>
             </div>
-            <i class="bx bxs-brightness-half my-1 bx-sm" ></i>
+            <i data-lucide="contrast" class="me-2 opacity-60"></i>
             <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
         </button>
         <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
             <li>
-                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light"
-                    aria-pressed="false">
-                    <i class="bx bx-sun me-2 opacity-50 bx-sm"></i>
+                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+                    <i data-lucide="sun" class="me-2 opacity-50"></i>
                     Light
-                    <i class='d-none bx bx-check'></i>
+                    <i data-lucide="check" class="d-none"></i>
                 </button>
             </li>
             <li>
-                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark"
-                    aria-pressed="false">
-                    <i class="bx bx-moon me-2 opacity-50 bx-sm"></i>
+                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
+                    <i data-lucide="moon" class="me-2 opacity-50"></i>
                     Dark
-                    <i class='d-none bx bx-check'></i>
+                    <i data-lucide="check" class="d-none"></i>
                 </button>
             </li>
             <li>
-                <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto"
-                    aria-pressed="true">
-                    <i class="bx bxs-brightness-half me-2 opacity-50 bx-sm"></i>
+                <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
+                    <i data-lucide="sun-moon" class="me-2 opacity-50"></i>
                     Auto
-                    <i class="d-none bx bx-check"></i>
+                    <i data-lucide="check" class="d-none"></i>
                 </button>
             </li>
         </ul>
@@ -92,13 +88,13 @@
                     <div class="navbarToggler row justify-content-center" id="navbarToggler1">
                             <div class="navbar-nav btn-group fw-bold" role="group" aria-label="toggle button group">
                                 <input type="radio" class="col-4 btn-check" name="btnradio" id="failed" autocomplete="off" tab="STARRED" onclick="switchToTab('STARRED');">
-                                <label class="btn btn-primary border border-light rounded-left nav-link text-white p-1" for="failed">Starred<br/><i class="bx bx-star bx-fw bx-sm"></i></label>
+                                <label class="btn btn-primary border border-light rounded-left nav-link text-white p-1" for="failed">Starred<br/><i data-lucide="star" class=""></i></label>
 
                                 <input type="radio" class="col-4 btn-check" name="btnradio" id="todos" autocomplete="off" tab="ALL" onclick="switchToTab('ALL');" checked>
-                                <label class="btn btn-primary border border-light border-left-0 border-right-0 nav-link text-white p-1" for="todos">To Do<br/><i class="bx bx-task bx-fw bx-sm"></i></label>
+                                <label class="btn btn-primary border border-light border-left-0 border-right-0 nav-link text-white p-1" for="todos">To Do<br/><i data-lucide="list-todo" class=""></i></label>
                             
                                 <input type="radio" class="col-4 btn-check" name="btnradio" id="completed" autocomplete="off" tab="COMPLETED" onclick="switchToTab('COMPLETED');">
-                                <label class="btn btn-primary border border-light rounded-right nav-link text-white p-1" for="completed">Completed<br/><i class="bx bx-check bx-fw bx-sm"></i></label>
+                                <label class="btn btn-primary border border-light rounded-right nav-link text-white p-1" for="completed">Completed<br/><i data-lucide="check" class=""></i></label>
                             </div>
                     </div>
                 </div>
@@ -137,7 +133,7 @@
                 <div class="row m-0 flex-nowrap">
                     <div class="col" data-bs-toggle="collapse" href="#collapseEditor" role="button" aria-expanded="false" aria-controls="collapseEditor">
                         <button type="button" class="btn btn-lg btn-outline-primary text-nowrap my-2 fw-bold" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
-                        &ensp;Add Task <i class='bx bx-fw bx-add-to-queue bx-sm' ></i>
+                            <i data-lucide="square-plus" class="lucide-fw lucide-sm"></i>&ensp;Add Task 
                         </button>
                     </div>
                     <div class="col">
@@ -146,9 +142,9 @@
 
                     <div class="col d-flex justify-content-end">
                         <button type="button" class="btn btn-lg btn-outline-warning text-nowrap my-2 btn-order fw-bold" id="orderByExpDate" onclick="orderByExpDate();" style="[data-bs-theme='light'] {color: #cfb555;}">
-                            <i class='bx bx-fw bxs-chevrons-up bx-sm'></i>
+                            <i data-lucide="chevrons-up" class=""></i>
                         <button type="button" class="btn btn-lg btn-outline-warning text-nowrap my-2 fw-bold" id="saveBtn" onclick="sendUpdate();" style="[data-bs-theme='light'] {color: #cfb555;}">
-                            &ensp;Save&ensp;<i class='bx bx-fw bxs-save bx-sm'></i>
+                            &ensp;Save&ensp;<i data-lucide="save" class=""></i>
                     </button>
                     </div>
                 </div>
@@ -162,21 +158,23 @@
                             <div class="row row-cols-3 flex-nowrap">
                                 <div class="col-6">
                                     <div class="input-group mb-3">
-                                        <span class="input-group-text fw-light" id="newTitleSpan">Title</span>
+                                        <span class="input-group-text fw-light" id="newTitleSpan"><i data-lucide="square-round-corner" class="lucide-sm opacity-50"></i></span>
                                         <input type="text" class="form-control" id="newTitle" placeholder="Title" aria-label="Titolo" aria-describedby="newTitleSpan">
                                       </div>                                      
                                 </div>
                                 <div class="col-3">
                                     <div class="input-group mb-3 font-light ">
                                     <input type="text" class="form-control" placeholder="+ Topic" id="newTopics" aria-label="Categories" aria-describedby="newTopicsSpan">
-                                    <span class="input-group-text" id="newTopicsSpan" style="overflow-x: scroll;min-width: 3em;"></span>
+                                    <span class="input-group-text" id="newTopicsSpan" style="overflow-x: scroll;min-width: 3em;">
+                                        <i data-lucide="tags" class="lucide-sm opacity-50"></i></span>
                                   </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="input-group date d-flex flex-nowrap datapickertoggler">
                                         <input type="text" class="form-control fw-light pe-none text-body-secondary bg-body-tertiary float-end text-end" value="" id="newExpireDate" placeholder="" style="border: 0; min-width: 0px!important;">
                                         <span class="input-group-text datapickertoggler" style="border: 0;">
-                                            <i class="bx bx-calendar bx-sm opacity-50 datapickertoggler" ></i>
+                                            <i data-lucide="calendar-days"
+                                            class="lucide-sm opacity-50 datapickertoggler"></i>
                                         </span>
                                     </div>
                                 </div>
@@ -199,14 +197,14 @@
                                     </p>
 
                                     <button class="btn btn-outline-primary p-2 m-2 text-nowrap" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="New Task" data-bs-requiredforID="0">
-                                        <i class="bx bx-plus-circle bx-sm"></i>
+                                        <i data-lucide="circle-plus" class=""></i>
                                     </button> 
                                 </div>
                                 
                                 </div>
                                 <div class="col d-flex justify-content-end">
                                     <button type="button" class="btn btn-lg btn-outline-primary text-uppercase" onClick="insertNewTask();">
-                                        &ensp;Insert&ensp;<i class='bx bx-fw bx-plus-circle bx-sm'></i>
+                                        &ensp;Insert&ensp;<i data-lucide="circle-plus" class=""></i>
                                     </button>
                                 </div>
                             </div>
@@ -216,7 +214,7 @@
                 </div>
             </div>
             
-            <div class="fw-bold w-100 text-center text-body-secondary fs-1" id="loader"><i class="bx bx-loader-circle bx-spin"></i></div>
+            <div class="fw-bold w-100 text-center text-body-secondary fs-1" id="loader"><i data-lucide="loader-circle" class="lucide-spin"></i></div>
             <div class="myitems container sortable">
                 <!-- DATA WILL BE LOADED HERE -->
             </div>
@@ -269,7 +267,7 @@
         <div class="toast-content p-1">
             <div class="content-body d-flex align-items-center">
                 <div class="icon pt-1 mx-2">
-                  <i class="bx bx-badge-check bx-md"></i>
+                  <i data-lucide="badge-check" class=""></i>
                 </div>
                 <div class="d-flex justify-content-between w-100">
                   <div>
@@ -287,7 +285,7 @@
         <div class="toast-content p-1">
             <div class="content-body d-flex align-items-center">
                 <div class="icon pt-1 mx-2">
-                  <i class="bx bx-badge-check bx-md"></i>
+                  <i data-lucide="badge-check" class=""></i>
                 </div>
                 <div class="d-flex justify-content-between w-100">
                   <div>
@@ -436,6 +434,10 @@
 
     <!-- Modals JS -->
     <script src="js/modal-actions.js" crossorigin="anonymous" defer></script>
+
+    <script>
+    lucide.createIcons();
+    </script>
 </body>
 
 </html>

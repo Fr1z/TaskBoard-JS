@@ -82,6 +82,19 @@
     
 }
 
+img, svg {
+  vertical-align: center !important;
+}
+
+.star-icon.starred {
+    fill: currentColor;
+}
+
+#newExpireDate {
+    border-bottom: 1px solid #aaaaaa91 !important;
+    border-radius: 0;
+}
+
 .btn-order {
     margin-right: 1em;
 }

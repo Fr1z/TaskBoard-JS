@@ -204,6 +204,11 @@ function saveDataToLocalStorage(freshData) {
 
 function clearLocalStorageData() {
     localStorage.removeItem(cachedDataKey);
+    localDB.destroy().then(function (response) {
+        // success
+    }).catch(function (err) {
+        console.log(err);
+    });
 }
 
 // ─── DOM RENDERING ────────────────────────────────────────────────────────────
@@ -258,92 +263,126 @@ function populateTaskswithData(data) {
         ) { return; }
 
         rows += `
-        <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${item._id}" rev="${item._rev}" luid="${item.luid}" order="${item.order}">
-            <div class="row flex-nowrap">
-                <!-- Grab handle -->
-                <div class="col-auto mh-100 bd-placeholder grab" style="width: 32px;">
-                    <i class="bx bx-menu bx-sm opacity-50 position-relative top-50 start-50 translate-middle"></i>
-                </div>
+                <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${item._id}" rev="${item._rev}" luid="${item.luid}" order="${item.order}">
+                    <div class="row flex-nowrap">
+                        <!-- Grab handle -->
+                        <div class="col-auto mh-100 bd-placeholder grab" style="width: 32px;">
+                            <i data-lucide="menu" class="lucide-sm opacity-50 position-relative top-50 start-50 translate-middle"></i>
+                        </div>
 
-                <!-- Main Content -->
-                <div class="flex-grow-1" style="flex-basis: 0;">
-                    <div class="content justify-content-between">
-                        <div class="row g-0" style="max-height: 1.2em;">
-                            <div class="col-6 col-sm-6 col-md-7 col-lg-6 flex-nowrap">
-                                <input type="text" class="form-control title bg-transparent border-0 px-1 opacity-75" placeholder="Titolo" aria-label="Title of task" value="${item.title}">
-                            </div>
-                            <div class="col-1 col-sm-1 col-md-1 col-lg-3 flex-nowrap"></div>
-                            <div class="col-5 col-sm-5 col-md-4 col-lg-3 flex-nowrap" style="max-height: 1em;">
-                                <div class="input-group date d-flex flex-nowrap justify-content-end">
-                                    <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-transparent float-end text-end exp-date" value="${item.expireDate}" placeholder="" style="border: 0; min-width: 0px!important;">
-                                    <span class="input-group-text" style="border: 0;">
-                                        <i class="bx bx-calendar opacity-50 datapickertoggler" role="button"></i>
-                                    </span>
+                        <!-- Main Content -->
+                        <div class="flex-grow-1" style="flex-basis: 0;">
+                            <div class="content justify-content-between">
+                                <div class="row g-0" style="max-height: 1.2em;">
+                                    <div class="col-6 col-sm-6 col-md-7 col-lg-6 flex-nowrap">
+                                        <input type="text" class="form-control title bg-transparent border-0 px-1 opacity-75" placeholder="Titolo" aria-label="Title of task" value="${item.title}">
+                                    </div>
+                                    <div class="col-1 col-sm-1 col-md-1 col-lg-3 flex-nowrap"></div>
+                                    <div class="col-5 col-sm-5 col-md-4 col-lg-3 flex-nowrap" style="max-height: 1em;">
+                                        <div class="input-group date d-flex flex-nowrap justify-content-end">
+                                            <input type="text" class="form-control-sm fw-light pe-none text-body-secondary bg-transparent float-end text-end exp-date" value="${item.expireDate}" placeholder="" style="border: 0; min-width: 0px!important;">
+                                            <span class="input-group-text datapickertoggler" style="border: 0;">
+                                                <i data-lucide="calendar-days"
+                                                class="lucide-sm opacity-50"
+                                                role="button"></i>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <div class="divider"></div>
+
+                                <textarea class="form-control bg-transparent border-0 text-break p-1 desc" aria-label="Description" rows="1">${item.description}</textarea>
                             </div>
                         </div>
 
-                        <div class="divider"></div>
+                        <div class="col" style="flex-basis: 0; max-width: min-content; overflow: auto;">
+                            <div class="row flex-wrap">
+                                <div class="col collapse">
+                                    <div class="row mt-2 justify-content-center">
+                                        <div class="row mb-2">
+                                            <div class="col m-0 px-1">
+                                                <button class="btn btn-primary w-100 m-0 text-truncate completer" aria-label="Complete task">${completeAction}</button>
+                                            </div>
+                                            <div class="col m-0 px-1">
+                                                <button class="btn btn-secondary w-100 m-0 text-truncate advance" aria-label="Add progress" ${disabledProgress} value="${item.progress}">+ ${item.progress}</button>
+                                            </div>
+                                        </div>
 
-                        <textarea class="form-control bg-transparent border-0 text-break p-1 desc" aria-label="Description" rows="1">${item.description}</textarea>
+                                        <div class="row p-0 mb-2">
+                                            <div class="m-0 mb-1 font-lighter categories col-auto">
+                                                ${item.categories}
+                                            </div>
+                                            <input class="p-0 px-3 bg-transparent text-center addcategory" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value="">
+                                            <div class="col-auto"></div>
+                                        </div>
+
+                                        <div class="row p-0 mb-2">
+                                            <div class="mt-2 ${hideDepencies}">
+                                                <span><b>Depends on:</b>&ensp;<span class="deps">${depenciesHTML}</span></span>
+                                            </div>
+                                        </div>`
+                                        +
+                                        (dateCompleted !== "" ?
+                                        `<div class="row p-0 mb-2">
+                                            <div class="mt-2" style="font-size: 0.87rem;">
+                                                <span>Completed on:&ensp;<b>${dateCompleted}</b></span>
+                                            </div>
+                                        </div>` : '')
+                                        +
+                                    `</div>
+                                </div>
+
+                                <!-- Toggler / action buttons -->
+                                <div class="col">
+                                    <div class="d-flex flex-row-reverse">
+
+                                        <button class="btn btn-outline-primary p-2 m-1 m-md-2 expand-toggler"
+                                                aria-label="Toggle details"
+                                                style="max-width: max-content;"
+                                                data-bs-toggle="button"
+                                                autocomplete="off"
+                                                aria-pressed="true">
+                                            <i data-lucide="chevron-down"
+                                            class="lucide-sm expand-toggler"></i>
+                                        </button>
+
+                                        <button class="btn btn-outline-warning p-2 m-1 m-md-2 collapse star-toggler"
+                                                aria-label="Star"
+                                                style="max-width: max-content;">
+                                            <i data-lucide="star"
+                                            class="lucide-sm star-icon ${item.star == 'true' || item.star === true ? 'starred' : ''}"
+                                            starred="${item.star}"></i>
+                                        </button>
+
+                                        <button class="btn btn-outline-primary p-2 m-1 m-md-2 collapse"
+                                                aria-label="New Subtask"
+                                                style="max-width: max-content;"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#addSubTaskModal"
+                                                data-bs-requiredfor="${item.title}"
+                                                data-bs-requiredforID="${item.luid}">
+                                            <i data-lucide="circle-plus" class="lucide-sm"></i>
+                                        </button>
+
+                                        <button class="btn btn-outline-danger p-2 m-1 m-md-2 collapse"
+                                                aria-label="Trash"
+                                                style="max-width: max-content;"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#confirmDeleteModal"
+                                                data-bs-deleteName="${item.title}"
+                                                data-bs-deleteID="${item.luid}">
+                                            <i data-lucide="trash-2" class="lucide-sm"></i>
+                                        </button>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="col" style="flex-basis: 0; max-width: min-content; overflow: auto;">
-                    <div class="row flex-wrap">
-                        <div class="col collapse">
-                            <div class="row mt-2 justify-content-center">
-                                <div class="row mb-2">
-                                    <div class="col m-0 px-1">
-                                        <button class="btn btn-primary w-100 m-0 text-truncate completer" aria-label="Complete task">${completeAction}</button>
-                                    </div>
-                                    <div class="col m-0 px-1">
-                                        <button class="btn btn-secondary w-100 m-0 text-truncate advance" aria-label="Add progress" ${disabledProgress} value="${item.progress}">+ ${item.progress}</button>
-                                    </div>
-                                </div>
-                                <div class="row p-0 mb-2">
-                                    <div class="m-0 mb-1 font-lighter categories col-auto">
-                                        ${item.categories}
-                                    </div>
-                                    <input class="p-0 px-3 bg-transparent text-center addcategory" style="font-size: 0.87rem; border: 0!important" type="text" placeholder="+ category" aria-label="add" maxlength="18" value="">
-                                    <div class="col-auto"></div>
-                                </div>
-                                <div class="row p-0 mb-2">
-                                    <div class="mt-2 ${hideDepencies}">
-                                        <span><b>Depends on:</b>&ensp;<span class="deps">${depenciesHTML}</span></span>
-                                    </div>
-                                </div>`
-                                +
-                                (dateCompleted !== "" ?
-                                `<div class="row p-0 mb-2">
-                                    <div class="mt-2" style="font-size: 0.87rem;">
-                                        <span>Completed on:&ensp;<b>${dateCompleted}</b></span>
-                                    </div>
-                                </div>` : '')
-                                +
-                            `</div>
-                        </div>
-                        <!-- Toggler / action buttons -->
-                        <div class="col">
-                            <div class="d-flex flex-row-reverse">
-                                <button class="btn btn-outline-primary p-2 m-1 m-md-2 expand-toggler" aria-label="Toggle details" style="max-width: max-content;" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
-                                    <i class="bx bx-chevron-down bx-sm expand-toggler"></i>
-                                </button>
-                                <button class="btn btn-outline-warning p-2 m-1 m-md-2 collapse star-toggler" aria-label="Star" style="max-width: max-content;">
-                                    <i class='bx bx${starred}-star bx-sm' starred="${item.star}"></i>
-                                </button>
-                                <button class="btn btn-outline-primary p-2 m-1 m-md-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.title}" data-bs-requiredforID="${item.luid}">
-                                    <i class='bx bx-plus-circle bx-sm'></i>
-                                </button>
-                                <button class="btn btn-outline-danger p-2 m-1 m-md-2 collapse" aria-label="Trash" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-deleteName="${item.title}" data-bs-deleteID="${item.luid}">
-                                    <i class="bx bxs-trash bx-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
         `;
     });
 
@@ -485,10 +524,10 @@ function enableDynamicActions() {
 
         if (!desc.length) { console.log('No desc found'); return; }
 
-        if ($(target).hasClass('bx')) {
-            $(target).toggleClass("bx-flip-vertical");
+        if ($(target).hasClass('lucide')) {
+            $(target).toggleClass('lucide-flip-vertical');
         } else {
-            $(target).find('.bx').toggleClass("bx-flip-vertical");
+            $(target).find('.lucide').toggleClass('lucide-flip-vertical');
         }
         desc.toggleClass("expanded");
         collapsables.toggleClass("showed");
@@ -497,11 +536,13 @@ function enableDynamicActions() {
     // Star toggler
     $('button.star-toggler').on("click", function (e) {
         const target = e.target;
-        const $star  = target.hasAttribute('starred') ? $(target) : $(target).find('i.bx');
+        const $star  = target.hasAttribute('starred') ? $(target) : $(target).find('svg.star-icon');
         if ($star.attr('starred') === "true") {
-            $star.attr('starred', false).addClass("bx-star").removeClass("bxs-star");
+            $star.attr('starred', false)
+                .removeClass('starred');
         } else {
-            $star.attr('starred', true).addClass("bxs-star").removeClass("bx-star");
+            $star.attr('starred', true)
+                .addClass('starred');
         }
     });
 
@@ -514,8 +555,8 @@ function enableDynamicActions() {
                 autoclose:  true,
                 format:     'dd/mm/yyyy',
                 language:   getStoredLang(),
-                leftArrow:  '<i class="bx bxs-left-arrow"></i>',
-                rightArrow: '<i class="bx bxs-right-arrow"></i>',
+                leftArrow:  '<i data-lucide="chevron-left" class="lucide-sm" role="button"></i>',
+                rightArrow: '<i data-lucide="chevron-right" class="lucide-sm" role="button"></i>',
                 clearBtn:   true
             });
         }
@@ -602,7 +643,8 @@ function logout() {
                 // Expire the session cookie
                 document.cookie = 'sessionToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
                 clearLocalStorageData();
-                setTimeout(() => window.location.replace("./login.html"), 1500);
+                $('#toastSuccess .text-message').html("data cleared :)");
+                new bootstrap.Toast($('#toastSuccess')).show();
             } else {
                 console.error("Error response:", response.statusText);
             }
@@ -618,9 +660,13 @@ function logout() {
 function startSpinning(queryElement) {
     const $el = $(queryElement);
     $el.prop('disabled', true);
-    if ($el.find('.bx-loader-circle').length === 0) {
+
+    if ($el.find('.lucide-loader-circle').length === 0) {
         $el.data('original-content', $el.html());
-        $el.html('<i class="bx bx-loader-circle bx-spin"></i>');
+        $el.html(`
+            <i data-lucide="loader-circle" class="lucide-spin lucide-loader-circle"></i>
+        `);
+        lucide.createIcons();
     }
 }
 
@@ -962,6 +1008,7 @@ async function loadAllTask() {
             colorAllTopicsBadges();
             insertNewTopic();
             enableDynamicActions();
+            lucide.createIcons();
             enableSearch(); // FIX: was `.then(enableSearch())` which invoked it immediately
             $('#loader').hide();
         })
