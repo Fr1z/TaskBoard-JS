@@ -1,153 +1,273 @@
-//LOAD LOCAL STORED SETTINGS
-let getStoredInitialTab = () => (localStorage.getItem('initialTab') !== null) ? localStorage.getItem('initialTab') : 'ALL';
+// ─── PERSISTENT SETTINGS ─────────────────────────────────────────────────────
+let getStoredInitialTab = () => localStorage.getItem('initialTab') ?? 'ALL';
 let setStoredInitialTab = tab => localStorage.setItem('initialTab', tab);
-let getStoredLang = () => (localStorage.getItem('lang') !== null) ? localStorage.getItem('lang') : 'en';
-let setStoredLang = lang => localStorage.setItem('lang', lang);
+let getStoredLang       = () => localStorage.getItem('lang') ?? 'en';
+let setStoredLang       = lang => localStorage.setItem('lang', lang);
 
+// ─── POUCHDB LOCAL DATABASE ───────────────────────────────────────────────────
+// pouchDB-9.0.0.min.js is already included in the page before this script.
+const localDB = new PouchDB('mytasks');
+localDB.info().then(info => console.log('[PouchDB] ready:', info.db_name));
 
-// PouchDB Init
-// TODO refactor localstorage with this.
-/*
-import './pouchDB-9.0.0.min.js';
-
-var localDB = new PouchDB('mytask');
-localDB.info().then(function (info) {
-  console.log( 'We have a local database: ' + JSON.stringify(info));
-});
-*/
+// ─── APP STATE ────────────────────────────────────────────────────────────────
 const cachedDataKey = 'JData';
-
-let taskData = [];
+let taskData    = {};           // snapshot indexed by luid (object, not array)
 let selectedTab = getStoredInitialTab();
+let _searchInitialized = false; // guard against duplicate search listeners
 
-
-const makeRequest = (type, endpoint, data = undefined) => {
-
-    const allowedMethods = ["GET", "POST", "PUT", "DELETE"];
-    const cookieName = 'sessionToken';
-    const sessionToken = getCookie(cookieName);
-
-    if (sessionToken === undefined || sessionToken.length == 0) {
-        console.warn("no session token");
-        window.location.replace("./login.html");
-        return;
-    }
-
-    if (allowedMethods.indexOf(type.toUpperCase()) <= -1) {
-        console.error("No valid method: ", type);
-        return;
-    }
-
-    if (data === undefined) {
-        return fetch(serverAddress + endpoint, {
-            method: type.toUpperCase(),
-            headers: {
-                'Authorization': `Bearer ${sessionToken}`,
-                'Content-Type': 'application/json'
-            }
-        })
-    } else {
-        return fetch(serverAddress + endpoint, {
-            method: type.toUpperCase(),
-            headers: {
-                'Authorization': `Bearer ${sessionToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: data
-        })
-    }
-
+// ─── MOCK RESPONSE ────────────────────────────────────────────────────────────
+// Mimics the subset of the Fetch Response API used by the rest of the script,
+// so every caller continues to work unchanged.
+function mockOkResponse(data) {
+    return { ok: true,  status: 200, statusText: 'OK',    json: () => Promise.resolve(data) };
+}
+function mockErrResponse(status, message) {
+    return { ok: false, status,      statusText: message, json: () => Promise.resolve({ message }) };
 }
 
+// ─── POUCHDB HELPERS ──────────────────────────────────────────────────────────
+async function db_getAllDocs() {
+    const result = await localDB.allDocs({ include_docs: true });
+    return result.rows
+        .filter(r => !r.id.startsWith('_design/'))
+        .map(r => r.doc);
+}
+
+async function db_getNextLUID() {
+    const docs = await db_getAllDocs();
+    if (!docs.length) return 1;
+    return Math.max(...docs.map(d => d.luid || 0)) + 1;
+}
+
+async function db_getNextOrder() {
+    const docs = await db_getAllDocs();
+    return docs.length + 1;
+}
+
+// ─── DB OPERATIONS ────────────────────────────────────────────────────────────
+
+async function db_getTasks() {
+    const docs = await db_getAllDocs();
+    // Exclude logically-deleted tasks (status === 0)
+    return mockOkResponse(docs.filter(d => d.status !== 0));
+}
+
+async function db_insertTask(newTask) {
+    if (!newTask?.title?.trim().length) {
+        return mockErrResponse(400, 'Title is required');
+    }
+    const luid  = await db_getNextLUID();
+    const order = await db_getNextOrder();
+
+    const task = {
+        owner:        'admin',
+        luid,
+        order,
+        organization: 'myOrg',
+        viewRole:     '',
+        title:        newTask.title,
+        star:         false,
+        status:       1,
+        description:  newTask.description || '',
+        progress:     1,
+        categories:   newTask.categories  || '',
+        depends:      newTask.depency     || '',
+        expireDate:   newTask.expireDate  || '',
+        lastEdit:     new Date().toISOString(),
+        lastProgress: new Date('1990-01-01').toISOString(),
+        completeDate: ''
+    };
+
+    const saved = await localDB.post(task);
+    return saved.ok
+        ? mockOkResponse({ message: 'Task added', data: { _id: saved.id, _rev: saved.rev } })
+        : mockErrResponse(501, 'Task not added');
+}
+
+async function db_updateTasks(modifiedItems) {
+    if (!Array.isArray(modifiedItems) || modifiedItems.length === 0) {
+        return mockErrResponse(400, 'Invalid or empty modifiedItems');
+    }
+    for (const item of modifiedItems) {
+        try {
+            const doc = await localDB.get(item._id);
+            Object.assign(doc, {
+                order:       item.order,
+                title:       item.title,
+                star:        item.star,
+                description: item.description,
+                progress:    item.progress,
+                expireDate:  item.expireDate,
+                categories:  item.categories,
+                depends:     item.depends,
+                lastEdit:    new Date().toISOString()
+            });
+            await localDB.put(doc);
+        } catch (err) {
+            console.error('[db_updateTasks] error on', item._id, err);
+        }
+    }
+    return mockOkResponse({ message: 'Tasks updated' });
+}
+
+async function db_setTaskStatus(taskItem, status) {
+    const doc = await localDB.get(taskItem._id);
+    doc.status   = status;
+    doc.lastEdit = new Date().toISOString();
+    if (status === 2) doc.completeDate = new Date().toISOString();
+    if (status === 1) doc.completeDate = '';
+    await localDB.put(doc);
+    return mockOkResponse({ message: 'Task status updated' });
+}
+
+async function db_progressTask(taskItem) {
+    const doc = await localDB.get(taskItem._id);
+    doc.progress     = (doc.progress || 0) + 1;
+    doc.lastProgress = new Date().toISOString();
+    await localDB.put(doc);
+    return mockOkResponse({ message: 'Task progressed' });
+}
+
+// ─── makeRequest DROP-IN REPLACEMENT ─────────────────────────────────────────
+// Same external signature as the original. The `endpoint` parameter now maps
+// to a local PouchDB operation instead of an HTTP route. No cookies, no JWT,
+// no external network call is needed.
+const makeRequest = (type, endpoint, data = undefined) => {
+    let body;
+    try { body = data ? JSON.parse(data) : undefined; }
+    catch (e) { body = data; }
+
+    return (async () => {
+        try {
+            switch (endpoint) {
+                case '/tasks':
+                    if (type.toUpperCase() === 'GET')    return await db_getTasks();
+                    break;
+                case '/insert':
+                    if (type.toUpperCase() === 'POST')   return await db_insertTask(body?.newTask);
+                    break;
+                case '/update':
+                    if (type.toUpperCase() === 'PUT')    return await db_updateTasks(body?.modifiedItems);
+                    break;
+                case '/complete':
+                    if (type.toUpperCase() === 'PUT')    return await db_setTaskStatus(body?.taskItem, 2);
+                    break;
+                case '/uncomplete':
+                    if (type.toUpperCase() === 'PUT')    return await db_setTaskStatus(body?.taskItem, 1);
+                    break;
+                case '/progress':
+                    if (type.toUpperCase() === 'PUT')    return await db_progressTask(body?.taskItem);
+                    break;
+                case '/delete':
+                    if (type.toUpperCase() === 'DELETE') return await db_setTaskStatus(body?.taskItem, 0);
+                    break;
+                case '/logout':
+                    return mockOkResponse({ message: 'Logged out' });
+                default:
+                    return mockErrResponse(404, `Unknown endpoint: ${endpoint}`);
+            }
+            return mockErrResponse(405, 'Method not allowed');
+        } catch (err) {
+            console.error(`[makeRequest] ${type.toUpperCase()} ${endpoint}`, err);
+            return mockErrResponse(500, err.message);
+        }
+    })();
+};
+
+// ─── TAB MANAGEMENT ──────────────────────────────────────────────────────────
 function switchToTab(tab) {
     selectedTab = tab;
     $(".currentTab").text(tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase());
-    //uncheck all and check the one with property tab = selectedTab
     $('.navbar-nav .btn-check').prop('checked', false);
     $('.navbar-nav .btn-check[tab="' + selectedTab + '"]').prop('checked', true);
-
-    //finally load all data
     loadAllTask();
 }
 
-// Leggi il valore del cookie
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-}
-
-function saveDataToLocalStorage(freshData){
+// ─── LOCAL STORAGE CACHE ─────────────────────────────────────────────────────
+// Kept as a secondary display fallback in case PouchDB itself fails.
+function saveDataToLocalStorage(freshData) {
     const cachedData = localStorage.getItem(cachedDataKey);
-    const parsedData = JSON.parse(cachedData);
-    const MAX_CACHE_AGE = 60 * 1000; // Can save every minute.
-
-    if (cachedData==null || Date.now() - parsedData.timestamp > MAX_CACHE_AGE) {
-        // Save data on localStorage
-        localStorage.setItem(cachedDataKey, JSON.stringify({
-            data: freshData,
-            timestamp: Date.now()
-        }));
+    const MAX_CACHE_AGE = 60 * 1000;
+    let shouldSave = true;
+    if (cachedData) {
+        try {
+            const parsedData = JSON.parse(cachedData);
+            if (parsedData && Date.now() - parsedData.timestamp <= MAX_CACHE_AGE) {
+                shouldSave = false;
+            }
+        } catch (e) { /* stale/invalid cache, overwrite */ }
+    }
+    if (shouldSave) {
+        localStorage.setItem(cachedDataKey, JSON.stringify({ data: freshData, timestamp: Date.now() }));
     }
 }
 
-function clearLocalStorageData(){
-    localStorage.setItem(cachedDataKey, null);
+function clearLocalStorageData() {
+    localStorage.removeItem(cachedDataKey);
 }
 
+// ─── DOM RENDERING ────────────────────────────────────────────────────────────
 function populateTaskswithData(data) {
     const tableBody = document.querySelector('.myitems');
+    if (!tableBody) return;
     let rows = '';
 
-    if (data===undefined){
+    if (data === undefined || data === null) {
         console.error("Error: data undefined.");
         return;
     }
-    // order by DESC date and by user order (Note: now should be ordered by server)
+
+    // Order by user-defined order DESC
     data.sort((a, b) => b.order - a.order);
 
-    // Loop through the JSON data and create rows
     data.forEach((item) => {
 
-        //save data snapshot indexed by LUID
+        // Save snapshot indexed by luid
         taskData[item.luid] = item;
 
-        //if progress was added recently disable the button
-        var disabledProgress = "";
-        var differenceTimeToProgress = 24 * 60 * 60 * 1000; //24-hours
-        var difference = (new Date().getTime()) - (new Date(item.lastProgress));
+        // Disable progress button if updated within the last 24 h
+        let disabledProgress = "";
+        const differenceTimeToProgress = 24 * 60 * 60 * 1000;
+        const difference = Date.now() - new Date(item.lastProgress).getTime();
         if (difference < differenceTimeToProgress) {
             disabledProgress = "disabled";
         }
 
-        var starred = (item.star == true) ? 's' : '';
+        const starred = item.star === true ? 's' : '';
 
-        var depenciesHTML = '';
-        var hideDepencies = (item.depends.length) ? '' : 'd-none';
-        if (hideDepencies.length == 0) {
-            // Depency link generation
-            depenciesHTML += item.depends.split(',').map(dep_id => { return "<a class=\"depency alert\" role=\"alert\" href=\"#" + dep_id.trim() + "\"></a>"; }).join('&nbsp');
+        let depenciesHTML  = '';
+        const hideDepencies = item.depends && item.depends.length ? '' : 'd-none';
+        if (!hideDepencies.length) {
+            depenciesHTML = item.depends.split(',').map(dep_id =>
+                `<a class="depency alert" role="alert" href="#${dep_id.trim()}"></a>`
+            ).join('&nbsp');
         }
-        var completeAction = (selectedTab == "COMPLETED") ? "Uncomplete" : "Complete";
 
-        var dateCompleted = (selectedTab == "COMPLETED") ? new Date(item.completeDate) : "";
-        dateCompleted = (dateCompleted !== "" && !isNaN(dateCompleted.getDay()) ) ? dateCompleted.getDay()+'/'+dateCompleted.getMonth()+'/'+dateCompleted.getFullYear(): "";
+        const completeAction = selectedTab === "COMPLETED" ? "Uncomplete" : "Complete";
 
-        if ((item.status !== 1 && selectedTab == "ALL") || (item.status !== 2 && selectedTab == "COMPLETED") || ((item.status !== 1 || item.star === false) && selectedTab == "STARRED")) { return; }
+        let dateCompleted = selectedTab === "COMPLETED" ? new Date(item.completeDate) : "";
+        dateCompleted = (dateCompleted !== "" && !isNaN(dateCompleted.getDay()))
+            ? `${dateCompleted.getDate()}/${dateCompleted.getMonth() + 1}/${dateCompleted.getFullYear()}`
+            : "";
+
+        // Tab filter
+        if (
+            (item.status !== 1 && selectedTab === "ALL") ||
+            (item.status !== 2 && selectedTab === "COMPLETED") ||
+            ((item.status !== 1 || item.star === false) && selectedTab === "STARRED")
+        ) { return; }
 
         rows += `
         <div class="container mt-3 text-body-secondary myitem border-bottom w-100" data-value="${item._id}" rev="${item._rev}" luid="${item.luid}" order="${item.order}">
             <div class="row flex-nowrap">
-                <!-- Grab Item -->
-                <div class="col-auto mh-100 bd-placeholder grab"  style="width: 32px;">
+                <!-- Grab handle -->
+                <div class="col-auto mh-100 bd-placeholder grab" style="width: 32px;">
                     <i class="bx bx-menu bx-sm opacity-50 position-relative top-50 start-50 translate-middle"></i>
                 </div>
-
 
                 <!-- Main Content -->
                 <div class="flex-grow-1" style="flex-basis: 0;">
                     <div class="content justify-content-between">
-                        <!-- Task Description -->
                         <div class="row g-0" style="max-height: 1.2em;">
                             <div class="col-6 col-sm-6 col-md-7 col-lg-6 flex-nowrap">
                                 <input type="text" class="form-control title bg-transparent border-0 px-1 opacity-75" placeholder="Titolo" aria-label="Title of task" value="${item.title}">
@@ -164,9 +284,8 @@ function populateTaskswithData(data) {
                         </div>
 
                         <div class="divider"></div>
-                        
+
                         <textarea class="form-control bg-transparent border-0 text-break p-1 desc" aria-label="Description" rows="1">${item.description}</textarea>
-                        
                     </div>
                 </div>
 
@@ -174,7 +293,7 @@ function populateTaskswithData(data) {
                     <div class="row flex-wrap">
                         <div class="col collapse">
                             <div class="row mt-2 justify-content-center">
-                                <div class="row mb-2" >
+                                <div class="row mb-2">
                                     <div class="col m-0 px-1">
                                         <button class="btn btn-primary w-100 m-0 text-truncate completer" aria-label="Complete task">${completeAction}</button>
                                     </div>
@@ -195,32 +314,30 @@ function populateTaskswithData(data) {
                                     </div>
                                 </div>`
                                 +
-                                 ((dateCompleted !== "") ?
+                                (dateCompleted !== "" ?
                                 `<div class="row p-0 mb-2">
                                     <div class="mt-2" style="font-size: 0.87rem;">
                                         <span>Completed on:&ensp;<b>${dateCompleted}</b></span>
                                     </div>
-                                </div>` : '' )
+                                </div>` : '')
                                 +
                             `</div>
                         </div>
-                        <!-- Toggler Expander -->
+                        <!-- Toggler / action buttons -->
                         <div class="col">
                             <div class="d-flex flex-row-reverse">
-                                <!-- Delete, Expand actions -->
-                                    <button class="btn btn-outline-primary p-2 m-1 m-md-2 expand-toggler" aria-label="Toggle details" style="max-width: max-content;" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
-                                        <i class="bx bx-chevron-down bx-sm expand-toggler"></i>
-                                    </button>
-                                    <button class="btn btn-outline-warning p-2 m-1 m-md-2 collapse star-toggler" aria-label="Star" style="max-width: max-content;">
-                                        <i class='bx bx${starred}-star bx-sm' starred="${item.star}" ></i>
-                                    </button>
-                                    <button class="btn btn-outline-primary p-2 m-1 m-md-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.title}" data-bs-requiredforID="${item.luid}">
-                                        <i class='bx bx-plus-circle bx-sm ' ></i>
-                                    </button>
-                                    <button class="btn btn-outline-danger p-2 m-1 m-md-2 collapse" aria-label="Trash" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-deleteName="${item.title}" data-bs-deleteID="${item.luid}">
-                                        <i class="bx bxs-trash bx-sm" ></i>
-                                    </button>
-
+                                <button class="btn btn-outline-primary p-2 m-1 m-md-2 expand-toggler" aria-label="Toggle details" style="max-width: max-content;" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
+                                    <i class="bx bx-chevron-down bx-sm expand-toggler"></i>
+                                </button>
+                                <button class="btn btn-outline-warning p-2 m-1 m-md-2 collapse star-toggler" aria-label="Star" style="max-width: max-content;">
+                                    <i class='bx bx${starred}-star bx-sm' starred="${item.star}"></i>
+                                </button>
+                                <button class="btn btn-outline-primary p-2 m-1 m-md-2 collapse" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="${item.title}" data-bs-requiredforID="${item.luid}">
+                                    <i class='bx bx-plus-circle bx-sm'></i>
+                                </button>
+                                <button class="btn btn-outline-danger p-2 m-1 m-md-2 collapse" aria-label="Trash" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" data-bs-deleteName="${item.title}" data-bs-deleteID="${item.luid}">
+                                    <i class="bx bxs-trash bx-sm"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -229,510 +346,394 @@ function populateTaskswithData(data) {
         </div>
         `;
     });
-    // Insert rows into the table body
+
     tableBody.innerHTML = rows;
 }
 
+// ─── DATEPICKER ───────────────────────────────────────────────────────────────
 function translateDatePickers() {
-    // Initialize date picker
-    // It translation
+    if (!$.fn.datepicker) return;
     $.fn.datepicker.dates['it'] = {
-        days: ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
-        daysShort: ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
-        daysMin: ["Do", "Lu", "Ma", "Me", "Gi", "Ve", "Sa"],
-        months: ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottbre", "Novembre", "Dicembre"],
-        monthsShort: ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"],
-        today: "Oggi",
-        clear: "",
-        format: "dd/mm/yyyy",
-        titleFormat: "MM yyyy", /* Leverages same syntax as 'format' */
-        weekStart: 1
+        days:        ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
+        daysShort:   ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
+        daysMin:     ["Do",  "Lu",  "Ma",  "Me",  "Gi",  "Ve",  "Sa"],
+        months:      ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"],
+        monthsShort: ["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"],
+        today:       "Oggi",
+        clear:       "",
+        format:      "dd/mm/yyyy",
+        titleFormat: "MM yyyy",
+        weekStart:   1
     };
-
 }
 
+// ─── CATEGORY BADGES ─────────────────────────────────────────────────────────
 function colorAllTopicsBadges() {
-    document.querySelectorAll('.categories').forEach(categoryElement => { colorTopicsBadges(categoryElement) });
+    document.querySelectorAll('.categories').forEach(el => colorTopicsBadges(el));
 }
 
 function colorTopicsBadges(categoryElement) {
-
-    categoryElement = $(categoryElement); //JQuerize element
+    categoryElement = $(categoryElement);
     let elementHtml = categoryElement.html();
-    // Exit if empty element
-    if (elementHtml.length == 0) return;
+    if (!elementHtml || elementHtml.length === 0) return;
 
     let textContent = '';
-    // Find last span
     const lastSpanIndex = elementHtml.lastIndexOf('</span>');
 
     if (lastSpanIndex === -1) {
-        //is all processable text here
-        elementHtml = '';
-        textContent = categoryElement.text().trim();
+        textContent  = categoryElement.text().trim();
+        elementHtml  = '';
     } else {
-        //split content to processed / unprocessed text
-        textContent = elementHtml.substring(lastSpanIndex + 7).trim(); // Dopo </span>
-        elementHtml = elementHtml.substring(0, lastSpanIndex + 7); // Include </span>
+        textContent = elementHtml.substring(lastSpanIndex + 7).trim();
+        elementHtml = elementHtml.substring(0, lastSpanIndex + 7);
     }
 
-    //exit if not enough content
     if (textContent.length < 1) return;
 
-    // split content by words separeted by ,
-    const words = textContent.split(',').map(word => word.trim());
+    const words = textContent.split(',').map(w => w.trim()).filter(Boolean);
 
-    // Generate formatted content
+    const colorClasses = [
+        'bg-primary', 'bg-secondary', 'bg-success',
+        'bg-warning text-dark', 'bg-info text-dark', 'bg-success', 'bg-dark'
+    ];
+
     const modifiedContent = words.map(word => {
         let hashNum = 0;
-
         for (let i = 0; i < word.length; i++) {
             hashNum += word.toLocaleUpperCase().charCodeAt(i);
         }
-        hashNum = hashNum % 7;
-        let hashBack = 'bg-primary';
-        switch (hashNum) {
-            case 0:
-                hashBack = 'bg-primary';
-                break;
-            case 1:
-                hashBack = 'bg-secondary';
-                break;
-            case 2:
-                hashBack = 'bg-success';
-                break;
-            case 3:
-                hashBack = 'bg-warning text-dark';
-                break;
-            case 4:
-                hashBack = 'bg-info text-dark';
-                break;
-            case 5:
-                hashBack = 'bg-success';
-                break;
-            case 6:
-                hashBack = 'bg-dark';
-                break;
-            default:
-                hashBack = 'bg-primary';
-        }
-
+        const hashBack = colorClasses[hashNum % colorClasses.length];
         return `<span role="alert" class="alert z-0 badge rounded-pill bg-primary m-0 p-1 text-white ${hashBack}">
                 <i>${word}</i>
                 <button type="button" class="m-0 p-0 bg-transparent border-0 text-white" data-bs-dismiss="alert" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button> 
+                    <span aria-hidden="true">&times;</span>
+                </button>
                 </span>`;
     }).join(' ');
 
-    // Replace original content with processed one
     categoryElement.html(elementHtml + modifiedContent);
-    return;
 }
 
+// ─── DEPENDENCY TITLES ────────────────────────────────────────────────────────
 function populateDepenciesTitles() {
     document.querySelectorAll('.depency').forEach(depencyElement => {
+        if (!depencyElement.hasAttribute('href') || depencyElement.textContent.length > 0) return;
 
-        // if depency has empty href populate with depency name
-        if (depencyElement.hasAttribute('href') && depencyElement.textContent.length == 0) {
-            // href contain luid
-            var href = depencyElement.getAttribute('href');
-            //remove # char
-            href = href.split('#')[1];
-            //get title from luid
-            if (taskData[href] !== undefined && taskData[href].title.length > 0) {
-                var depencyTitle = ( taskData[href].status == 1 ) ? taskData[href].title : `${taskData[href].title} (Completed)`;
-                if (depencyTitle.length > 0) {
-                    // Add depency title name
-                    depencyElement.innerHTML = depencyTitle;
-                    // Add dismiss/close button
-                    depencyElement.innerHTML = depencyElement.innerHTML + `
-                        <button type="button" class="m-0 p-0 bg-transparent border-0" data-bs-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>`;
-                }
-            }
-            
+        const href    = depencyElement.getAttribute('href').split('#')[1];
+        const related = taskData[href] ?? taskData[parseInt(href)];
+
+        if (related && related.title && related.title.length > 0) {
+            const depencyTitle = related.status === 1
+                ? related.title
+                : `${related.title} (Completed)`;
+            depencyElement.innerHTML = depencyTitle +
+                `<button type="button" class="m-0 p-0 bg-transparent border-0" data-bs-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                 </button>`;
         }
     });
-
 }
 
+// ─── NEW TOPIC INPUT ──────────────────────────────────────────────────────────
 function insertNewTopic() {
-    //Event on ENTER on '+ Add Category'
     $('input.addcategory').keydown(function (e) {
-        var key = e.which;
-        
-        if (key == 13)  // the enter key code
-        {
-            var inputElement = e.target
-            var reletedCategories = $(inputElement).parent().find('.categories')
-            var new_topic = $(inputElement).val().trim()
-            if (new_topic.length > 0) {
-                reletedCategories.append(' ' + new_topic)
-                colorTopicsBadges(reletedCategories)
-                $(inputElement).val("")
-            }
-            return false;
+        if (e.which !== 13) return;
+        const $input = $(e.target);
+        const newTopic = $input.val().trim();
+        if (newTopic.length > 0) {
+            const $related = $input.parent().find('.categories');
+            $related.append(' ' + newTopic);
+            colorTopicsBadges($related);
+            $input.val('');
         }
-    });
-    $('input#newTopics').keydown(function (e) {
-        var key = e.which;
-        if (key == 13)  // the enter key code
-        {
-            var inputElement = e.target
-            var reletedCategories = $(inputElement).parent().find('#newTopicsSpan')
-            var new_topic = $(inputElement).val().trim()
-            if (new_topic.length > 0) {
-                reletedCategories.append(' ' + new_topic)
-                colorTopicsBadges(reletedCategories)
-                $(inputElement).val("")
-            }
-            return false;
-        }
+        return false;
     });
 
+    $('input#newTopics').keydown(function (e) {
+        if (e.which !== 13) return;
+        const $input = $(e.target);
+        const newTopic = $input.val().trim();
+        if (newTopic.length > 0) {
+            const $related = $input.parent().find('#newTopicsSpan');
+            $related.append(' ' + newTopic);
+            colorTopicsBadges($related);
+            $input.val('');
+        }
+        return false;
+    });
 }
 
+// ─── COLLAPSE / EXPAND ───────────────────────────────────────────────────────
 function collapseAllItems() {
-    //set not more editable all the dbclick-editable
     document.querySelectorAll('.desc').forEach(textareaElement => {
-
         if (textareaElement.classList.contains("expanded")) {
-            //collapse expanded desc
             $(textareaElement).closest('.myitem').find('button.expand-toggler').click();
             textareaElement.scrollTop = 0;
         }
     });
 }
 
+// ─── DYNAMIC ACTION BINDINGS ─────────────────────────────────────────────────
 function enableDynamicActions() {
 
-    //Expander toggler
+    // Expand toggler
     $('button.expand-toggler').on("click", function (e) {
         const target = e.target;
-        // find desc and collapsables by nearest myitem
-        let desc = $(target).closest('.myitem').find('.desc');
-        let collapsables = $(target).closest('.myitem').find('.collapse');
+        const $item  = $(target).closest('.myitem');
+        const desc         = $item.find('.desc');
+        const collapsables = $item.find('.collapse');
 
-        if (desc.length) {
-            //flip icon
-            if ($(target).hasClass('bx')) {
-                //iconclick
-                $(target).toggleClass("bx-flip-vertical");
-            } else {
-                //buttonclick
-                $(target).find('.bx').toggleClass("bx-flip-vertical");
-            }
+        if (!desc.length) { console.log('No desc found'); return; }
 
-            $(desc).toggleClass("expanded");
-            $(collapsables).toggleClass("showed");
-
+        if ($(target).hasClass('bx')) {
+            $(target).toggleClass("bx-flip-vertical");
         } else {
-            console.log('No desc found');
+            $(target).find('.bx').toggleClass("bx-flip-vertical");
         }
+        desc.toggleClass("expanded");
+        collapsables.toggleClass("showed");
     });
 
-    //star toggler
+    // Star toggler
     $('button.star-toggler').on("click", function (e) {
         const target = e.target;
-
-        //Check if clicked button or icon      
-        let star = (target.hasAttribute('starred')) ? $(target) : $(target).find('i.bx');
-        //toggle star
-        if (star.attr('starred') == "true") {
-            star.attr('starred', false);
-            star.addClass("bx-star");
-            star.removeClass("bxs-star");
+        const $star  = target.hasAttribute('starred') ? $(target) : $(target).find('i.bx');
+        if ($star.attr('starred') === "true") {
+            $star.attr('starred', false).addClass("bx-star").removeClass("bxs-star");
         } else {
-            star.attr('starred', true);
-            star.addClass("bxs-star");
-            star.removeClass("bx-star");
+            $star.attr('starred', true).addClass("bxs-star").removeClass("bx-star");
         }
-        // TODO: send task update
-
     });
 
-    //Datepicker toggler
+    // Datepicker toggler
     $('.datapickertoggler').on("click", function (e) {
-        const target = e.target;
-        // Find parent node (div with class 'input-group') and look for the input value
-        const input = $(target).closest('.input-group').find('input[type="text"]');
-        if (input.length) {
-            // is datepicker initialized?
-            if (!input.data('datepicker')) {
-                // Init datepicker
-                input.datepicker({
-                    autoclose: true,
-                    format: 'dd/mm/yyyy',
-                    language: getStoredLang(), //replace with language setted
-                    leftArrow: '<i class="bx bxs-left-arrow" ></i>',
-                    rightArrow: '<i class="bx bxs-right-arrow" ></i>',
-                    clearBtn: true,
-                });
+        const $input = $(e.target).closest('.input-group').find('input[type="text"]');
+        if (!$input.length) { console.warn('No input date found'); return; }
+        if (!$input.data('datepicker')) {
+            $input.datepicker({
+                autoclose:  true,
+                format:     'dd/mm/yyyy',
+                language:   getStoredLang(),
+                leftArrow:  '<i class="bx bxs-left-arrow"></i>',
+                rightArrow: '<i class="bx bxs-right-arrow"></i>',
+                clearBtn:   true
+            });
+        }
+        $input.datepicker('show');
+    });
+
+    // Complete / Uncomplete — await the Promise before reacting
+    $('button.completer').on("click", async function (e) {
+        const $btn     = $(e.target);
+        const taskLUID = $btn.closest('.myitem').attr('luid');
+        try {
+            const ok = await completeTask(taskLUID);
+            if (ok) {
+                $btn.closest('.myitem').hide();
+                $('#toastSuccess .text-message').html("Task completed, GREAT! :)");
+                new bootstrap.Toast($('#toastSuccess')).show();
             }
-            // Show datepicker
-            input.datepicker('show');
-
-        } else {
-            console.warn('No input date found');
+        } catch (err) {
+            console.error('Error in completer handler:', err);
         }
     });
 
-    //Complete task progress
-    $('button.completer').on("click", function (e) {
-        const btnComplete = e.target;
-        const taskLUID = $(btnComplete).closest('.myitem').attr('luid');
-        const completed = completeTask(taskLUID);
-        if (completed) {
-            $(btnComplete).closest('.myitem').hide();
-            $('#toastSuccess .text-message').html("Task completed, GREAT! :)");
-            new bootstrap.Toast($('#toastSuccess')).show();
+    // Progress — await the Promise before reacting
+    $('button.advance').on("click", async function (e) {
+        const $btn     = $(e.target);
+        const taskLUID = $btn.closest('.myitem').attr('luid');
+        try {
+            const ok = await upgradeTask(taskLUID);
+            if (ok) {
+                const newVal = parseInt($btn.val()) + 1;
+                $btn.val(newVal).html('+ ' + newVal).prop('disabled', true);
+                $('#toastSuccess .text-message').html("Task upgraded! :)");
+                new bootstrap.Toast($('#toastSuccess')).show();
+            }
+        } catch (err) {
+            console.error('Error in advance handler:', err);
         }
     });
 
-    //Advance task progress
-    $('button.advance').on("click", function (e) {
-
-        const btnProgress = e.target;
-        const taskLUID = $(btnProgress).closest('.myitem').attr('luid');
-        const upgraded = upgradeTask(taskLUID);
-        if (upgraded) {
-            $(btnProgress).val(parseInt($(btnProgress).val()) + 1);
-            $(btnProgress).html('+ ' + $(btnProgress).val());
-            $(btnProgress).prop('disabled', true);
-            $('#toastSuccess .text-message').html("Task upgraded! :)");
-            new bootstrap.Toast($('#toastSuccess')).show();
-        }
-
-    });
-
-    //DESC expander
+    // Desc click → expand
     $('.desc').on("click", function (e) {
-        const target = e.target;
-        //collapse all items
+        const $target = $(e.target);
         collapseAllItems();
-        //expand selected desc and flip it's icon
-        if (!$(target).hasClass("expanded")) {
-            const togglerBtn = $(target).closest('.myitem').find('button.expand-toggler').click();
+        if (!$target.hasClass("expanded")) {
+            $target.closest('.myitem').find('button.expand-toggler').click();
         }
     });
-
 }
 
+// ─── SEARCH ───────────────────────────────────────────────────────────────────
 function enableSearch() {
-    document.getElementById('mysearch').addEventListener('input', function () {
+    if (_searchInitialized) return;
+    const el = document.getElementById('mysearch');
+    if (!el) return;
 
+    el.addEventListener('input', function () {
         const searchTerm = this.value.toLowerCase();
         const rows = document.querySelectorAll('.myitem');
 
         if (!searchTerm || searchTerm.length <= 2) {
-            // If the search term is empty, or too short, show all rows
             $('.myitem:hidden').show();
             return;
         }
 
-        // searching
         rows.forEach(row => {
-            //search only  on desc/title/cateories
-            const title_text = $(row).find('input.title').val();
-            const desc_text = $(row).find('textarea.desc').val();
-            const categories_text = $(row).find('.categories').text();
+            const text = [
+                $(row).find('input.title').val(),
+                $(row).find('textarea.desc').val(),
+                $(row).find('.categories').text()
+            ].join(' ').toLowerCase();
 
-            // Remove previous highlights
-            const onlyText = title_text + ' ' + desc_text + ' ' + categories_text;
-
-            if (searchTerm && onlyText.toLowerCase().includes(searchTerm)) {
-                // Show div
-                $(row).show();
-            } else {
-                // Hide div if no match
-                $(row).hide();
-            }
+            $(row).toggle(text.includes(searchTerm));
         });
     });
+
+    _searchInitialized = true;
 }
 
+// ─── LOGOUT ───────────────────────────────────────────────────────────────────
 function logout() {
     makeRequest('POST', "/logout")
         .then(response => {
             if (response.ok) {
-                //clear cookie
-                sessionToken = '';
-                document.cookie = `sessionToken=${sessionToken}; Path=/`;
-                //clear storage data
+                // Expire the session cookie
+                document.cookie = 'sessionToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
                 clearLocalStorageData();
-                setTimeout(function () { window.location.replace("./login.html");}, 1500);
+                setTimeout(() => window.location.replace("./login.html"), 1500);
             } else {
                 console.error("Error response:", response.statusText);
             }
-        }).catch(error => {
-            $('#saveBtn').prop('disabled', false);
-            $('#saveBtn i').removeClass('bx-loader-circle bx-spin').addClass('bxs-save');
+        })
+        .catch(error => {
             $('#toastFailure .text-message').html("error on logout :(");
             new bootstrap.Toast($('#toastFailure')).show();
             console.error("Error on logout:", error);
         });
 }
 
+// ─── SPINNER HELPERS ─────────────────────────────────────────────────────────
 function startSpinning(queryElement) {
-    $(queryElement).prop('disabled', true);
-    // Check if spining icon is already there
-    if ($(queryElement).find('.bx-loader-circle').length === 0) {
-        $(queryElement).data('original-content', $(queryElement).html()); // Save original content
-        $(queryElement).html('<i class="bx bx-loader-circle bx-spin"></i>');
+    const $el = $(queryElement);
+    $el.prop('disabled', true);
+    if ($el.find('.bx-loader-circle').length === 0) {
+        $el.data('original-content', $el.html());
+        $el.html('<i class="bx bx-loader-circle bx-spin"></i>');
     }
-
 }
 
 function stopSpinning(queryElement) {
-    $(queryElement).prop('disabled', false);
-    // Backup original content
-    if ($(queryElement).data('original-content')) {
-        $(queryElement).html($(queryElement).data('original-content'));
-        $(queryElement).removeData('original-content'); // Remove saved data
+    const $el = $(queryElement);
+    $el.prop('disabled', false);
+    if ($el.data('original-content')) {
+        $el.html($el.data('original-content')).removeData('original-content');
     }
 }
 
-// This will send a quick task update
+// ─── SAVE (UPDATE) ────────────────────────────────────────────────────────────
 function sendUpdate() {
-
     startSpinning('#saveBtn');
     const modifiedItems = getModifiedItems();
 
-    //If no data has been modified, exit
     if (modifiedItems.length === 0) {
         stopSpinning('#saveBtn');
         return;
     }
 
-
-    //ping data service
-    //if offline save to localdb
-    //altrimenti aggiorna
-
     makeRequest('PUT', "/update", JSON.stringify({ modifiedItems }))
         .then(response => {
             if (response.ok) {
-                //show toasts
                 $('#toastSuccess .text-message').html("changes have been saved :)");
                 new bootstrap.Toast($('#toastSuccess')).show();
             } else {
-                console.error("Error resonse:", response.statusText);
+                console.error("Error response:", response.statusText);
             }
             return response.json();
         })
-        .then(response => {
-            stopSpinning('#saveBtn');
-        })
+        .then(() => stopSpinning('#saveBtn'))
         .catch(error => {
             stopSpinning('#saveBtn');
             $('#toastFailure .text-message').html("changes aren't saved :(");
             new bootstrap.Toast($('#toastFailure')).show();
-            console.error("Errore while uploading:", error);
+            console.error("Error while uploading:", error);
         });
-
 }
 
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
 function exportTaskAsFile() {
-
-    // Fetch the JSON data
-    makeRequest('GET', '/tasks').then(response => {
-        if (response.ok) {
+    makeRequest('GET', '/tasks')
+        .then(response => {
+            if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
             return response.json();
-        } else {
-            console.error(`Error: ${response.status} ${response.statusText}`);
-        }
-    }).then(data => {
-        // Convert data in JSON string
-        const jsonString = JSON.stringify(data);
-        // Make a blob with that data
-        const blob = new Blob([jsonString], { type: "application/json" });
-
-        // Build a link for this BLOB
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "myTasks.json";
-
-        // autoclick the link
-        link.click();
-
-        // Remove URL object to free mem
-        URL.revokeObjectURL(link.href);
-
-        console.log("File saved!");
-    })
-    .catch(error => {
-        //try to export offline
-
-        const jsonString = JSON.stringify(data);
-        // Make a blob with that data
-        const blob = new Blob([jsonString], { type: "application/json" });
-
-        // Build a link for this BLOB
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "myTasks.json";
-
-        // autoclick the link
-        link.click();
-
-        // Remove URL object to free mem
-        URL.revokeObjectURL(link.href);
-        $('#toastFailure .text-message').html("cannot be exported now :(");
-        new bootstrap.Toast($('#toastFailure')).show();
-        console.error('Error loading JSON:', error);
-    });
+        })
+        .then(data => {
+            const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+            const link = document.createElement("a");
+            link.href     = URL.createObjectURL(blob);
+            link.download = "myTasks.json";
+            link.click();
+            URL.revokeObjectURL(link.href);
+            console.log("File saved!");
+        })
+        .catch(error => {
+            // FIX: original catch block referenced `data` which was out of scope here.
+            // Without server data we can only report the error.
+            $('#toastFailure .text-message').html("cannot be exported now :(");
+            new bootstrap.Toast($('#toastFailure')).show();
+            console.error('Error exporting JSON:', error);
+        });
 }
 
-//given an item object, maps all relevant data for the request
+// ─── MAP ITEM DATA FROM DOM ───────────────────────────────────────────────────
+// FIX: `myitem` is now declared with `const` – was an accidental global before.
 function mapItemData(item) {
-    myitem = $(item);
+    const myitem   = $(item);       // FIX: was `myitem = $(item)` (implicit global)
     const item_obj = {};
 
-    item_obj._id = myitem.data("value");
+    item_obj._id  = myitem.data("value");
     item_obj._rev = myitem.attr("rev");
-
     item_obj.luid = myitem.attr("luid");
-    item_obj.order = myitem.attr('order');
-    item_obj.order = parseInt(item_obj.order); //is int
-    item_obj.title = myitem.find("input.title").val();
-    item_obj.star = myitem.find("button.star-toggler i.bx").attr('starred');
-    item_obj.star = (item_obj.star == "false") ? false : true; //is boolean
+
+    item_obj.order = parseInt(myitem.attr('order'), 10);
+    item_obj.title       = myitem.find("input.title").val();
     item_obj.description = myitem.find("textarea.desc").val();
-    item_obj.progress = myitem.find("button.advance").val();
-    item_obj.progress = parseInt(item_obj.progress); //is int
-    item_obj.expireDate = myitem.find("input.exp-date").val();
+    item_obj.progress    = parseInt(myitem.find("button.advance").val(), 10);
+    item_obj.expireDate  = myitem.find("input.exp-date").val();
+
+    const starAttr = myitem.find("button.star-toggler i.bx").attr('starred');
+    item_obj.star = starAttr !== "false" && starAttr !== false;
 
     item_obj.categories = myitem.find(".categories span.badge i")
-        .map(
-            function () { return $(this).text().trim(); }
-        ).get().join(','); // merge topics separated by ','
+        .map(function () { return $(this).text().trim(); })
+        .get().join(',');
 
-    // TODO Check on this depency aggregator
-    const depencies = myitem.find("span.deps a.depency");
-    const depends = depencies.map(
-        function () { return $(this).attr('href').replace('#', ''); }
-    ).get().join(','); // merge topics separated by ','
+    const depends = myitem.find("span.deps a.depency")
+        .map(function () { return $(this).attr('href').replace('#', ''); })
+        .get().join(',');
+    item_obj.depends = depends || '';
 
-    item_obj.depends = (depends !== null) ? depends : '';
     return item_obj;
-
 }
 
-// This find all and only edited task for updating
+// ─── DETECT MODIFIED ITEMS ────────────────────────────────────────────────────
 function getModifiedItems() {
     const modifiedItems = [];
 
     $(".myitem").each(function (i, e) {
         const mod_item = mapItemData(e);
-        const mod_id = mod_item.luid;
+        const snapshot  = taskData[mod_item.luid];
+        if (!snapshot) return; // guard against stale DOM
+
         if (
-            mod_item.title !== taskData[mod_id].title ||
-            mod_item.description !== taskData[mod_id].description ||
-            mod_item.categories !== taskData[mod_id].categories ||
-            mod_item.order !== taskData[mod_id].order ||
-            mod_item.star !== taskData[mod_id].star ||
-            mod_item.expireDate !== taskData[mod_id].expireDate ||
-            mod_item.depends !== taskData[mod_id].depends
+            mod_item.title       !== snapshot.title       ||
+            mod_item.description !== snapshot.description ||
+            mod_item.categories  !== snapshot.categories  ||
+            mod_item.order       !== snapshot.order       ||
+            mod_item.star        !== snapshot.star        ||
+            mod_item.expireDate  !== snapshot.expireDate  ||
+            mod_item.depends     !== snapshot.depends
         ) {
             modifiedItems.push(mod_item);
         }
@@ -741,78 +742,56 @@ function getModifiedItems() {
     return modifiedItems;
 }
 
+// ─── TASK ACTIONS ─────────────────────────────────────────────────────────────
 function completeTask(taskLUID) {
-
-    if (taskLUID === null || taskData[taskLUID]._id === undefined || taskData[taskLUID]._rev === undefined) {
-        console.error("task undefined");
-        return;
+    // FIX: guard against undefined taskData entry before accessing properties
+    if (!taskLUID || !taskData[taskLUID] || !taskData[taskLUID]._id) {
+        console.error("completeTask: task not found for luid", taskLUID);
+        return Promise.resolve(false);
     }
 
-    let taskItem = new Object();
-    taskItem._id = taskData[taskLUID]._id;
-    taskItem._rev = taskData[taskLUID]._rev;
+    const taskItem = { _id: taskData[taskLUID]._id, _rev: taskData[taskLUID]._rev };
+    const endpoint = taskData[taskLUID].status === 1 ? '/complete' : '/uncomplete';
+    const nextStatus = taskData[taskLUID].status === 1 ? 2 : 1;
 
-    // Complete/Uncomplete based by status
-    if (taskData[taskLUID].status == 1){
-        return makeRequest('PUT', "/complete", JSON.stringify({ taskItem }))
-            .then(response => {
-                if (!response.ok) {
-                    $('#toastFailure .text-message').html("Task cannot be completed now.");
-                    new bootstrap.Toast($('#toastFailure')).show();
-                    return false;
-                }
-                taskData[taskLUID].status = 2;
-                return true;
-            }
-            ).catch(error => {
-                console.error('Error completing task:', error);
+    return makeRequest('PUT', endpoint, JSON.stringify({ taskItem }))
+        .then(response => {
+            if (!response.ok) {
                 $('#toastFailure .text-message').html("Task cannot be completed now.");
                 new bootstrap.Toast($('#toastFailure')).show();
                 return false;
-            });
-    }
-    if (taskData[taskLUID].status == 2){
-        return makeRequest('PUT', "/uncomplete", JSON.stringify({ taskItem }))
-            .then(response => {
-                if (!response.ok) {
-                    $('#toastFailure .text-message').html("Task cannot be completed now.");
-                    new bootstrap.Toast($('#toastFailure')).show();
-                    return false;
-                }
-                taskData[taskLUID].status = 1;
-                return true;
             }
-            ).catch(error => {
-                console.error('Error completing task:', error);
-                $('#toastFailure .text-message').html("Task cannot be completed now.");
-                new bootstrap.Toast($('#toastFailure')).show();
-                return false;
-            });
-    }
+            taskData[taskLUID].status = nextStatus;
+            return true;
+        })
+        .catch(error => {
+            console.error('Error completing task:', error);
+            $('#toastFailure .text-message').html("Task cannot be completed now.");
+            new bootstrap.Toast($('#toastFailure')).show();
+            return false;
+        });
 }
 
 function upgradeTask(taskLUID) {
-
-    if (taskLUID === null || taskData[taskLUID]._id === undefined || taskData[taskLUID]._rev === undefined) {
-        console.error("task undefined");
-        return;
+    if (!taskLUID || !taskData[taskLUID] || !taskData[taskLUID]._id) {
+        console.error("upgradeTask: task not found for luid", taskLUID);
+        return Promise.resolve(false);
     }
 
-    let taskItem = new Object();
-    taskItem._id = taskData[taskLUID]._id;
-    taskItem._rev = taskData[taskLUID]._rev;
+    const taskItem = { _id: taskData[taskLUID]._id, _rev: taskData[taskLUID]._rev };
 
     return makeRequest('PUT', "/progress", JSON.stringify({ taskItem }))
         .then(response => {
             if (!response.ok) {
                 $('#toastFailure .text-message').html("Task cannot be upgraded now");
                 new bootstrap.Toast($('#toastFailure')).show();
-                taskData[taskLUID].progress = taskData[taskLUID].progress + 1;
+                // FIX: original code incremented progress on *failure* – removed
                 return false;
             }
+            taskData[taskLUID].progress += 1;
             return true;
-        }
-        ).catch(error => {
+        })
+        .catch(error => {
             console.error('Error upgrading task:', error);
             $('#toastFailure .text-message').html("Task cannot be upgraded now.");
             new bootstrap.Toast($('#toastFailure')).show();
@@ -821,15 +800,12 @@ function upgradeTask(taskLUID) {
 }
 
 function deleteTask(taskLUID) {
-
-    if (taskLUID === null || taskData[taskLUID]._id === undefined || taskData[taskLUID]._rev === undefined) {
-        console.error("task undefined");
-        return;
+    if (!taskLUID || !taskData[taskLUID] || !taskData[taskLUID]._id) {
+        console.error("deleteTask: task not found for luid", taskLUID);
+        return Promise.resolve(false);
     }
 
-    let taskItem = new Object();
-    taskItem._id = taskData[taskLUID]._id;
-    taskItem._rev = taskData[taskLUID]._rev;
+    const taskItem = { _id: taskData[taskLUID]._id, _rev: taskData[taskLUID]._rev };
 
     return makeRequest('DELETE', "/delete", JSON.stringify({ taskItem }))
         .then(response => {
@@ -839,8 +815,8 @@ function deleteTask(taskLUID) {
                 return false;
             }
             return true;
-        }
-        ).catch(error => {
+        })
+        .catch(error => {
             console.error('Error deleting task:', error);
             $('#toastFailure .text-message').html("Task cannot be deleted now.");
             new bootstrap.Toast($('#toastFailure')).show();
@@ -848,31 +824,21 @@ function deleteTask(taskLUID) {
         });
 }
 
-// Send new task
+// ─── INSERT NEW TASK ──────────────────────────────────────────────────────────
 function insertNewTask() {
+    const newTask = {};
 
-    let newTask = new Object();
+    newTask.title       = $('#collapseEditor #newTitle').val();
+    newTask.description = $('#collapseEditor #newDesc').val();
+    newTask.categories  = $('#collapseEditor #newTopicsSpan').find('span.badge i')
+        .map(function () { return $(this).text().trim(); }).get().join(',');
+    newTask.expireDate  = $('#collapseEditor #newExpireDate').val();
 
-    const newTitle = $('#collapseEditor #newTitle').val();
-    let newDesc = $('#collapseEditor #newDesc').val();
-    let newTopics = $('#collapseEditor #newTopicsSpan').find('span.badge i').map(
-        function () { return $(this).text().trim(); }
-    ).get().join(','); // Merge topics splitted by ',';
+    // FIX: jQuery attr() returns `undefined` (not null) when attribute is absent
+    const rawHref = $('#collapseEditor #newDepencyTask').attr('href');
+    newTask.depency = rawHref ? rawHref.replace('#', '') : '';
 
-    let newExpireDate = $('#collapseEditor #newExpireDate').val();
-    let newDepencyTask = $('#collapseEditor #newDepencyTask').attr('href');
-
-    newDepencyTask = (newDepencyTask !== null) ? newDepencyTask.replace('#', '') : '';
-
-    //Assign task object props
-    newTask.title = newTitle;
-    newTask.description = newDesc;
-    newTask.categories = newTopics;
-    newTask.expireDate = newExpireDate;
-    newTask.depency = newDepencyTask;
-
-    //If no data has been modified, exit
-    if (newTitle.length === 0) {
+    if (!newTask.title.length) {
         $('#toastFailure .text-message').html("Title is required.");
         new bootstrap.Toast($('#toastFailure')).show();
         return;
@@ -880,194 +846,155 @@ function insertNewTask() {
 
     makeRequest('POST', "/insert", JSON.stringify({ newTask }))
         .then(response => {
-            if (response.ok) {
-                //show toasts
-                $('#toastSuccess .text-message').html("Task Added :)");
-                new bootstrap.Toast($('#toastSuccess')).show();
-                //reset & close the editor
-                $('#collapseEditor #newTitle').val('');
-                $('#collapseEditor #newDesc').val('');
-                $('#collapseEditor #newExpireDate').val('');
-                $('#collapseEditor #newTopicsSpan').html('');
-                $('#collapseEditor #newDepencyTask').attr('href', '#');
-                $('#collapseEditor').collapse('toggle');
-                return true;
-            } else {
+            if (!response.ok) {
                 console.error("Error on response:", response.statusText);
                 return false;
             }
+            $('#toastSuccess .text-message').html("Task Added :)");
+            new bootstrap.Toast($('#toastSuccess')).show();
+            $('#collapseEditor #newTitle').val('');
+            $('#collapseEditor #newDesc').val('');
+            $('#collapseEditor #newExpireDate').val('');
+            $('#collapseEditor #newTopicsSpan').html('');
+            $('#collapseEditor #newDepencyTask').attr('href', '#');
+            $('#collapseEditor').collapse('toggle');
+            return true;
         })
-        .then(success => {
-            if (success) {
-                loadAllTask();
-            }
-        })
+        .then(success => { if (success) loadAllTask(); })
         .catch(error => {
             $('#toastFailure .text-message').html("Task cannot be created now.");
             new bootstrap.Toast($('#toastFailure')).show();
             console.error("Error while sending data:", error);
         });
-
 }
 
-
-// Restore with CTRL+Z
+// ─── KEYBOARD SHORTCUTS ───────────────────────────────────────────────────────
 $(document).on("keydown", function (e) {
     if (e.ctrlKey && e.key === "z") {
-        //TODO : Nice To Have revert function (use revs?)
+        // TODO: revert function (use PouchDB revs)
     }
 });
 
-
-// Saving with CTRL + S
 $(document).on("keydown", function (e) {
     if (e.ctrlKey && e.key === "s") {
-        // Prevent the Save dialog to open
         e.preventDefault();
-        // Trigger save btn
         $('#saveBtn').click();
     }
 });
 
-// parseDate from string value
+// ─── DATE UTILITIES ───────────────────────────────────────────────────────────
 function parseDate(dateStr) {
     if (!dateStr) return null;
-    var parts = dateStr.trim().split('/');
+    const parts = dateStr.trim().split('/');
     if (parts.length !== 3) return null;
-    // new Date(anno, mese-1, giorno)
     return new Date(parts[2], parts[1] - 1, parts[0]);
 }
 
-// Order items for Expire Date
 function orderByExpDate() {
-    var items = $('.myitem').get();
-    items.sort(function(a, b) {
-        var dateA = parseDate($(a).find('.exp-date').val());
-        var dateB = parseDate($(b).find('.exp-date').val());
-        // Se entrambe mancanti
+    const items = $('.myitem').get();
+    items.sort((a, b) => {
+        const dateA = parseDate($(a).find('.exp-date').val());
+        const dateB = parseDate($(b).find('.exp-date').val());
         if (!dateA && !dateB) return 0;
-        // Se A manca → va dopo
         if (!dateA) return 1;
-        // Se B manca → va dopo
         if (!dateB) return -1;
-        return dateA - dateB; // crescente
+        return dateA - dateB;
     });
-    var $container = $('.myitems');
-    $container.append(items);
-    return;
+    $('.myitems').append(items);
 }
 
-
-//Order items 
+// ─── SORTABLE ────────────────────────────────────────────────────────────────
 $(function () {
-    $(".sortable").sortable({
-        cursor: "n-resize",
-        handle: ".bd-placeholder"
-    });
+    $(".sortable").sortable({ cursor: "n-resize", handle: ".bd-placeholder" });
 
-    //Set the order based from the element bottom, if any, else order 0 -> no fallback update for backend
     $(".sortable").on("sortstop", function (event, ui) {
-        nextOrder = $(ui.item).next('div.container').attr('order');
-        if (nextOrder) {
-            $(ui.item).attr('order', parseInt(nextOrder) + 1);
-        } else {
-            $(ui.item).attr('order', 0);
-        }
+        const nextOrder = $(ui.item).next('div.container').attr('order');
+        $(ui.item).attr('order', nextOrder ? parseInt(nextOrder, 10) + 1 : 0);
     });
 });
 
-//Scroll to item when click to #href
-$(document).on('click', 'a', function (event) {
-    var href = $(this).attr('href');
-
-    if (href ===  undefined) return;
-
-    var id = href.split('#')[1];
-    if (id) {
-        scrollToItem(id);
-    }
+// ─── DEPENDENCY SCROLL ───────────────────────────────────────────────────────
+$(document).on('click', 'a', function () {
+    const href = $(this).attr('href');
+    if (!href) return;
+    const id = href.split('#')[1];
+    if (id) scrollToItem(id);
 });
 
 function scrollToItem(itemId) {
-
-    let item = document.querySelector(`.myitem[luid="${itemId}"]`);
-    if (item !== undefined) {
-        item.scrollIntoView({block: "start", behavior: "smooth"});
+    // FIX: querySelector returns null (not undefined) when not found
+    const item = document.querySelector(`.myitem[luid="${itemId}"]`);
+    if (item !== null) {
+        item.scrollIntoView({ block: "start", behavior: "smooth" });
         blinkElement(item, 1200);
     }
-
 }
 
-function blinkElement(el, time = 200) {
-    const o_borderWidth = el.borderWidth;
-    const p_borderStyle = el.borderStyle;
-    const o_borderColor = el.borderColor;
-    el.animate({
-        borderWidth: '5px',
-        borderStyle: 'solid',
-        borderColor: 'var(--bs-link-color)'
-    }, time, function () {
-        $(this).animate({
-            borderWidth: o_borderWidth,
-            borderStyle: p_borderStyle,
-            borderColor: o_borderColor
-        }, time, function () {
-            setTimeout(blinkElement, 0);
-        });
-    });
+// FIX: original used el.animate() (DOM element, not jQuery) and had infinite
+// recursion via setTimeout(blinkElement, 0). Replaced with a simple CSS
+// box-shadow pulse that works reliably and removes itself automatically.
+function blinkElement(el, time = 1200) {
+    const $el = $(el);
+    $el.css({ 'box-shadow': '0 0 0 3px var(--bs-link-color)', 'transition': `box-shadow ${time / 2}ms ease` });
+    setTimeout(() => {
+        $el.css({ 'box-shadow': '', 'transition': `box-shadow ${time / 2}ms ease` });
+    }, time);
 }
 
+// ─── LOAD ALL TASKS ───────────────────────────────────────────────────────────
 async function loadAllTask() {
-    // Fetch the JSON data
     $('#loader').show();
-    makeRequest('GET', '/tasks').then(response => {
-        if (response.ok) {
-            // OK (status 200-299)
-            return response.json();
-        } else {
+
+    makeRequest('GET', '/tasks')
+        .then(response => {
+            if (response.ok) return response.json();
             $('#toastFailure .text-message').html(`Error: ${response.status} ${response.statusText}`);
             new bootstrap.Toast($('#toastFailure')).show();
             console.error(`Error: ${response.status} ${response.statusText}`);
-        }
-    }).then(data => {
-
-        populateTaskswithData(data);
-        saveDataToLocalStorage(data);
-        //Activate functions for dynamic elements
-        populateDepenciesTitles();
-        translateDatePickers();
-        colorAllTopicsBadges();
-        insertNewTopic();
-        enableDynamicActions();
-        $('#loader').hide();
-    }).then(enableSearch())
-    .catch(error => {
-
-        // Fallback to localStorage if server is unreachable
-        const cachedData = localStorage.getItem(cachedDataKey);
-        storageData = null;
-        if (cachedData) {
-            storageData = JSON.parse(cachedData);
-        }
-        if (cachedData && storageData!=null && storageData.timestamp!=null){
-            console.log('Using cached data from:', new Date(storageData.timestamp));
-            data = storageData.data;
+            return null;
+        })
+        .then(data => {
+            if (!data) return;
             populateTaskswithData(data);
+            saveDataToLocalStorage(data);
             populateDepenciesTitles();
             translateDatePickers();
             colorAllTopicsBadges();
             insertNewTopic();
             enableDynamicActions();
+            enableSearch(); // FIX: was `.then(enableSearch())` which invoked it immediately
             $('#loader').hide();
-            enableSearch()
-        } else {
-            console.error('Error loading JSON:', error)
-        }
-        $('#toastFailure .text-message').html(`Server Offline ${error}`);
-        new bootstrap.Toast($('#toastFailure')).show();        
-    });
+        })
+        .catch(error => {
+            // Fallback: show last cached data from localStorage if PouchDB itself fails
+            try {
+                const cachedData  = localStorage.getItem(cachedDataKey);
+                const storageData = cachedData ? JSON.parse(cachedData) : null;
+
+                if (storageData?.timestamp && storageData.data) {
+                    console.log('Using cached data from:', new Date(storageData.timestamp));
+                    const data = storageData.data;
+                    populateTaskswithData(data);
+                    populateDepenciesTitles();
+                    translateDatePickers();
+                    colorAllTopicsBadges();
+                    insertNewTopic();
+                    enableDynamicActions();
+                    enableSearch();
+                    $('#loader').hide();
+                } else {
+                    console.error('Error loading data and no cache available:', error);
+                }
+            } catch (cacheErr) {
+                console.error('Cache read error:', cacheErr);
+            }
+
+            $('#toastFailure .text-message').html(`Storage error: ${error}`);
+            new bootstrap.Toast($('#toastFailure')).show();
+        });
 }
-//LOADING PAGE
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
     switchToTab(selectedTab);
-}, { once: true } );
+}, { once: true });
