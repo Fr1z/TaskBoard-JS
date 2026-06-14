@@ -128,6 +128,82 @@ async function db_progressTask(taskItem) {
     return mockOkResponse({ message: 'Task progressed' });
 }
 
+/*
+ * Importa un array di task da JSON (formato uguale all'export).
+ */
+async function db_importTasks(jsonData) {
+    if (!Array.isArray(jsonData) || jsonData.length === 0) {
+        return mockErrResponse(400, 'Input must be a non-empty array of tasks');
+    }
+ 
+    console.log(`[import] Importing ${jsonData.length} task(s)…`);
+ 
+    // Valori correnti nel DB locale: tutti i nuovi luid/order devono essere ≥ questi
+    let minLUID  = await db_getNextLUID();   // = maxLUID esistente + 1
+    let minOrder = await db_getNextOrder();  // = count docs + 1
+ 
+    // Mappa dei luid riassegnati: { vecchioLuid: nuovoLuid }
+    // Serve per aggiornare le dipendenze dopo il remap.
+    const luidMap = {};
+ 
+    // Passata 1 – sanitize: rimuovi _id/_rev, risolvi conflitti luid/order
+    const sanitized = jsonData.map(task => {
+        // Distruggi le chiavi PouchDB del DB sorgente
+        const { _id, _rev, ...taskData } = task;
+ 
+        // Mocka owner e org (niente autenticazione in modalità locale)
+        taskData.owner        = 'admin';
+        taskData.organization = 'myOrg';
+ 
+        // Risolvi conflitto LUID
+        if (!taskData.luid || taskData.luid < minLUID) {
+            luidMap[taskData.luid] = minLUID;   // registra la sostituzione
+            taskData.luid = minLUID;
+            minLUID++;
+        }
+ 
+        // Risolvi conflitto ORDER
+        if (!taskData.order || taskData.order < minOrder) {
+            taskData.order = minOrder;
+            minOrder++;
+        }
+ 
+        return taskData;
+    });
+ 
+    // Passata 2 – aggiorna i riferimenti di dipendenza con i nuovi luid
+    const toInsert = sanitized.map(task => {
+        if (task.depends && task.depends.trim().length > 0) {
+            task.depends = task.depends
+                .split(',')
+                .map(dep => dep.trim())
+                .filter(Boolean)
+                .map(dep => {
+                    // Controlla sia la chiave stringa che numerica (sicurezza di tipo)
+                    const remapped = luidMap[dep] ?? luidMap[parseInt(dep, 10)];
+                    return remapped !== undefined ? String(remapped) : dep;
+                })
+                .join(',');
+        }
+        return task;
+    });
+ 
+    // Inserimento bulk
+    const results = await localDB.bulkDocs(toInsert);
+ 
+    const errors = results.filter(r => r.error);
+    if (errors.length === 0) {
+        return mockOkResponse({ message: `All ${results.length} task(s) imported successfully :)` });
+    } else if (errors.length < results.length) {
+        console.warn('[import] Partial errors:', errors);
+        return mockOkResponse({ message: `WARNING: ${errors.length}/${results.length} task(s) failed to import` });
+    } else {
+        console.error('[import] All inserts failed:', errors);
+        return mockErrResponse(503, 'Import failed: no tasks were added');
+    }
+}
+ 
+
 // ─── makeRequest DROP-IN REPLACEMENT ─────────────────────────────────────────
 // Same external signature as the original. The `endpoint` parameter now maps
 // to a local PouchDB operation instead of an HTTP route. No cookies, no JWT,
@@ -161,6 +237,9 @@ const makeRequest = (type, endpoint, data = undefined) => {
                 case '/delete':
                     if (type.toUpperCase() === 'DELETE') return await db_setTaskStatus(body?.taskItem, 0);
                     break;
+                case '/import':
+                if (type.toUpperCase() === 'POST') return await db_importTasks(body);
+                break;
                 case '/logout':
                     return mockOkResponse({ message: 'Logged out' });
                 default:
