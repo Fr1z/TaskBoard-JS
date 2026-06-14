@@ -1,1 +1,0 @@
-const serverAddress = 'https://task.myro.ooguy.com'; // Change with you Server Address
