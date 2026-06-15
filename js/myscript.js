@@ -794,17 +794,23 @@ function exportTaskAsFile() {
             return response.json();
         })
         .then(data => {
-            const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
-            const link = document.createElement("a");
-            link.href     = URL.createObjectURL(blob);
-            link.download = "myTasks.json";
-            link.click();
-            URL.revokeObjectURL(link.href);
-            console.log("File saved!");
+            const jsonString = JSON.stringify(data);
+
+            if (window.FlutterExport) {
+                // WebView Flutter
+                window.FlutterExport.postMessage(jsonString);
+            } else {
+                // Browser standard
+                const blob = new Blob([jsonString], { type: "application/json" });
+                const link = document.createElement("a");
+                link.href     = URL.createObjectURL(blob);
+                link.download = "myTasks.json";
+                link.click();
+                URL.revokeObjectURL(link.href);
+                console.log("File saved!");
+            }
         })
         .catch(error => {
-            // FIX: original catch block referenced `data` which was out of scope here.
-            // Without server data we can only report the error.
             $('#toastFailure .text-message').html("cannot be exported now :(");
             new bootstrap.Toast($('#toastFailure')).show();
             console.error('Error exporting JSON:', error);
