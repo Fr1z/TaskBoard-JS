@@ -747,7 +747,8 @@ function enableDynamicActions() {
     });
 }
 
-function toggleSearchOverlay(force) {
+function toggleSearchOverlay(force, evt) {
+    if (evt) { evt.preventDefault(); evt.stopPropagation(); }
     const overlay = document.getElementById('searchOverlay');
     if (!overlay) return;
     const show = typeof force === 'boolean' ? force : overlay.classList.contains('d-none');
@@ -796,10 +797,11 @@ function enableSearch() {
         const ov = document.getElementById('searchOverlay');
         if (!ov || ov.classList.contains('d-none')) return;
         const bar = ov.querySelector('.search-bar');
-        const btn = document.getElementById('searchToggleBtn');
+        const b = document.getElementById('searchToggleBtn');
         if (bar && bar.contains(e.target)) return;
-        if (btn && btn.contains(e.target)) return;
-        if (ov.contains(e.target)) return;
+        if (b && b.contains(e.target)) return;
+        if (ov.contains(e.target) && ov !== e.target) return;
+        if (e.target.closest && e.target.closest('#searchOverlay')) return;
         toggleSearchOverlay(false);
     });
     let touchStartY = null;
@@ -815,7 +817,8 @@ function enableSearch() {
         const endX = e.changedTouches[0].clientX;
         const deltaY = endY - touchStartY;
         const deltaX = Math.abs(endX - touchStartX);
-        if (window.scrollY === 0 && touchStartY < 80 && deltaY > 60 && deltaX < 40) {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        if (scrollTop === 0 && touchStartY < 120 && deltaY > 50 && deltaX < 60) {
             toggleSearchOverlay(true);
         }
         touchStartY = null;

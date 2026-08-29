@@ -92,6 +92,7 @@ body, .myitem .title, .myitem .desc, .myitem .categories, #tm-textarea { font-fa
     justify-content: center;
     pointer-events: none;
 }
+.search-overlay:not(.d-none) { pointer-events: auto; }
 .search-overlay.d-none { display: none !important; }
 .search-bar {
     pointer-events: auto;
