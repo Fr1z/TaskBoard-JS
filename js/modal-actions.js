@@ -138,9 +138,12 @@ settingsModal.addEventListener('show.bs.modal', function (event) {
 
     var datalistInitialTab = settingsModal.querySelector('.modal-body #initalTabDataList');
     var tabOptions = settingsModal.querySelectorAll('.modal-body .tabOpt');
+    var fontScaleRange = settingsModal.querySelector('.modal-body #fontScaleRange');
+    var fontScaleValue = settingsModal.querySelector('.modal-body #fontScaleValue');
+    var fontFamilySelect = settingsModal.querySelector('.modal-body #fontFamilySelect');
 
-    serverAddr.innerHTML = serverAddress;
-    serverAddr.value = serverAddress;
+    try { serverAddr.innerHTML = typeof serverAddress !== 'undefined' ? serverAddress : ''; } catch(e) {}
+    try { serverAddr.value = typeof serverAddress !== 'undefined' ? serverAddress : ''; } catch(e) {}
 
     //Select current option in the SELECTS
     themeOptions.forEach(item => {
@@ -157,21 +160,42 @@ settingsModal.addEventListener('show.bs.modal', function (event) {
 
     tabOptions.forEach(item => {
         if (item.value == getStoredInitialTab() ){
-            item.setAttribute('selected', true); //lang selected
+            item.setAttribute('selected', true);
         }
     });
 
-    sendBtn.addEventListener('click', () => {
+    if (fontScaleRange && fontScaleValue) {
+        const cur = typeof getStoredFontScale === 'function' ? getStoredFontScale() : 100;
+        fontScaleRange.value = cur;
+        fontScaleValue.textContent = cur + '%';
+        fontScaleRange.oninput = function() { fontScaleValue.textContent = this.value + '%'; if (typeof applyFontScale === 'function') applyFontScale(this.value); };
+    }
+    if (fontFamilySelect && typeof getStoredFontFamily === 'function') {
+        fontFamilySelect.value = getStoredFontFamily();
+        fontFamilySelect.onchange = function() { if (typeof applyFontFamily === 'function') applyFontFamily(this.value); };
+    }
+
+    sendBtn.onclick = () => {
         const theme = datalistTheme.value;
         const lang = datalistLang.value;
         const initialTab = datalistInitialTab.value;
-        //* Save the theme to local storage */
         localStorage.setItem('theme', theme);
         setTheme(theme);
         setStoredLang(lang);
         setStoredInitialTab(initialTab);
-        closeBtn.click(); //close modal
-    });
+        if (fontScaleRange && typeof setStoredFontScale === 'function') {
+            setStoredFontScale(parseInt(fontScaleRange.value, 10));
+            if (typeof applyFontScale === 'function') applyFontScale(fontScaleRange.value);
+        }
+        if (fontFamilySelect && typeof setStoredFontFamily === 'function') {
+            setStoredFontFamily(fontFamilySelect.value);
+            if (typeof applyFontFamily === 'function') applyFontFamily(fontFamilySelect.value);
+        }
+        if (typeof applyI18n === 'function') applyI18n();
+        const labelMap = { STARRED: t('starred'), ALL: t('todo'), COMPLETED: t('completed') };
+        document.querySelector('.currentTab').textContent = labelMap[selectedTab] ?? selectedTab;
+        closeBtn.click();
+    };
 });
 
 
@@ -237,26 +261,16 @@ function closeTextAreaModal() {
     activeTextarea = null;
 }
 
-// intercetta click su QUALSIASI textarea eccetto tm-textarea
+document.getElementById("tm-close").onclick = closeTextAreaModal;
+document.querySelector(".tm-overlay").addEventListener("click", closeTextAreaModal);
 document.addEventListener("click", function (e) {
     if (e.target.tagName === "TEXTAREA" && e.target.id != 'tm-textarea') {
-
         if (window.innerWidth <= 992) {
             e.preventDefault();
-            // Assegna textarea
             activeTextarea = e.target;
-
-            // copia contenuto
             textareaModalInput.value = activeTextarea.value;
-
-            // mostra modal
             textareaModal.classList.remove("tm-hidden");
-            // focus
             setTimeout(() => textareaModalInput.focus(), 50);
-            // click su X
-            document.getElementById("tm-close").addEventListener("click", closeTextAreaModal);
         }
     }
 });
-// click su overlay
-document.querySelector(".tm-overlay").addEventListener("click", closeTextAreaModal);

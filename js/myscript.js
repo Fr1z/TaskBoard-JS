@@ -1,8 +1,69 @@
-// ─── PERSISTENT SETTINGS ─────────────────────────────────────────────────────
 let getStoredInitialTab = () => localStorage.getItem('initialTab') ?? 'ALL';
 let setStoredInitialTab = tab => localStorage.setItem('initialTab', tab);
 let getStoredLang       = () => localStorage.getItem('lang') ?? 'en';
 let setStoredLang       = lang => localStorage.setItem('lang', lang);
+let getStoredFontScale  = () => parseInt(localStorage.getItem('fontScale') ?? '100', 10);
+let setStoredFontScale  = scale => localStorage.setItem('fontScale', String(scale));
+function applyFontScale(scale) {
+    const v = Math.min(150, Math.max(80, parseInt(scale, 10) || 100));
+    document.documentElement.style.setProperty('--task-font-scale', v + '%');
+    document.documentElement.style.fontSize = v + '%';
+}
+let getStoredFontFamily = () => localStorage.getItem('fontFamily') ?? 'system-ui';
+let setStoredFontFamily = f => localStorage.setItem('fontFamily', f);
+function applyFontFamily(f) {
+    const map = {
+        'system-ui': 'system-ui, -apple-system, sans-serif',
+        'Inter': '"Inter", system-ui, sans-serif',
+        'Atkinson Hyperlegible': '"Atkinson Hyperlegible", system-ui, sans-serif',
+        'Lexend': '"Lexend", system-ui, sans-serif',
+        'Noto Sans': '"Noto Sans", system-ui, sans-serif'
+    };
+    const v = map[f] ?? map['system-ui'];
+    document.documentElement.style.setProperty('--task-font-family', v);
+}
+const I18N = {
+    en: {
+        settings: 'Settings', theme: 'Theme color', lang: 'Language', initialTab: 'Initial Tab',
+        textSize: 'Text size', fontFamily: 'Font family',
+        taskServer: 'Task Server', organization: 'Organization',
+        starred: 'Starred', todo: 'To Do', completed: 'Completed', allTasks: 'All Tasks',
+        search: 'Search', addTask: 'Add Task', save: 'Save', insert: 'Insert',
+        title: 'Title', topics: 'Topics', description: 'Description', dependsOn: 'Depends on',
+        noDependency: 'No dependency', importTasks: 'Import Tasks', exportTasks: 'Export Tasks',
+        logout: 'Logout', about: 'About', tasksJson: 'Tasks JSON',
+        light: 'Light', dark: 'Dark', auto: 'Auto', english: 'English', italian: 'Italiano',
+        close: 'Close', saveSettings: 'Save Settings', delete: 'Delete', cancel: 'Cancel',
+        addSubTask: 'Add SubTask', newSubTask: 'New subTask', subTask: 'SubTask', selectedTask: 'Selected Task',
+        confirmDelete: 'Are you sure to DELETE?', confirmDeleteBody: 'Do you really want to delete these records?'
+    },
+    it: {
+        settings: 'Impostazioni', theme: 'Tema', lang: 'Lingua', initialTab: 'Tab iniziale',
+        textSize: 'Dimensione testo', fontFamily: 'Famiglia font',
+        taskServer: 'Server Task', organization: 'Organizzazione',
+        starred: 'Preferiti', todo: 'Da fare', completed: 'Completati', allTasks: 'Tutti i Task',
+        search: 'Cerca', addTask: 'Aggiungi Task', save: 'Salva', insert: 'Inserisci',
+        title: 'Titolo', topics: 'Argomenti', description: 'Descrizione', dependsOn: 'Dipende da',
+        noDependency: 'Nessuna dipendenza', importTasks: 'Importa Task', exportTasks: 'Esporta Task',
+        logout: 'Logout', about: 'Info', tasksJson: 'JSON Task',
+        light: 'Chiaro', dark: 'Scuro', auto: 'Auto', english: 'Inglese', italian: 'Italiano',
+        close: 'Chiudi', saveSettings: 'Salva Impostazioni', delete: 'Elimina', cancel: 'Annulla',
+        addSubTask: 'Aggiungi SottoTask', newSubTask: 'Nuovo SottoTask', subTask: 'SottoTask', selectedTask: 'Task selezionato',
+        confirmDelete: 'Sei sicuro di ELIMINARE?', confirmDeleteBody: 'Vuoi davvero eliminare questi record?'
+    }
+};
+function t(key) { const lang = getStoredLang(); return (I18N[lang] && I18N[lang][key]) ?? I18N.en[key] ?? key; }
+function applyI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const k = el.getAttribute('data-i18n');
+        const v = t(k);
+        if (el.tagName === 'INPUT' && el.hasAttribute('placeholder')) el.placeholder = v;
+        else el.textContent = v;
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+    });
+}
 
 // ─── POUCHDB LOCAL DATABASE ───────────────────────────────────────────────────
 // pouchDB-9.0.0.min.js is already included in the page before this script.
@@ -256,7 +317,8 @@ const makeRequest = (type, endpoint, data = undefined) => {
 // ─── TAB MANAGEMENT ──────────────────────────────────────────────────────────
 function switchToTab(tab) {
     selectedTab = tab;
-    $(".currentTab").text(tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase());
+    const labelMap = { STARRED: t('starred'), ALL: t('todo'), COMPLETED: t('completed') };
+    $(".currentTab").text(labelMap[tab] ?? tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase());
     $('.navbar-nav .btn-check').prop('checked', false);
     $('.navbar-nav .btn-check[tab="' + selectedTab + '"]').prop('checked', true);
     loadAllTask();
@@ -334,11 +396,10 @@ function populateTaskswithData(data) {
             ? `${dateCompleted.getDate()}/${dateCompleted.getMonth() + 1}/${dateCompleted.getFullYear()}`
             : "";
 
-        // Tab filter
         if (
             (item.status !== 1 && selectedTab === "ALL") ||
             (item.status !== 2 && selectedTab === "COMPLETED") ||
-            ((item.status !== 1 || item.star === false) && selectedTab === "STARRED")
+            ((item.status !== 1 || !item.star) && selectedTab === "STARRED")
         ) { return; }
 
         rows += `
@@ -430,8 +491,8 @@ function populateTaskswithData(data) {
                                                 aria-label="Star"
                                                 style="max-width: max-content;">
                                             <i data-lucide="star"
-                                            class="lucide-sm star-icon ${item.star == 'true' || item.star === true ? 'starred' : ''}"
-                                            starred="${item.star}"></i>
+                                            class="lucide-sm star-icon ${item.star ? 'starred' : ''}"
+                                            starred="${item.star ? 'true' : 'false'}"></i>
                                         </button>
 
                                         <button class="btn btn-outline-primary p-2 m-1 m-md-2 collapse"
@@ -593,6 +654,12 @@ function collapseAllItems() {
 
 // ─── DYNAMIC ACTION BINDINGS ─────────────────────────────────────────────────
 function enableDynamicActions() {
+    $('button.expand-toggler').off("click");
+    $('button.star-toggler').off("click");
+    $('.datapickertoggler').off("click");
+    $('button.completer').off("click");
+    $('button.advance').off("click");
+    $('.desc').off("click");
 
     // Expand toggler
     $('button.expand-toggler').on("click", function (e) {
@@ -612,17 +679,12 @@ function enableDynamicActions() {
         collapsables.toggleClass("showed");
     });
 
-    // Star toggler
     $('button.star-toggler').on("click", function (e) {
         const target = e.target;
-        const $star  = target.hasAttribute('starred') ? $(target) : $(target).find('svg.star-icon');
-        if ($star.attr('starred') === "true") {
-            $star.attr('starred', false)
-                .removeClass('starred');
-        } else {
-            $star.attr('starred', true)
-                .addClass('starred');
-        }
+        const $star  = target.hasAttribute('starred') ? $(target) : $(target).find('.star-icon');
+        if (!$star.length) return;
+        const isStarred = $star.attr('starred') === "true";
+        $star.attr('starred', isStarred ? 'false' : 'true').toggleClass('starred', !isStarred);
     });
 
     // Datepicker toggler
@@ -833,8 +895,8 @@ function mapItemData(item) {
     item_obj.progress    = parseInt(myitem.find("button.advance").val(), 10);
     item_obj.expireDate  = myitem.find("input.exp-date").val();
 
-    const starAttr = myitem.find("button.star-toggler i.bx").attr('starred');
-    item_obj.star = starAttr !== "false" && starAttr !== false;
+    const starAttr = myitem.find("button.star-toggler .star-icon").attr('starred');
+    item_obj.star = starAttr === "true" || starAttr === true;
 
     item_obj.categories = myitem.find(".categories span.badge i")
         .map(function () { return $(this).text().trim(); })
@@ -1128,5 +1190,8 @@ async function loadAllTask() {
 
 // ─── BOOT ────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function () {
+    applyFontScale(getStoredFontScale());
+    applyFontFamily(getStoredFontFamily());
+    applyI18n();
     switchToTab(selectedTab);
 }, { once: true });
