@@ -123,6 +123,37 @@ body, .myitem .title, .myitem .desc, .myitem .categories, #tm-textarea { font-fa
     .navbar-nav .btn { font-size: 1.6em; }
 }
 
+@media (max-width: 600px) {
+    #saveBtn, .btn[data-bs-target="#addTaskModal"] { padding: 6px 10px !important; font-size: 0.85rem !important; margin: 2px 0 !important; }
+    .btn[data-bs-target="#addTaskModal"] span[data-i18n="addTask"], #saveBtn span[data-i18n="save"] { display: none !important; }
+    .btn-search, #orderByExpDate { padding: 6px !important; min-width: 32px !important; min-height: 32px !important; margin: 2px 0 !important; }
+    .btn-order { margin-right: 0 !important; }
+    .currentTab { font-size: 1.1rem !important; margin: 6px 0 !important; }
+    .row.mt-3 { margin-top: 0.5rem !important; }
+    .search-bar { padding: 6px 10px !important; }
+    .row.m-0.flex-nowrap { flex-wrap: wrap !important; gap: 4px !important; }
+    .row.m-0.flex-nowrap > .col-4 { flex: 1 1 auto !important; width: auto !important; min-width: 0; }
+    .row.m-0.flex-nowrap > .col-4.text-center { order: 3; flex-basis: 100% !important; }
+}
+@media (max-width: 500px) {
+    .navbar-pouch { min-height: 56px !important; padding: 0 0.5rem !important; }
+    .navbar-logo img { width: 48px !important; height: 48px !important; }
+    .tab-btn { min-width: 48px !important; min-height: 44px !important; padding: 0 12px !important; }
+    .tab-icon { width: 20px !important; height: 20px !important; }
+    .btn-ghost { min-width: 44px !important; min-height: 44px !important; }
+    .tab-pill { gap: 2px !important; padding: 2px !important; }
+}
+@media (max-width: 360px) {
+    .navbar-pouch { border-radius: 0 0 10px 10px !important; }
+    .tab-btn { min-width: 42px !important; padding: 0 10px !important; }
+    .myitem .bd-placeholder { width: 20px !important; }
+    .myitem .btn { padding: 4px 6px !important; font-size: 0.85rem !important; }
+    .categories { font-size: 0.75rem !important; }
+    .search-bar { padding: 6px 10px !important; gap: 6px !important; }
+    #addTaskModal .modal-body .row-cols-3 > [class*="col-"] { flex: 0 0 100% !important; max-width: 100% !important; }
+    .currentTab { font-size: 1rem !important; }
+}
+
 /* schermi piccoli */
 @media (max-width: 992px) {
     .container, .container-sm {
@@ -149,6 +180,10 @@ body, .myitem .title, .myitem .desc, .myitem .categories, #tm-textarea { font-fa
 
     .btn-order {
         margin-right: 1px !important;;
+    }
+    
+    .btn-search {
+        margin-left: 1px !important;;
     }
 
     .bx-sm {

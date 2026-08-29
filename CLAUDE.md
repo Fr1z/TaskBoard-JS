@@ -92,7 +92,7 @@ Doc in DB `mytasks` (`myscript.js:62-79`):
 
 ## 10. Bug noti (fixati)
 - **STARRED**: fixato `mapItemData`->`.star-icon`, normalizzato bool, `enableDynamicActions` con `.off()`.
-- **Overflow mobile**: fixato `#collapseEditor`/`myitem` wrap + `min-width:0` in `mystyle.css:46-112`.
+- **Overflow mobile**: fixato `#collapseEditor`/`myitem` wrap + `min-width:0`; action bar wrap 600px, navbar shrink 500/360px in `mystyle.css:121-200`, icon-only <600px.
 - **DPI scaling globale** scartato: `scale/zoom` su `html` rompe fixed/toast/sortable; sostituito da `font-scale` 80-150% + `fontFamily`.
 
 ## 11. Dove cercare per refactoring
