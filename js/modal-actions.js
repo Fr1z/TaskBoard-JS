@@ -2,6 +2,7 @@ var addSubTaskModal = document.getElementById('addSubTaskModal');
 var confirmDeleteModal = document.getElementById('confirmDeleteModal');
 var settingsModal = document.getElementById('settingsModal');
 var importTaskModal = document.getElementById('importTaskModal');
+var addTaskModal = document.getElementById('addTaskModal');
 
 var textareaModal = document.getElementById('textareaModal');
 var textareaModalInput = document.getElementById('tm-textarea');
@@ -252,6 +253,14 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
         closeBtn.click(); //close modal
     }, {once : true});
 });
+
+if (addTaskModal) {
+    addTaskModal.addEventListener('show.bs.modal', function () {
+        lucide.createIcons();
+        const titleInput = addTaskModal.querySelector('#newTitle');
+        if (titleInput) setTimeout(() => titleInput.focus(), 150);
+    });
+}
 
 function closeTextAreaModal() {
     if (activeTextarea !== 'undefined' && activeTextarea != null) {

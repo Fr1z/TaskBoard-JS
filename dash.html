@@ -73,57 +73,48 @@
     </div>
 
 
+    <div id="searchOverlay" class="search-overlay d-none">
+        <div class="search-bar">
+            <i data-lucide="search" class="search-bar-icon"></i>
+            <input id="mysearch" class="form-control" type="search" data-i18n-placeholder="search" placeholder="Search" aria-label="Search">
+        </div>
+    </div>
+
     <main class="container">
         <div class="row">
-            <nav class="navbar navbar-expand-lg navbar-light bg-primary rounded-bottom mt-0 mt-lg-1 p-3">
-                <div class="col-3 order-1">
-                    <a class="navbar-brand">
-                        <a href="#taskicon">
-                            <img width="72" height="72" src="./assets/icons/app-icon.png" />
-                        </a>
-                        <span class="text-white fs-2 fw-bold"></span> 
+            <nav class="navbar navbar-pouch navbar-expand-lg bg-primary rounded-bottom mt-0 mt-lg-1 p-3 d-flex align-items-center gap-2">
+                <div class="navbar-logo flex-shrink-0">
+                    <a href="#taskicon" class="d-inline-block">
+                        <img width="72" height="72" src="./assets/icons/app-icon.png" alt="logo" />
                     </a>
                 </div>
 
-                <div class="col-6 order-2">
-                    <div class="navbarToggler row justify-content-center" id="navbarToggler1">
-                            <div class="navbar-nav btn-group fw-bold" role="group" aria-label="toggle button group">
-                                <input type="radio" class="col-4 btn-check" name="btnradio" id="failed" autocomplete="off" tab="STARRED" onclick="switchToTab('STARRED');">
-                                <label class="btn btn-primary border border-light rounded-left nav-link text-white p-1" for="failed"><span data-i18n="starred">Starred</span><br/><i data-lucide="star" class=""></i></label>
+                <div class="flex-grow-1 d-flex justify-content-center">
+                    <div class="tab-pill" role="group" aria-label="tabs">
+                        <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off" tab="STARRED" onclick="switchToTab('STARRED');">
+                        <label class="tab-btn" for="failed" title="Starred" aria-label="Starred"><i data-lucide="star" class="tab-icon"></i></label>
+                        <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" tab="ALL" onclick="switchToTab('ALL');" checked>
+                        <label class="tab-btn" for="todos" title="To Do" aria-label="To Do"><i data-lucide="list-todo" class="tab-icon"></i></label>
+                        <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off" tab="COMPLETED" onclick="switchToTab('COMPLETED');">
+                        <label class="tab-btn" for="completed" title="Completed" aria-label="Completed"><i data-lucide="check" class="tab-icon"></i></label>
+                    </div>
+                </div>
 
-                                <input type="radio" class="col-4 btn-check" name="btnradio" id="todos" autocomplete="off" tab="ALL" onclick="switchToTab('ALL');" checked>
-                                <label class="btn btn-primary border border-light border-left-0 border-right-0 nav-link text-white p-1" for="todos"><span data-i18n="todo">To Do</span><br/><i data-lucide="list-todo" class=""></i></label>
-                            
-                                <input type="radio" class="col-4 btn-check" name="btnradio" id="completed" autocomplete="off" tab="COMPLETED" onclick="switchToTab('COMPLETED');">
-                                <label class="btn btn-primary border border-light rounded-right nav-link text-white p-1" for="completed"><span data-i18n="completed">Completed</span><br/><i data-lucide="check" class=""></i></label>
-                            </div>
+                <div class="flex-shrink-0">
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-ghost text-white p-2" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Settings">
+                            <i data-lucide="settings" class="tab-icon"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end bg-secondary">
+                            <li><a class="dropdown-item text-white" href="#" data-bs-toggle="modal" data-bs-target="#settingsModal" data-i18n="settings">Settings</a></li>
+                            <li><hr class="dropdown-divider bg-white"></li>
+                            <li><a class="dropdown-item text-white" href="#" data-bs-toggle="modal" data-bs-target="#importTaskModal" data-i18n="importTasks">Import Tasks</a></li>
+                            <li><a class="dropdown-item text-white" href="#" onclick="exportTaskAsFile()" data-i18n="exportTasks">Export Tasks</a></li>
+                            <li><a class="dropdown-item text-white" href="#" onclick="logout();" data-i18n="logout">Logout</a></li>
+                            <li><a class="dropdown-item text-white" href="#" data-i18n="about">About this</a></li>
+                        </ul>
                     </div>
                 </div>
-                <div class="col-3 order-3">
-                    <div class="row m-0 py-2">
-                        <div class="col col-lg-2"></div>
-                        <div class="col-12 col-lg-10">
-                            <div class="navbarToggler justify-content-end subgrid" id="navbarToggler2">
-                                <div class="col input-group">
-                                    <input id="mysearch" class="form-control shadow-sm" type="search" data-i18n-placeholder="search" placeholder="Search" aria-label="Search" style="border: 0; min-width: 0px!important;">
-                                
-                                    <button type="button" class="btn btn-secondary dropdown-toggle btn-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <span class="visually-hidden">Toggle Dropdown</span>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end bg-secondary">
-                                        <li><a class="dropdown-item text-white" href="#" data-bs-toggle="modal" data-bs-target="#settingsModal" data-i18n="settings">Settings</a></li>
-                                        <li><hr class="dropdown-divider bg-white"></li>
-                                        <li><a class="dropdown-item text-white" href="#" data-bs-toggle="modal" data-bs-target="#importTaskModal" data-i18n="importTasks">Import Tasks</a></li>
-                                        <li><a class="dropdown-item text-white" href="#" onclick="exportTaskAsFile()" data-i18n="exportTasks">Export Tasks</a></li>
-                                        <li><a class="dropdown-item text-white" href="#" onclick="logout();" data-i18n="logout">Logout</a></li>
-                                        <li><a class="dropdown-item text-white" href="#" data-i18n="about">About this</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
             </nav>
         </div>
 
@@ -131,86 +122,28 @@
         <div class="container rounded shadow">
             
             <div class="row mt-3 border-0 shadow-sm">
-                <div class="row m-0 flex-nowrap">
-                    <div class="col" data-bs-toggle="collapse" href="#collapseEditor" role="button" aria-expanded="false" aria-controls="collapseEditor">
-                        <button type="button" class="btn btn-lg btn-outline-primary text-nowrap my-2 fw-bold" data-bs-toggle="button" autocomplete="off" aria-pressed="true">
+                <div class="row m-0 flex-nowrap align-items-center gap-1">
+                    <div class="col-4 d-flex justify-content-start align-items-center gap-1">
+                        <button type="button" class="btn btn-lg btn-outline-primary text-nowrap my-2 fw-bold" data-bs-toggle="modal" data-bs-target="#addTaskModal">
                             <i data-lucide="square-plus" class="lucide-fw lucide-sm"></i>&ensp;<span data-i18n="addTask">Add Task</span> 
                         </button>
-                    </div>
-                    <div class="col">
-                        <h3 class="text-primary fw-bold text-center text-nowrap my-3 currentTab" data-i18n="allTasks">All Tasks</h3>
-                    </div>
 
-                    <div class="col d-flex justify-content-end">
-                        <button type="button" class="btn btn-lg btn-outline-warning text-nowrap my-2 btn-order fw-bold" id="orderByExpDate" onclick="orderByExpDate();" style="[data-bs-theme='light'] {color: #cfb555;}">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-circle p-2 btn-search" id="searchToggleBtn" onclick="toggleSearchOverlay();" aria-label="Search">
+                        <i data-lucide="search" class="lucide-sm"></i>
+                        </button>
+
+                    </div>
+                    
+                    <div class="col-4 text-center">
+                        <h3 class="text-white fw-bold text-nowrap my-3 currentTab" data-i18n="allTasks">All Tasks</h3>
+                    </div>
+                    <div class="col-4 d-flex justify-content-end align-items-center gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-warning text-nowrap my-2 rounded-circle p-2 btn-order fw-bold" id="orderByExpDate" onclick="orderByExpDate();" style="[data-bs-theme='light'] {color: #cfb555;}">
                             <i data-lucide="chevrons-up" class=""></i>
+                        </button>
                         <button type="button" class="btn btn-lg btn-outline-warning text-nowrap my-2 fw-bold" id="saveBtn" onclick="sendUpdate();" style="[data-bs-theme='light'] {color: #cfb555;}">
                             &ensp;<span data-i18n="save">Save</span>&ensp;<i data-lucide="save" class=""></i>
-                    </button>
-                    </div>
-                </div>
-
-                <!-- New Task -->
-                <div class="row collapse p-4 m-0" id="collapseEditor">
-                    <div class="divider mb-3"></div>
-                    <div class="col p-0">
-                        <div class="content justify-content-between" style="color: var(--bs-gray)">
-                            <!-- Task Description -->
-                            <div class="row row-cols-3 flex-nowrap">
-                                <div class="col-6">
-                                    <div class="input-group mb-3">
-                                        <span class="input-group-text fw-light" id="newTitleSpan"><i data-lucide="square-round-corner" class="lucide-sm opacity-50"></i></span>
-                                        <input type="text" class="form-control" id="newTitle" data-i18n-placeholder="title" placeholder="Title" aria-label="Title" aria-describedby="newTitleSpan">
-                                      </div>                                      
-                                </div>
-                                <div class="col-3">
-                                    <div class="input-group mb-3 font-light ">
-                                    <input type="text" class="form-control" data-i18n-placeholder="topics" placeholder="+ Topic" id="newTopics" aria-label="Categories" aria-describedby="newTopicsSpan">
-                                    <span class="input-group-text" id="newTopicsSpan" style="overflow-x: scroll;min-width: 3em;">
-                                        <i data-lucide="tags" class="lucide-sm opacity-50"></i></span>
-                                  </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="input-group date d-flex flex-nowrap datapickertoggler">
-                                        <input type="text" class="form-control fw-light pe-none text-body-secondary bg-body-tertiary float-end text-end" value="" id="newExpireDate" placeholder="" style="border: 0; min-width: 0px!important;">
-                                        <span class="input-group-text datapickertoggler" style="border: 0;">
-                                            <i data-lucide="calendar-days"
-                                            class="lucide-sm opacity-50 datapickertoggler"></i>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-         
-                            <div class="col">
-                                <div class="form-floating">
-                                    <textarea class="form-control" data-i18n-placeholder="description" placeholder="Description here" id="newDesc" ></textarea>
-                                    <label for="newDesc" style="color: var(--bs-gray)" data-i18n="description">Description</label>
-                                </div>
-                            </div>
-                            <div class="row mt-3">
-                                <div class="col">
-                                    <div class="input-group mb-3 font-light">
-                                    <p class="mt-3 font-light"><span data-i18n="dependsOn">Depend by Task</span>: 
-                                        <button type="button" class="m-0 p-0 bg-transparent border-0 text-body-secondary text-end" aria-label="Close" onClick="$('#newDepencyTask').attr('href', '#').text(t('noDependency'));">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                        <a id="newDepencyTask" class="depency alert z-0 m-0 p-0" href="#" data-i18n="noDependency">No dependency</a>
-                                    </p>
-
-                                    <button class="btn btn-outline-primary p-2 m-2 text-nowrap" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="New Task" data-bs-requiredforID="0">
-                                        <i data-lucide="circle-plus" class=""></i>
-                                    </button> 
-                                </div>
-                                
-                                </div>
-                                <div class="col d-flex justify-content-end">
-                                    <button type="button" class="btn btn-lg btn-outline-primary text-uppercase" onClick="insertNewTask();">
-                                        &ensp;<span data-i18n="insert">Insert</span>&ensp;<i data-lucide="circle-plus" class=""></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                        </div>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -221,7 +154,7 @@
             </div>
             
             <small class="d-block text-end mt-3">
-                <a href="#">Alpha version</a>
+                <a href="#">Go Top</a>
                 <a class="btn btn-danger d-none" href="path/to/settings" aria-label="Delete">
                     <i class='bx bxs-save'>Delete</i>
                 </a>
@@ -432,6 +365,71 @@
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="closeButton" data-bs-dismiss="modal" data-i18n="close">Close</button>
                 <button type="button" id="sendButton" class="btn btn-danger" data-i18n="importTasks">Import</button>
+              </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="addTaskModalLabel" data-i18n="addTask">Add Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div class="content" style="color: var(--bs-gray)">
+                    <div class="row row-cols-3 flex-nowrap">
+                        <div class="col-6">
+                            <div class="input-group mb-3">
+                                <span class="input-group-text fw-light" id="newTitleSpan"><i data-lucide="square-round-corner" class="lucide-sm opacity-50"></i></span>
+                                <input type="text" class="form-control" id="newTitle" data-i18n-placeholder="title" placeholder="Title" aria-label="Title" aria-describedby="newTitleSpan">
+                              </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="input-group mb-3 font-light">
+                            <input type="text" class="form-control" data-i18n-placeholder="topics" placeholder="+ Topic" id="newTopics" aria-label="Categories" aria-describedby="newTopicsSpan">
+                            <span class="input-group-text" id="newTopicsSpan" style="overflow-x: scroll;min-width: 3em;">
+                                <i data-lucide="tags" class="lucide-sm opacity-50"></i></span>
+                          </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="input-group date d-flex flex-nowrap datapickertoggler">
+                                <input type="text" class="form-control fw-light pe-none text-body-secondary bg-body-tertiary float-end text-end" value="" id="newExpireDate" placeholder="" style="border: 0; min-width: 0px!important;">
+                                <span class="input-group-text datapickertoggler" style="border: 0;">
+                                    <i data-lucide="calendar-days" class="lucide-sm opacity-50 datapickertoggler"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-floating">
+                            <textarea class="form-control" data-i18n-placeholder="description" placeholder="Description here" id="newDesc"></textarea>
+                            <label for="newDesc" style="color: var(--bs-gray)" data-i18n="description">Description</label>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <div class="input-group mb-3 font-light">
+                            <p class="mt-3 font-light"><span data-i18n="dependsOn">Depend by Task</span>:
+                                <button type="button" class="m-0 p-0 bg-transparent border-0 text-body-secondary text-end" aria-label="Close" onClick="$('#newDepencyTask').attr('href', '#').text(t('noDependency'));">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                <a id="newDepencyTask" class="depency alert z-0 m-0 p-0" href="#" data-i18n="noDependency">No dependency</a>
+                            </p>
+                            <button class="btn btn-outline-primary p-2 m-2 text-nowrap" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="New Task" data-bs-requiredforID="0">
+                                <i data-lucide="circle-plus" class=""></i>
+                            </button>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-i18n="close">Close</button>
+                <button type="button" class="btn btn-primary text-uppercase" onclick="insertNewTask();">
+                    <span data-i18n="insert">Insert</span>&ensp;<i data-lucide="circle-plus" class=""></i>
+                </button>
               </div>
             </div>
         </div>

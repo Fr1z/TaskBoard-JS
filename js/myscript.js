@@ -747,32 +747,80 @@ function enableDynamicActions() {
     });
 }
 
-// ─── SEARCH ───────────────────────────────────────────────────────────────────
+function toggleSearchOverlay(force) {
+    const overlay = document.getElementById('searchOverlay');
+    if (!overlay) return;
+    const show = typeof force === 'boolean' ? force : overlay.classList.contains('d-none');
+    overlay.classList.toggle('d-none', !show);
+    if (show) {
+        const input = document.getElementById('mysearch');
+        if (input) setTimeout(() => input.focus(), 50);
+        lucide.createIcons();
+    }
+}
 function enableSearch() {
     if (_searchInitialized) return;
     const el = document.getElementById('mysearch');
+    const overlay = document.getElementById('searchOverlay');
     if (!el) return;
-
     el.addEventListener('input', function () {
         const searchTerm = this.value.toLowerCase();
         const rows = document.querySelectorAll('.myitem');
-
         if (!searchTerm || searchTerm.length <= 2) {
             $('.myitem:hidden').show();
             return;
         }
-
         rows.forEach(row => {
             const text = [
                 $(row).find('input.title').val(),
                 $(row).find('textarea.desc').val(),
                 $(row).find('.categories').text()
             ].join(' ').toLowerCase();
-
             $(row).toggle(text.includes(searchTerm));
         });
     });
-
+    if (overlay) {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) toggleSearchOverlay(false);
+        });
+        const bar = overlay.querySelector('.search-bar');
+        if (bar) bar.addEventListener('click', e => e.stopPropagation());
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const ov = document.getElementById('searchOverlay');
+            if (ov && !ov.classList.contains('d-none')) toggleSearchOverlay(false);
+        }
+    });
+    document.addEventListener('click', function(e) {
+        const ov = document.getElementById('searchOverlay');
+        if (!ov || ov.classList.contains('d-none')) return;
+        const bar = ov.querySelector('.search-bar');
+        const btn = document.getElementById('searchToggleBtn');
+        if (bar && bar.contains(e.target)) return;
+        if (btn && btn.contains(e.target)) return;
+        if (ov.contains(e.target)) return;
+        toggleSearchOverlay(false);
+    });
+    let touchStartY = null;
+    let touchStartX = null;
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches.length !== 1) return;
+        touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    document.addEventListener('touchend', function(e) {
+        if (touchStartY === null) return;
+        const endY = e.changedTouches[0].clientY;
+        const endX = e.changedTouches[0].clientX;
+        const deltaY = endY - touchStartY;
+        const deltaX = Math.abs(endX - touchStartX);
+        if (window.scrollY === 0 && touchStartY < 80 && deltaY > 60 && deltaX < 40) {
+            toggleSearchOverlay(true);
+        }
+        touchStartY = null;
+        touchStartX = null;
+    }, { passive: true });
     _searchInitialized = true;
 }
 
@@ -1019,16 +1067,16 @@ function deleteTask(taskLUID) {
 
 // ─── INSERT NEW TASK ──────────────────────────────────────────────────────────
 function insertNewTask() {
+    const scope = $('#addTaskModal').length ? '#addTaskModal' : '#collapseEditor';
     const newTask = {};
 
-    newTask.title       = $('#collapseEditor #newTitle').val();
-    newTask.description = $('#collapseEditor #newDesc').val();
-    newTask.categories  = $('#collapseEditor #newTopicsSpan').find('span.badge i')
+    newTask.title       = $(scope + ' #newTitle').val();
+    newTask.description = $(scope + ' #newDesc').val();
+    newTask.categories  = $(scope + ' #newTopicsSpan').find('span.badge i')
         .map(function () { return $(this).text().trim(); }).get().join(',');
-    newTask.expireDate  = $('#collapseEditor #newExpireDate').val();
+    newTask.expireDate  = $(scope + ' #newExpireDate').val();
 
-    // FIX: jQuery attr() returns `undefined` (not null) when attribute is absent
-    const rawHref = $('#collapseEditor #newDepencyTask').attr('href');
+    const rawHref = $(scope + ' #newDepencyTask').attr('href');
     newTask.depency = rawHref ? rawHref.replace('#', '') : '';
 
     if (!newTask.title.length) {
@@ -1045,12 +1093,19 @@ function insertNewTask() {
             }
             $('#toastSuccess .text-message').html("Task Added :)");
             new bootstrap.Toast($('#toastSuccess')).show();
-            $('#collapseEditor #newTitle').val('');
-            $('#collapseEditor #newDesc').val('');
-            $('#collapseEditor #newExpireDate').val('');
-            $('#collapseEditor #newTopicsSpan').html('');
-            $('#collapseEditor #newDepencyTask').attr('href', '#');
-            $('#collapseEditor').collapse('toggle');
+            $(scope + ' #newTitle').val('');
+            $(scope + ' #newDesc').val('');
+            $(scope + ' #newExpireDate').val('');
+            $(scope + ' #newTopicsSpan').html('<i data-lucide="tags" class="lucide-sm opacity-50"></i>');
+            $(scope + ' #newDepencyTask').attr('href', '#').text(t('noDependency'));
+            lucide.createIcons();
+            const modalEl = document.getElementById('addTaskModal');
+            if (modalEl) {
+                const inst = bootstrap.Modal.getInstance(modalEl);
+                if (inst) inst.hide();
+            } else {
+                $('#collapseEditor').collapse('toggle');
+            }
             return true;
         })
         .then(success => { if (success) loadAllTask(); })

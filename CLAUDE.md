@@ -59,19 +59,21 @@ Doc in DB `mytasks` (`myscript.js:62-79`):
 - `translateDatePickers:472` locale IT datepicker, `lucide.createIcons()` dopo ogni render.
 
 ## 7. Interazioni utente
-- **Tab**: `switchToTab:257` + radio `dash.html:90-97` `onclick="switchToTab(...)"`.
-- **Nuovo task**: collapse `#collapseEditor:153` + `insertNewTask:959` -> POST `/insert` -> `loadAllTask`.
+- **Tab**: `switchToTab:318` pill solo-icone `dash.html:93` + `css/mystyle.css:29 tab-pill` (full-height 56px), `currentTab` bianco.
+- **Search overlay**: `#searchOverlay` pull-down `dash.html:76` + `toggleSearchOverlay`/`enableSearch:750` con swipe-down (scrollY==0, deltaY>60) + Escape/click fuori, bottone `#searchToggleBtn` solo-icona dentro `addTaskModal` (`dash.html: ~350`).
+- **Navbar gear**: `navbar-pouch` 3 sezioni `logo|pill|settings gear` `dash.html:85` `min-height 72px stretch`, dropdown `min-width 220px` `bg-secondary`.
+- **Nuovo task**: modal `#addTaskModal` (`dash.html: ~345` `modal-lg`) + `insertNewTask:1069` scope `#addTaskModal` -> POST `/insert` -> hide modal -> `loadAllTask`; collapse rimosso.
 - **Modifica + Save**: editing inline (title/desc/expire/categories/depends/star/order via drag) -> `getModifiedItems:852` diff DOM vs `taskData` -> `sendUpdate:761` PUT `/update` con spinner `startSpinning:739`.
 - **Complete/Uncomplete**: `completeTask:877` PUT `/complete|/uncomplete` + hide DOM.
 - **Progress**: `upgradeTask:906` PUT `/progress` + disable 24h.
 - **Delete**: soft `status=0` via `deleteTask:933` + modal `confirmDeleteModal` (`modal-actions.js:10`).
 - **Subtask/Dependenze**: `addSubTaskModal` (`39`) scrive `<a href="#luid">` in `.deps` o `#newDepencyTask` (ricorda Save).
 - **Sortable**: `jquery-ui sortable:1038` handle `.bd-placeholder`, `sortstop:1041` ricalcola `order`.
-- **Search**: `enableSearch:689` filtro `input.title+desc+categories` se >2 char, guard `_searchInitialized`.
+- **Search**: `enableSearch:751` + `toggleSearchOverlay` filtro `input.title+desc+categories` se >2 char, guard `_searchInitialized`.
 - **Ordinamento data**: `orderByExpDate:1024` sort DOM per `parseDate:1017`.
 - **Export/Import**: `exportTaskAsFile:790` GET `/tasks` -> Blob o `FlutterExport`, `db_importTasks:134` via modal `importTaskModal:178`.
 - **Expand/Collapse**: `expand-toggler` toggle `.desc.expanded` + `.collapse.showed`, `collapseAllItems:585`.
-- **Textarea mobile**: `textareaModal:427` overlay per `window.innerWidth<=992` (`modal-actions.js:232`).
+- **Textarea mobile**: `textareaModal:427` overlay glass per `window.innerWidth<=992` (`modal-actions.js:232`), X 44px mobile.
 - **Shortcut**: `Ctrl+S` -> Save (`1009`).
 
 ## 8. Modali (`dash.html:303`, `modal-actions.js`)
@@ -79,6 +81,7 @@ Doc in DB `mytasks` (`myscript.js:62-79`):
 - `confirmDeleteModal:10` legge `data-bs-deleteID/Name`.
 - `settingsModal:127` legge `localStorage theme/lang/initialTab`, scrive su Save.
 - `importTaskModal:178` FileReader + POST `/import`.
+- `addTaskModal: ~345` nuovo task con tutti i campi + search icon solo-icona, focus title su `show.bs.modal` (`modal-actions.js`) + `insertNewTask` con chiusura modal.
 - Bug: ogni `show.bs.modal` ri-aggiunge `click` listener su `sendBtn` senza `removeEventListener` -> handler multipli.
 
 ## 9. Settings e theming + i18n
