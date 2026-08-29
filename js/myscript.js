@@ -319,8 +319,8 @@ function switchToTab(tab) {
     selectedTab = tab;
     const labelMap = { STARRED: t('starred'), ALL: t('todo'), COMPLETED: t('completed') };
     $(".currentTab").text(labelMap[tab] ?? tab.charAt(0).toUpperCase() + tab.slice(1).toLowerCase());
-    $('.navbar-nav .btn-check').prop('checked', false);
-    $('.navbar-nav .btn-check[tab="' + selectedTab + '"]').prop('checked', true);
+    $('.tab-pill .btn-check').prop('checked', false);
+    $('.tab-pill .btn-check[tab="' + selectedTab + '"]').prop('checked', true);
     loadAllTask();
 }
 
