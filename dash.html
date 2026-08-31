@@ -439,8 +439,14 @@
     <div id="textareaModal" class="tm-hidden">
         <div class="tm-overlay"></div>
         <div class="tm-content">
-            <button id="tm-close">&times;</button>
-            <input id="tm-title" type="text" data-i18n-placeholder="title" placeholder="Title">
+            <div class="row m-0 flex-nowrap align-items-center gap-1">
+                <div class="col-10 d-flex justify-content-start">
+                    <input id="tm-title" type="text" data-i18n-placeholder="title" placeholder="Title">
+                </div>
+                <div class="col-2 d-flex justify-content-end">
+                    <button id="tm-close"></button>
+                </div>
+            </div>
             <textarea id="tm-textarea" data-i18n-placeholder="description" placeholder="Description here"></textarea>
         </div>
     </div>
