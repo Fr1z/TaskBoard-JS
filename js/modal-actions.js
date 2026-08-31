@@ -6,7 +6,9 @@ var addTaskModal = document.getElementById('addTaskModal');
 
 var textareaModal = document.getElementById('textareaModal');
 var textareaModalInput = document.getElementById('tm-textarea');
+var textareaModalTitle = document.getElementById('tm-title');
 let activeTextarea = null;
+let activeTitleInput = null;
 
 confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
     
@@ -263,23 +265,32 @@ if (addTaskModal) {
 }
 
 function closeTextAreaModal() {
-    if (activeTextarea !== 'undefined' && activeTextarea != null) {
-        activeTextarea.value = textareaModalInput.value;
-        textareaModal.classList.add("tm-hidden");
-    }
+    if (activeTitleInput) activeTitleInput.value = textareaModalTitle.value;
+    if (activeTextarea) activeTextarea.value = textareaModalInput.value;
+    textareaModal.classList.add("tm-hidden");
+    activeTitleInput = null;
     activeTextarea = null;
 }
 
 document.getElementById("tm-close").onclick = closeTextAreaModal;
 document.querySelector(".tm-overlay").addEventListener("click", closeTextAreaModal);
 document.addEventListener("click", function (e) {
-    if (e.target.tagName === "TEXTAREA" && e.target.id != 'tm-textarea') {
+    const isTextarea = e.target.tagName === "TEXTAREA" && e.target.id !== 'tm-textarea';
+    const isTitle = e.target.classList && e.target.classList.contains('title') && e.target.tagName === "INPUT";
+    if (isTextarea || isTitle) {
         if (window.innerWidth <= 992) {
             e.preventDefault();
-            activeTextarea = e.target;
-            textareaModalInput.value = activeTextarea.value;
+            const item = e.target.closest('.myitem');
+            if (!item) return;
+            activeTextarea = item.querySelector('.desc');
+            activeTitleInput = item.querySelector('.title');
+            if (textareaModalTitle && activeTitleInput) textareaModalTitle.value = activeTitleInput.value;
+            if (textareaModalInput && activeTextarea) textareaModalInput.value = activeTextarea.value;
             textareaModal.classList.remove("tm-hidden");
-            setTimeout(() => textareaModalInput.focus(), 50);
+            setTimeout(() => {
+                if (isTitle && textareaModalTitle) textareaModalTitle.focus();
+                else if (textareaModalInput) textareaModalInput.focus();
+            }, 50);
         }
     }
 });
