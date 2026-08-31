@@ -407,6 +407,19 @@ img, svg {
     color: whitesmoke;
     line-height: 1;
 }
+#textareaModal .tm-content > .row {
+    flex-wrap: nowrap !important;
+}
+#textareaModal .tm-content > .row > .col-10 {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+}
+#textareaModal .tm-content > .row > .col-2 {
+    flex: 0 0 auto !important;
+    width: auto !important;
+}
+#tm-title { min-width: 0; }
 
 /* TOASTS */
 .toast {
