@@ -74,6 +74,9 @@ function applyI18n() {
 // ─── POUCHDB LOCAL DATABASE ───────────────────────────────────────────────────
 // pouchDB-9.0.0.min.js is already included in the page before this script.
 const localDB = new PouchDB('mytasks');
+// expose for remote-sync.js (which uses getDB() fallback)
+try { if (typeof window !== 'undefined') window.localDB = localDB; } catch(e) {}
+try { if (typeof globalThis !== 'undefined') globalThis.localDB = localDB; } catch(e) {}
 localDB.info().then(info => console.log('[PouchDB] ready:', info.db_name));
 
 // ─── APP STATE ────────────────────────────────────────────────────────────────
@@ -933,21 +936,52 @@ function sendUpdate() {
         .then(() => {
             stopSpinning('#saveBtn');
             // ── Incremental remote sync (non-blocking, only if modified & endpoint enabled)
+            // Se remoto è vuoto per quel token, invia intero dataset (first sync).
             try {
                 if (typeof RemoteSync !== 'undefined' && RemoteSync.isEnabled()) {
                     var since = RemoteSync.getLastSync();
-                    // collect local changes since last sync (includes status=0 deletes)
-                    RemoteSync.collectLocalChanges(since).then(function(changes){
-                        if (!changes || !changes.length) {
-                            console.log('[sync] no local changes to push');
-                            return;
+                    // Helper to handle merge and UI refresh
+                    function handleSyncResult(data){
+                        if (data && data.tasks && data.tasks.length) {
+                            return RemoteSync.mergeRemoteTasks(data.tasks).then(function(cnt){
+                                if (cnt>0) loadAllTask();
+                                else console.log('[sync] push+pull done, no remote merges');
+                            });
+                        } else if (data) {
+                            console.log('[sync] sync done, server total '+ (data.total||0));
                         }
-                        console.log('[sync] pushing incremental', changes.length, 'tasks since', since);
-                        return RemoteSync.syncIncremental(changes, [], since).then(function(data){
-                            if (data && data.tasks && data.tasks.length) {
-                                return RemoteSync.mergeRemoteTasks(data.tasks).then(function(cnt){
-                                    if (cnt>0) loadAllTask();
-                                    else console.log('[sync] push+pull done, no remote merges');
+                    }
+                    // Prima verifica se il server è vuoto: pull con since corrente
+                    RemoteSync.pull(since).then(function(pullData){
+                        var isRemoteEmpty = pullData && (pullData.total === 0);
+                        // merge eventuali remote changes prima del push (non vuoto)
+                        var mergePromise = Promise.resolve(0);
+                        if (pullData && pullData.tasks && pullData.tasks.length) {
+                            mergePromise = RemoteSync.mergeRemoteTasks(pullData.tasks).then(function(cnt){
+                                if (cnt>0) loadAllTask();
+                                return cnt;
+                            });
+                        }
+                        return mergePromise.then(function(){
+                            if (isRemoteEmpty) {
+                                // Primo sync: invia TUTTO il dataset locale (non solo diff)
+                                console.log('[sync] remote empty, pushing full dataset');
+                                return db_getAllDocs().then(function(allDocs){
+                                    // invia tutti i doc validi (include status 0 per propagare delete, ma al primo sync tipicamente solo status 1/2)
+                                    var all = allDocs.filter(function(d){ return d.luid!=null && d._id.indexOf('_design')!==0; });
+                                    if (!all.length) { console.log('[sync] no local tasks to push (remote empty)'); return; }
+                                    // usa since=null per full push sul server
+                                    return RemoteSync.syncIncremental(all, [], null).then(handleSyncResult);
+                                });
+                            } else {
+                                // Sync incrementale normale
+                                return RemoteSync.collectLocalChanges(since).then(function(changes){
+                                    if (!changes || !changes.length) {
+                                        console.log('[sync] no local changes to push (remote has '+pullData.total+' tasks)');
+                                        return;
+                                    }
+                                    console.log('[sync] pushing incremental', changes.length, 'tasks since', since);
+                                    return RemoteSync.syncIncremental(changes, [], since).then(handleSyncResult);
                                 });
                             }
                         });

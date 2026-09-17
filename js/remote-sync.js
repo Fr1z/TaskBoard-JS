@@ -18,7 +18,11 @@
     function setLastSync(iso) { if (iso) localStorage.setItem(LS_LAST_SYNC, iso); }
 
     function isValidUrl(s) {
-        try { var u = new URL(s); return u.protocol === 'http:' || u.protocol === 'https:'; } catch(e){ return false; }
+        if (!s) return false;
+        try {
+            var u = new URL(s, (typeof window !== 'undefined' && window.location) ? window.location.href : 'http://localhost/');
+            return u.protocol === 'http:' || u.protocol === 'https:';
+        } catch(e){ return false; }
     }
     function isEnabled() {
         var ep = getEndpoint();
@@ -65,18 +69,39 @@
         console.warn('[sync] ' + msg, err || '');
     }
 
+    function getDB() {
+        if (global.localDB) return global.localDB;
+        if (typeof window !== 'undefined' && window.localDB) return window.localDB;
+        try { if (typeof localDB !== 'undefined' && localDB) return localDB; } catch(e) {}
+        if (typeof globalThis !== 'undefined' && globalThis.localDB) return globalThis.localDB;
+        return null;
+    }
+
     function apiUrl(action, extraParams) {
         var ep = getEndpoint();
         if (!ep) return null;
-        var u = ep;
-        var sep = u.indexOf('?') === -1 ? '?' : '&';
-        u += sep + 'action=' + encodeURIComponent(action);
-        if (extraParams) {
-            Object.keys(extraParams).forEach(function(k){
-                if (extraParams[k] != null) u += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(extraParams[k]);
-            });
+        try {
+            var base = new URL(ep, (typeof window !== 'undefined' && window.location) ? window.location.href : 'http://localhost/');
+            base.searchParams.set('action', action);
+            if (extraParams) {
+                Object.keys(extraParams).forEach(function(k){
+                    if (extraParams[k] != null && extraParams[k] !== '') base.searchParams.set(k, extraParams[k]);
+                    else if (extraParams[k] === '') base.searchParams.set(k, '');
+                });
+            }
+            return base.toString();
+        } catch(e) {
+            // fallback to old string concat
+            var u = ep;
+            var sep = u.indexOf('?') === -1 ? '?' : '&';
+            u += sep + 'action=' + encodeURIComponent(action);
+            if (extraParams) {
+                Object.keys(extraParams).forEach(function(k){
+                    if (extraParams[k] != null) u += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(extraParams[k]);
+                });
+            }
+            return u;
         }
-        return u;
     }
 
     // --- Pull ---
@@ -158,9 +183,11 @@
     // Merge remote tasks into local PouchDB (newer wins)
     function mergeRemoteTasks(remoteTasks) {
         if (!remoteTasks || !remoteTasks.length) return Promise.resolve(0);
-        // need db access - use global localDB and db_getAllDocs
+        // need db access - use db_getAllDocs if available, otherwise getDB()
         var getAll = (typeof db_getAllDocs === 'function') ? db_getAllDocs : function(){
-            return global.localDB.allDocs({include_docs:true}).then(function(r){ return r.rows.map(function(x){return x.doc;}); });
+            var db = getDB();
+            if (!db) return Promise.reject(new Error('localDB not available for merge'));
+            return db.allDocs({include_docs:true}).then(function(r){ return r.rows.map(function(x){return x.doc;}); });
         };
         return getAll().then(function(localDocs){
             var byLuid = {};
@@ -177,7 +204,9 @@
                     // new task - strip _rev/_id if present to allow insert, keep luid
                     var nd = Object.assign({}, rt);
                     delete nd._id; delete nd._rev;
-                    ops.push(global.localDB.post(nd).then(function(){ count++; }).catch(function(e){ warn('merge insert fail '+luidStr, e); }));
+                    var db = getDB();
+                    if (!db) { warn('merge insert fail '+luidStr+' - no DB'); return; }
+                    ops.push(db.post(nd).then(function(){ count++; }).catch(function(e){ warn('merge insert fail '+luidStr, e); }));
                 } else {
                     var tsRemote = Date.parse(rt.lastEdit || rt.lastWrite || 0) || 0;
                     var tsLocal  = Date.parse(local.lastEdit || local.lastWrite || 0) || 0;
@@ -193,7 +222,9 @@
                         merged._rev = local._rev;
                         // ensure both aliases
                         merged.lastWrite = merged.lastEdit;
-                        ops.push(global.localDB.put(merged).then(function(){ count++; }).catch(function(e){ warn('merge update fail '+luidStr, e); }));
+                        var db2 = getDB();
+                        if (!db2) { warn('merge update fail '+luidStr+' - no DB'); return; }
+                        ops.push(db2.put(merged).then(function(){ count++; }).catch(function(e){ warn('merge update fail '+luidStr, e); }));
                     }
                 }
             });
@@ -224,7 +255,9 @@
         var tsSince = since ? Date.parse(since) : 0;
         if (isNaN(tsSince)) tsSince = 0;
         var getAll = (typeof db_getAllDocs === 'function') ? db_getAllDocs : function(){
-            return global.localDB.allDocs({include_docs:true}).then(function(r){ return r.rows.map(function(x){return x.doc;}); });
+            var db = getDB();
+            if (!db) return Promise.reject(new Error('localDB not available for collect'));
+            return db.allDocs({include_docs:true}).then(function(r){ return r.rows.map(function(x){return x.doc;}); });
         };
         return getAll().then(function(docs){
             return docs.filter(function(d){
