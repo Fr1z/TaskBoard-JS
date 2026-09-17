@@ -1,0 +1,4 @@
+<FilesMatch "\.(json|enc|dat)$">
+Require all denied
+</FilesMatch>
+Options -Indexes

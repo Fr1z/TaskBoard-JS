@@ -26,6 +26,7 @@
     
     <script src="js/color-modes.js"></script>
     <script src="js/mobile-fix.js"></script>
+    <script src="js/remote-sync.js"></script>
 
     <script src="js/lucide.min.js"></script>
     <script src="js/pouchDB-9.0.0.min.js"></script>
@@ -300,8 +301,25 @@
               <div class="modal-body">
                 <form>
                     <div class="mb-3">
-                        <label for="currentServer" class="form-label" data-i18n="taskServer">Task Server</label>
-                        <input class="form-control" id="currentServer" placeholder="IP:port" readonly>
+                        <label class="form-label fw-bold" data-i18n="syncSection">Sync Remoto</label>
+                        <div class="border rounded p-3 mb-2 bg-body-tertiary">
+                            <label for="syncEndpoint" class="form-label" data-i18n="syncEndpoint">Sync Endpoint URL</label>
+                            <input class="form-control" id="syncEndpoint" type="url" placeholder="https://example.com/remoteSync/PHP/sync.php">
+                            <div class="form-text" data-i18n="syncEndpointHelp">URL del file sync.php (es. https://tuosito/remoteSync/PHP/sync.php)</div>
+                            <label for="syncToken" class="form-label mt-2" data-i18n="syncToken">Bearer Token (opzionale)</label>
+                            <input class="form-control" id="syncToken" type="password" placeholder="Bearer token" autocomplete="off">
+                            <label for="syncEncPassword" class="form-label mt-2" data-i18n="syncEncPassword">Encryption Password (opzionale)</label>
+                            <input class="form-control" id="syncEncPassword" type="password" placeholder="Password per cifratura storage" autocomplete="off">
+                            <div class="form-text" data-i18n="syncEncHelp">Se valorizzata, lo storage remoto è compresso e cifrato (AES-256-GCM)</div>
+                            <div class="d-flex gap-2 mt-3">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="testSyncBtn" data-i18n="testSync">Test Sync</button>
+                                <span id="syncStatus" class="small align-self-center text-body-secondary"></span>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
+                            <span class="small" data-i18n="trashSection">Cestino (task eliminati logicamente)</span>
+                            <button type="button" class="btn btn-sm btn-outline-danger" id="emptyTrashBtn" data-i18n="emptyTrash">Svuota cestino</button>
+                        </div>
                         <hr><br />
                         <label for="langDataList" class="form-label" data-i18n="lang">Language</label>
                         <select class="form-select" id="langDataList">

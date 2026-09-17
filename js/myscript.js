@@ -27,6 +27,9 @@ const I18N = {
         settings: 'Settings', theme: 'Theme color', lang: 'Language', initialTab: 'Initial Tab',
         textSize: 'Text size', fontFamily: 'Font family',
         taskServer: 'Task Server', organization: 'Organization',
+        syncSection: 'Remote Sync', syncEndpoint: 'Sync Endpoint URL', syncEndpointHelp: 'URL of sync.php (e.g. https://yoursite/remoteSync/PHP/sync.php)',
+        syncToken: 'Bearer Token (optional)', syncEncPassword: 'Encryption Password (optional)', syncEncHelp: 'If set, remote storage is compressed & encrypted (AES-256-GCM)',
+        testSync: 'Test Sync', emptyTrash: 'Empty Trash', trashSection: 'Trash (soft-deleted tasks)', trashEmptied: 'Trash emptied', syncOk: 'Sync OK', syncFail: 'Sync failed',
         starred: 'Starred', todo: 'To Do', completed: 'Completed', allTasks: 'All Tasks',
         search: 'Search', addTask: 'Add Task', save: 'Save', insert: 'Insert',
         title: 'Title', topics: 'Topics', description: 'Description', dependsOn: 'Depends on',
@@ -41,6 +44,9 @@ const I18N = {
         settings: 'Impostazioni', theme: 'Tema', lang: 'Lingua', initialTab: 'Tab iniziale',
         textSize: 'Dimensione testo', fontFamily: 'Famiglia font',
         taskServer: 'Server Task', organization: 'Organizzazione',
+        syncSection: 'Sync Remoto', syncEndpoint: 'URL Endpoint Sync', syncEndpointHelp: 'URL di sync.php (es. https://tuosito/remoteSync/PHP/sync.php)',
+        syncToken: 'Bearer Token (opzionale)', syncEncPassword: 'Password Cifratura (opzionale)', syncEncHelp: 'Se impostata, lo storage remoto è compresso e cifrato (AES-256-GCM)',
+        testSync: 'Test Sync', emptyTrash: 'Svuota cestino', trashSection: 'Cestino (task eliminati)', trashEmptied: 'Cestino svuotato', syncOk: 'Sync OK', syncFail: 'Sync fallito',
         starred: 'Preferiti', todo: 'Da fare', completed: 'Completati', allTasks: 'Tutti i Task',
         search: 'Cerca', addTask: 'Aggiungi Task', save: 'Salva', insert: 'Inserisci',
         title: 'Titolo', topics: 'Argomenti', description: 'Descrizione', dependsOn: 'Dipende da',
@@ -350,6 +356,40 @@ function clearLocalStorageData() {
     }).catch(function (err) {
         console.log(err);
     });
+}
+
+// ─── HARD DELETE TRASH (consistent sync) ────────────────────────────────────
+async function hardDeleteTrash() {
+    try {
+        const docs = await db_getAllDocs();
+        const trash = docs.filter(d => d.status === 0);
+        if (!trash.length) {
+            console.log('[hardDeleteTrash] no trash to empty');
+            return 0;
+        }
+        const luids = trash.map(d => d.luid);
+        // First push tombstones to remote (consistent sync) if enabled
+        if (typeof RemoteSync !== 'undefined' && RemoteSync.isEnabled()) {
+            try {
+                await RemoteSync.push([], luids);
+                console.log('[hardDeleteTrash] tombstones pushed', luids);
+            } catch (e) {
+                console.warn('[hardDeleteTrash] remote tombstone push failed (non-blocking)', e);
+            }
+        }
+        // Then hard delete locally via _deleted
+        const toDelete = trash.map(d => ({ _id: d._id, _rev: d._rev, _deleted: true }));
+        const res = await localDB.bulkDocs(toDelete);
+        // cleanup taskData snapshots
+        luids.forEach(l => { delete taskData[l]; });
+        console.log('[hardDeleteTrash] hard deleted', res.length);
+        // refresh UI
+        loadAllTask();
+        return trash.length;
+    } catch (err) {
+        console.error('[hardDeleteTrash] error', err);
+        throw err;
+    }
 }
 
 // ─── DOM RENDERING ────────────────────────────────────────────────────────────
@@ -890,7 +930,33 @@ function sendUpdate() {
             }
             return response.json();
         })
-        .then(() => stopSpinning('#saveBtn'))
+        .then(() => {
+            stopSpinning('#saveBtn');
+            // ── Incremental remote sync (non-blocking, only if modified & endpoint enabled)
+            try {
+                if (typeof RemoteSync !== 'undefined' && RemoteSync.isEnabled()) {
+                    var since = RemoteSync.getLastSync();
+                    // collect local changes since last sync (includes status=0 deletes)
+                    RemoteSync.collectLocalChanges(since).then(function(changes){
+                        if (!changes || !changes.length) {
+                            console.log('[sync] no local changes to push');
+                            return;
+                        }
+                        console.log('[sync] pushing incremental', changes.length, 'tasks since', since);
+                        return RemoteSync.syncIncremental(changes, [], since).then(function(data){
+                            if (data && data.tasks && data.tasks.length) {
+                                return RemoteSync.mergeRemoteTasks(data.tasks).then(function(cnt){
+                                    if (cnt>0) loadAllTask();
+                                    else console.log('[sync] push+pull done, no remote merges');
+                                });
+                            }
+                        });
+                    }).catch(function(err){
+                        console.warn('[sync] incremental sync failed (non-blocking)', err);
+                    });
+                }
+            } catch(e){ console.warn('[sync] sync on save error', e); }
+        })
         .catch(error => {
             stopSpinning('#saveBtn');
             $('#toastFailure .text-message').html("changes aren't saved :(");
@@ -1216,6 +1282,17 @@ async function loadAllTask() {
             lucide.createIcons();
             enableSearch(); // FIX: was `.then(enableSearch())` which invoked it immediately
             $('#loader').hide();
+            // ── Async remote pull (non-blocking) if sync endpoint configured
+            try {
+                if (typeof RemoteSync !== 'undefined' && RemoteSync.isEnabled()) {
+                    // delay slightly to let UI settle
+                    setTimeout(function(){
+                        RemoteSync.pullOnLoad().catch(function(err){
+                            console.warn('[sync] pullOnLoad failed (non-blocking)', err);
+                        });
+                    }, 300);
+                }
+            } catch(e){ console.warn('[sync] pullOnLoad error', e); }
         })
         .catch(error => {
             // Fallback: show last cached data from localStorage if PouchDB itself fails

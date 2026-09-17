@@ -1,2 +1,5 @@
 server
 notes
+remoteSync/PHP/storage/*.json
+remoteSync/PHP/storage/*.enc
+remoteSync/PHP/storage/*.dat

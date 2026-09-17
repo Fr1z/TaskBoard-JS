@@ -133,7 +133,12 @@ settingsModal.addEventListener('show.bs.modal', function (event) {
     var sendBtn = settingsModal.querySelector('.modal-footer #sendButton');
     var closeBtn = settingsModal.querySelector('.modal-footer #closeButton');
 
-    var serverAddr = settingsModal.querySelector('.modal-body #currentServer');
+    var syncEndpointInput = settingsModal.querySelector('.modal-body #syncEndpoint');
+    var syncTokenInput = settingsModal.querySelector('.modal-body #syncToken');
+    var syncEncInput = settingsModal.querySelector('.modal-body #syncEncPassword');
+    var testSyncBtn = settingsModal.querySelector('.modal-body #testSyncBtn');
+    var syncStatus = settingsModal.querySelector('.modal-body #syncStatus');
+    var emptyTrashBtn = settingsModal.querySelector('.modal-body #emptyTrashBtn');
     var datalistTheme = settingsModal.querySelector('.modal-body #themeDataList');
     var themeOptions = settingsModal.querySelectorAll('.modal-body .themeOpt');
     var datalistLang = settingsModal.querySelector('.modal-body #langDataList');
@@ -145,8 +150,62 @@ settingsModal.addEventListener('show.bs.modal', function (event) {
     var fontScaleValue = settingsModal.querySelector('.modal-body #fontScaleValue');
     var fontFamilySelect = settingsModal.querySelector('.modal-body #fontFamilySelect');
 
-    try { serverAddr.innerHTML = typeof serverAddress !== 'undefined' ? serverAddress : ''; } catch(e) {}
-    try { serverAddr.value = typeof serverAddress !== 'undefined' ? serverAddress : ''; } catch(e) {}
+    if (syncEndpointInput) syncEndpointInput.value = (typeof RemoteSync !== 'undefined' ? RemoteSync.getEndpoint() : (localStorage.getItem('syncEndpoint')||''));
+    if (syncTokenInput) syncTokenInput.value = (typeof RemoteSync !== 'undefined' ? RemoteSync.getToken() : (localStorage.getItem('syncToken')||''));
+    if (syncEncInput) syncEncInput.value = (typeof RemoteSync !== 'undefined' ? RemoteSync.getEncPassword() : (localStorage.getItem('syncEncPassword')||''));
+    if (syncStatus) syncStatus.textContent = '';
+    if (testSyncBtn) {
+        testSyncBtn.onclick = function(e){
+            e.preventDefault();
+            if (syncStatus) syncStatus.textContent = '...';
+            // save current inputs temporarily for test
+            var ep = syncEndpointInput ? syncEndpointInput.value.trim() : '';
+            var tok = syncTokenInput ? syncTokenInput.value : '';
+            var enc = syncEncInput ? syncEncInput.value : '';
+            var prevEp = localStorage.getItem('syncEndpoint');
+            var prevTok = localStorage.getItem('syncToken');
+            var prevEnc = localStorage.getItem('syncEncPassword');
+            if (ep) localStorage.setItem('syncEndpoint', ep);
+            if (tok !== undefined) localStorage.setItem('syncToken', tok);
+            if (enc !== undefined) localStorage.setItem('syncEncPassword', enc);
+            if (typeof RemoteSync === 'undefined' || !RemoteSync.isEnabled()) {
+                if (syncStatus) syncStatus.textContent = (typeof t==='function'? t('syncFail') : 'Sync failed') + ': endpoint non valido';
+                // restore
+                if (prevEp===null) localStorage.removeItem('syncEndpoint'); else localStorage.setItem('syncEndpoint', prevEp);
+                if (prevTok===null) localStorage.removeItem('syncToken'); else localStorage.setItem('syncToken', prevTok);
+                if (prevEnc===null) localStorage.removeItem('syncEncPassword'); else localStorage.setItem('syncEncPassword', prevEnc);
+                return;
+            }
+            RemoteSync.pull(RemoteSync.getLastSync()).then(function(data){
+                if (syncStatus) syncStatus.textContent = (typeof t==='function'? t('syncOk') : 'Sync OK') + ' ('+(data.count||0)+' remote)';
+                // merge if any
+                if (data.tasks && data.tasks.length) {
+                    RemoteSync.mergeRemoteTasks(data.tasks).then(function(c){
+                        if (c>0 && typeof loadAllTask==='function') loadAllTask();
+                    });
+                }
+            }).catch(function(err){
+                if (syncStatus) syncStatus.textContent = (typeof t==='function'? t('syncFail') : 'Sync failed') + ': ' + (err.message||err);
+                console.warn('[sync] test failed', err);
+            }).finally(function(){
+                // inputs stay, but restore is not needed as user may want to keep? Keep new values
+            });
+        };
+    }
+    if (emptyTrashBtn) {
+        emptyTrashBtn.onclick = function(e){
+            e.preventDefault();
+            if (typeof hardDeleteTrash === 'function') {
+                hardDeleteTrash().then(function(n){
+                    if (syncStatus) syncStatus.textContent = (typeof t==='function'? t('trashEmptied') : 'Trash emptied') + (n? ' ('+n+')':'');
+                    $('#toastSuccess .text-message').html(typeof t==='function'? t('trashEmptied') : 'Trash emptied');
+                    try{ new bootstrap.Toast($('#toastSuccess')).show(); }catch(_){}
+                }).catch(function(err){
+                    console.warn('[sync] emptyTrash', err);
+                });
+            }
+        };
+    }
 
     //Select current option in the SELECTS
     themeOptions.forEach(item => {
@@ -194,10 +253,22 @@ settingsModal.addEventListener('show.bs.modal', function (event) {
             setStoredFontFamily(fontFamilySelect.value);
             if (typeof applyFontFamily === 'function') applyFontFamily(fontFamilySelect.value);
         }
+        // sync settings
+        try {
+            if (syncEndpointInput) localStorage.setItem('syncEndpoint', syncEndpointInput.value.trim());
+            if (syncTokenInput) localStorage.setItem('syncToken', syncTokenInput.value);
+            if (syncEncInput) localStorage.setItem('syncEncPassword', syncEncInput.value);
+        } catch(_){}
         if (typeof applyI18n === 'function') applyI18n();
         const labelMap = { STARRED: t('starred'), ALL: t('todo'), COMPLETED: t('completed') };
         document.querySelector('.currentTab').textContent = labelMap[selectedTab] ?? selectedTab;
         closeBtn.click();
+        // after save, trigger non-blocking pull if endpoint now enabled
+        try {
+            if (typeof RemoteSync !== 'undefined' && RemoteSync.isEnabled()) {
+                RemoteSync.pullOnLoad();
+            }
+        } catch(_){}
     };
 });
 
