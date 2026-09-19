@@ -38,7 +38,16 @@ const I18N = {
         light: 'Light', dark: 'Dark', auto: 'Auto', english: 'English', italian: 'Italiano',
         close: 'Close', saveSettings: 'Save Settings', delete: 'Delete', cancel: 'Cancel',
         addSubTask: 'Add SubTask', newSubTask: 'New subTask', subTask: 'SubTask', selectedTask: 'Selected Task',
-        confirmDelete: 'Are you sure to DELETE?', confirmDeleteBody: 'Do you really want to delete these records?'
+        confirmDelete: 'Are you sure to DELETE?', confirmDeleteBody: 'Do you really want to delete these records?',
+        // Toasts
+        taskAdded: 'Task added :)', taskAddFailed: 'Task cannot be created now.', titleRequired: 'Title is required.',
+        changesSaved: 'Changes have been saved :)', noChanges: 'No changes to save.', changesNotSaved: "Changes aren't saved :(",
+        taskCompleted: 'Task completed, GREAT! :)', taskUncompleted: 'Task marked as to-do.',
+        taskUpgraded: 'Task upgraded! :)', cannotComplete: 'Task cannot be completed now.', cannotUpgrade: 'Task cannot be upgraded now.',
+        taskDeleted: 'Task deleted successfully!', cannotDelete: 'Task cannot be deleted now.',
+        dataCleared: 'Data cleared :)', logoutFailed: 'Error on logout :(',
+        exportFailed: 'Cannot be exported now :(', importFailed: 'Import failed: no tasks were added', importSuccess: 'Tasks imported successfully :)',
+        storageError: 'Storage error', rememberSave: 'Remember to save your edits :)', errorUpload: 'Error while uploading :('
     },
     it: {
         settings: 'Impostazioni', theme: 'Tema', lang: 'Lingua', initialTab: 'Tab iniziale',
@@ -55,7 +64,16 @@ const I18N = {
         light: 'Chiaro', dark: 'Scuro', auto: 'Auto', english: 'Inglese', italian: 'Italiano',
         close: 'Chiudi', saveSettings: 'Salva Impostazioni', delete: 'Elimina', cancel: 'Annulla',
         addSubTask: 'Aggiungi SottoTask', newSubTask: 'Nuovo SottoTask', subTask: 'SottoTask', selectedTask: 'Task selezionato',
-        confirmDelete: 'Sei sicuro di ELIMINARE?', confirmDeleteBody: 'Vuoi davvero eliminare questi record?'
+        confirmDelete: 'Sei sicuro di ELIMINARE?', confirmDeleteBody: 'Vuoi davvero eliminare questi record?',
+        // Toasts
+        taskAdded: 'Task aggiunto :)', taskAddFailed: 'Impossibile creare il task.', titleRequired: 'Il titolo è obbligatorio.',
+        changesSaved: 'Modifiche salvate :)', noChanges: 'Nessuna modifica da salvare.', changesNotSaved: 'Modifiche non salvate :(',
+        taskCompleted: 'Task completato, GRANDE! :)', taskUncompleted: 'Task riportato in Da fare.',
+        taskUpgraded: 'Task aggiornato! :)', cannotComplete: 'Impossibile completare il task.', cannotUpgrade: 'Impossibile aggiornare il task.',
+        taskDeleted: 'Task eliminato con successo!', cannotDelete: 'Impossibile eliminare il task.',
+        dataCleared: 'Dati cancellati :)', logoutFailed: 'Errore durante il logout :(',
+        exportFailed: 'Esportazione non disponibile :(', importFailed: 'Importazione fallita: nessun task aggiunto', importSuccess: 'Task importati con successo :)',
+        storageError: 'Errore di archiviazione', rememberSave: 'Ricorda di salvare le modifiche :)', errorUpload: 'Errore durante il caricamento :('
     }
 };
 function t(key) { const lang = getStoredLang(); return (I18N[lang] && I18N[lang][key]) ?? I18N.en[key] ?? key; }
@@ -751,11 +769,12 @@ function enableDynamicActions() {
     $('button.completer').on("click", async function (e) {
         const $btn     = $(e.target);
         const taskLUID = $btn.closest('.myitem').attr('luid');
+        const wasTodo = taskData[taskLUID] && taskData[taskLUID].status === 1;
         try {
             const ok = await completeTask(taskLUID);
             if (ok) {
                 $btn.closest('.myitem').hide();
-                $('#toastSuccess .text-message').html("Task completed, GREAT! :)");
+                $('#toastSuccess .text-message').html(t(wasTodo ? 'taskCompleted' : 'taskUncompleted'));
                 new bootstrap.Toast($('#toastSuccess')).show();
             }
         } catch (err) {
@@ -772,7 +791,7 @@ function enableDynamicActions() {
             if (ok) {
                 const newVal = parseInt($btn.val()) + 1;
                 $btn.val(newVal).html('+ ' + newVal).prop('disabled', true);
-                $('#toastSuccess .text-message').html("Task upgraded! :)");
+                $('#toastSuccess .text-message').html(t('taskUpgraded'));
                 new bootstrap.Toast($('#toastSuccess')).show();
             }
         } catch (err) {
@@ -878,14 +897,14 @@ function logout() {
                 // Expire the session cookie
                 document.cookie = 'sessionToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
                 clearLocalStorageData();
-                $('#toastSuccess .text-message').html("data cleared :)");
+                $('#toastSuccess .text-message').html(t('dataCleared'));
                 new bootstrap.Toast($('#toastSuccess')).show();
             } else {
                 console.error("Error response:", response.statusText);
             }
         })
         .catch(error => {
-            $('#toastFailure .text-message').html("error on logout :(");
+            $('#toastFailure .text-message').html(t('logoutFailed'));
             new bootstrap.Toast($('#toastFailure')).show();
             console.error("Error on logout:", error);
         });
@@ -920,13 +939,15 @@ function sendUpdate() {
 
     if (modifiedItems.length === 0) {
         stopSpinning('#saveBtn');
+        $('#toastSuccess .text-message').html(t('noChanges'));
+        new bootstrap.Toast($('#toastSuccess')).show();
         return;
     }
 
     makeRequest('PUT', "/update", JSON.stringify({ modifiedItems }))
         .then(response => {
             if (response.ok) {
-                $('#toastSuccess .text-message').html("changes have been saved :)");
+                $('#toastSuccess .text-message').html(t('changesSaved'));
                 new bootstrap.Toast($('#toastSuccess')).show();
             } else {
                 console.error("Error response:", response.statusText);
@@ -993,10 +1014,34 @@ function sendUpdate() {
         })
         .catch(error => {
             stopSpinning('#saveBtn');
-            $('#toastFailure .text-message').html("changes aren't saved :(");
+            $('#toastFailure .text-message').html(t('changesNotSaved'));
             new bootstrap.Toast($('#toastFailure')).show();
             console.error("Error while uploading:", error);
         });
+}
+
+// ─── SYNC HELPER (non-blocking) ────────────────────────────────────────────
+function syncLocalChangesToRemote(action) {
+    try {
+        if (typeof RemoteSync === 'undefined' || !RemoteSync.isEnabled()) return;
+        var since = RemoteSync.getLastSync();
+        RemoteSync.collectLocalChanges(since).then(function(changes){
+            if (!changes || !changes.length) {
+                console.log('[sync] '+action+': no local changes to push since', since);
+                return;
+            }
+            console.log('[sync] '+action+': pushing', changes.length, 'tasks since', since);
+            return RemoteSync.syncIncremental(changes, [], since).then(function(data){
+                if (data && data.tasks && data.tasks.length) {
+                    return RemoteSync.mergeRemoteTasks(data.tasks).then(function(cnt){
+                        if (cnt>0) loadAllTask();
+                    });
+                }
+            });
+        }).catch(function(err){
+            console.warn('[sync] '+action+' failed (non-blocking)', err);
+        });
+    } catch(e){ console.warn('[sync] '+action+' error', e); }
 }
 
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
@@ -1024,7 +1069,7 @@ function exportTaskAsFile() {
             }
         })
         .catch(error => {
-            $('#toastFailure .text-message').html("cannot be exported now :(");
+            $('#toastFailure .text-message').html(t('exportFailed'));
             new bootstrap.Toast($('#toastFailure')).show();
             console.error('Error exporting JSON:', error);
         });
@@ -1101,16 +1146,17 @@ function completeTask(taskLUID) {
     return makeRequest('PUT', endpoint, JSON.stringify({ taskItem }))
         .then(response => {
             if (!response.ok) {
-                $('#toastFailure .text-message').html("Task cannot be completed now.");
+                $('#toastFailure .text-message').html(t('cannotComplete'));
                 new bootstrap.Toast($('#toastFailure')).show();
                 return false;
             }
             taskData[taskLUID].status = nextStatus;
+            syncLocalChangesToRemote('complete');
             return true;
         })
         .catch(error => {
             console.error('Error completing task:', error);
-            $('#toastFailure .text-message').html("Task cannot be completed now.");
+            $('#toastFailure .text-message').html(t('cannotComplete'));
             new bootstrap.Toast($('#toastFailure')).show();
             return false;
         });
@@ -1127,17 +1173,18 @@ function upgradeTask(taskLUID) {
     return makeRequest('PUT', "/progress", JSON.stringify({ taskItem }))
         .then(response => {
             if (!response.ok) {
-                $('#toastFailure .text-message').html("Task cannot be upgraded now");
+                $('#toastFailure .text-message').html(t('cannotUpgrade'));
                 new bootstrap.Toast($('#toastFailure')).show();
                 // FIX: original code incremented progress on *failure* – removed
                 return false;
             }
             taskData[taskLUID].progress += 1;
+            syncLocalChangesToRemote('progress');
             return true;
         })
         .catch(error => {
             console.error('Error upgrading task:', error);
-            $('#toastFailure .text-message').html("Task cannot be upgraded now.");
+            $('#toastFailure .text-message').html(t('cannotUpgrade'));
             new bootstrap.Toast($('#toastFailure')).show();
             return false;
         });
@@ -1154,15 +1201,17 @@ function deleteTask(taskLUID) {
     return makeRequest('DELETE', "/delete", JSON.stringify({ taskItem }))
         .then(response => {
             if (!response.ok) {
-                $('#toastFailure .text-message').html("Task cannot be deleted now.");
+                $('#toastFailure .text-message').html(t('cannotDelete'));
                 new bootstrap.Toast($('#toastFailure')).show();
                 return false;
             }
+            // soft-delete already persisted locally; sync tombstone via incremental push (status=0 included in collectLocalChanges)
+            syncLocalChangesToRemote('delete');
             return true;
         })
         .catch(error => {
             console.error('Error deleting task:', error);
-            $('#toastFailure .text-message').html("Task cannot be deleted now.");
+            $('#toastFailure .text-message').html(t('cannotDelete'));
             new bootstrap.Toast($('#toastFailure')).show();
             return false;
         });
@@ -1183,7 +1232,7 @@ function insertNewTask() {
     newTask.depency = rawHref ? rawHref.replace('#', '') : '';
 
     if (!newTask.title.length) {
-        $('#toastFailure .text-message').html("Title is required.");
+        $('#toastFailure .text-message').html(t('titleRequired'));
         new bootstrap.Toast($('#toastFailure')).show();
         return;
     }
@@ -1192,9 +1241,11 @@ function insertNewTask() {
         .then(response => {
             if (!response.ok) {
                 console.error("Error on response:", response.statusText);
+                $('#toastFailure .text-message').html(t('taskAddFailed'));
+                new bootstrap.Toast($('#toastFailure')).show();
                 return false;
             }
-            $('#toastSuccess .text-message').html("Task Added :)");
+            $('#toastSuccess .text-message').html(t('taskAdded'));
             new bootstrap.Toast($('#toastSuccess')).show();
             $(scope + ' #newTitle').val('');
             $(scope + ' #newDesc').val('');
@@ -1209,11 +1260,13 @@ function insertNewTask() {
             } else {
                 $('#collapseEditor').collapse('toggle');
             }
+            // ── Remote sync non-blocking for new task ──
+            syncLocalChangesToRemote('insert');
             return true;
         })
         .then(success => { if (success) loadAllTask(); })
         .catch(error => {
-            $('#toastFailure .text-message').html("Task cannot be created now.");
+            $('#toastFailure .text-message').html(t('taskAddFailed'));
             new bootstrap.Toast($('#toastFailure')).show();
             console.error("Error while sending data:", error);
         });
@@ -1299,7 +1352,7 @@ async function loadAllTask() {
     makeRequest('GET', '/tasks')
         .then(response => {
             if (response.ok) return response.json();
-            $('#toastFailure .text-message').html(`Error: ${response.status} ${response.statusText}`);
+            $('#toastFailure .text-message').html(t('storageError') + `: ${response.status} ${response.statusText}`);
             new bootstrap.Toast($('#toastFailure')).show();
             console.error(`Error: ${response.status} ${response.statusText}`);
             return null;
@@ -1352,7 +1405,7 @@ async function loadAllTask() {
                 console.error('Cache read error:', cacheErr);
             }
 
-            $('#toastFailure .text-message').html(`Storage error: ${error}`);
+            $('#toastFailure .text-message').html(t('storageError') + `: ${error}`);
             new bootstrap.Toast($('#toastFailure')).show();
         });
 }

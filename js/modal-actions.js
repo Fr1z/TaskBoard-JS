@@ -30,10 +30,19 @@ confirmDeleteModal.addEventListener('show.bs.modal', function (event) {
             const taskLUID = hiddenInput.value;
 
             const deleted = deleteTask(taskLUID);
-            if (deleted){
+            // deleteTask returns Promise; handle both Promise and boolean cases
+            if (deleted && typeof deleted.then === 'function') {
+                deleted.then(function(ok){
+                    if (ok) {
+                        $(`.myitem[luid="${taskLUID}"]`).hide();
+                        $('#toastSuccess .text-message').html(typeof t==='function' ? t('taskDeleted') : 'Task deleted successfully!');
+                        try{ new bootstrap.Toast($('#toastSuccess')).show(); }catch(_){}
+                    }
+                });
+            } else if (deleted){
                 $(`.myitem[luid="${taskLUID}"]`).hide();
-                $('#toastSuccess .text-message').html("Task deleted succesfully!");
-                new bootstrap.Toast($('#toastSuccess')).show();
+                $('#toastSuccess .text-message').html(typeof t==='function' ? t('taskDeleted') : 'Task deleted successfully!');
+                try{ new bootstrap.Toast($('#toastSuccess')).show(); }catch(_){}
             }
         }
     });
@@ -118,7 +127,7 @@ addSubTaskModal.addEventListener('show.bs.modal', function (event) {
             depenciesSpan.innerHTML = depenciesSpan.innerHTML + 
             "&nbsp<a class=\"depency alert\" role=\"alert\" href=\"#" + subtaskSelected.textContent + "\"></a>";
             //show toasts
-            $('#toastSuccess .text-message').html("Remember to save your edits :)");
+            $('#toastSuccess .text-message').html(typeof t==='function' ? t('rememberSave') : 'Remember to save your edits :)');
             new bootstrap.Toast($('#toastSuccess')).show();
         }
         populateDepenciesTitles();
@@ -300,19 +309,35 @@ importTaskModal.addEventListener('show.bs.modal', function (event) {
                 //Upload JSON To server
                 makeRequest('POST', "/import", fileContent)
                 .then(response => {
-                    if (response.ok) {
-                        //show toasts
-                        $('#toastSuccess .text-message').html(response.message);
-                        new bootstrap.Toast($('#toastSuccess')).show();
-                    } else {
-                        $('#toastFailure .text-message').html(response.message);
-                        new bootstrap.Toast($('#toastFailure')).show();
-                        console.error("Error response:", response.statusText);
-                    }
-                    stopSpinning('.modal-body #fileInfo');
+                    return response.json().then(function(body){
+                        if (response.ok) {
+                            //show toasts - prefer translated generic but keep server message as fallback
+                            var msg = body && body.message ? body.message : (typeof t==='function' ? t('importSuccess') : 'Tasks imported successfully :)');
+                            // if server returned generic success, use translated
+                            if (body && body.message && body.message.indexOf('imported') !== -1) msg = (typeof t==='function' ? t('importSuccess') : msg);
+                            $('#toastSuccess .text-message').html(msg);
+                            new bootstrap.Toast($('#toastSuccess')).show();
+                            // sync imported tasks non-blocking
+                            try{
+                                if (typeof syncLocalChangesToRemote==='function' && typeof RemoteSync!=='undefined' && RemoteSync.isEnabled()){
+                                    syncLocalChangesToRemote('import');
+                                } else if (typeof RemoteSync!=='undefined' && RemoteSync.isEnabled()){
+                                    var since = RemoteSync.getLastSync();
+                                    RemoteSync.collectLocalChanges(since).then(function(ch){ if(ch&&ch.length) return RemoteSync.syncIncremental(ch,[],since); }).catch(function(e){ console.warn('[sync] import push failed',e); });
+                                }
+                            }catch(_){}
+                            if (typeof loadAllTask==='function') loadAllTask();
+                        } else {
+                            var msgF = body && body.message ? body.message : (typeof t==='function' ? t('importFailed') : 'Import failed');
+                            $('#toastFailure .text-message').html(msgF);
+                            new bootstrap.Toast($('#toastFailure')).show();
+                            console.error("Error response:", response.statusText);
+                        }
+                        stopSpinning('.modal-body #fileInfo');
+                    });
                 }).catch(error => {
                     stopSpinning('.modal-body #fileInfo');
-                    $('#toastFailure .text-message').html("Error while uploading :(");
+                    $('#toastFailure .text-message').html(typeof t==='function' ? t('errorUpload') : 'Error while uploading :(');
                     new bootstrap.Toast($('#toastFailure')).show();
                     console.error("Error while sending:", error);
                 });
