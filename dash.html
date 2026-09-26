@@ -39,7 +39,7 @@
 
 <body class="bg-body-tertiary">
 
-    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 d-none d-lg-block" style="z-index: 1500;">
+    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 d-none d-lg-block" style="z-index: 1045;">
         <button class="btn btn-primary py-2 dropdown-toggle align-items-center shadow" id="bd-theme" type="button"
             aria-expanded="false" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)">
             <div class="theme-icon-active">
@@ -78,48 +78,54 @@
         <div class="search-bar">
             <i data-lucide="search" class="search-bar-icon"></i>
             <input id="mysearch" class="form-control" type="search" data-i18n-placeholder="search" placeholder="Search" aria-label="Search">
+            <button type="button" id="searchClearBtn" class="search-clear-btn d-none" data-i18n-aria-label="clearSearch" aria-label="Clear search">
+                <i data-lucide="x" class="search-clear-icon"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="topbar-fixed">
+        <div class="container">
+            <div class="row">
+                <nav class="navbar navbar-pouch navbar-expand-lg bg-primary rounded-bottom p-3 d-flex align-items-center gap-2">
+                    <div class="navbar-logo flex-shrink-0">
+                        <a href="#taskicon" class="d-inline-block">
+                            <img width="72" height="72" src="./assets/icons/app-icon.png" alt="logo" />
+                        </a>
+                    </div>
+
+                    <div class="flex-grow-1 d-flex justify-content-center">
+                        <div class="tab-pill" role="group" aria-label="tabs">
+                            <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off" tab="STARRED" onclick="switchToTab('STARRED');">
+                            <label class="tab-btn" for="failed" title="Starred" aria-label="Starred"><i data-lucide="star" class="tab-icon"></i></label>
+                            <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" tab="ALL" onclick="switchToTab('ALL');">
+                            <label class="tab-btn" for="todos" title="To Do" aria-label="To Do"><i data-lucide="list-todo" class="tab-icon"></i></label>
+                            <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off" tab="COMPLETED" onclick="switchToTab('COMPLETED');">
+                            <label class="tab-btn" for="completed" title="Completed" aria-label="Completed"><i data-lucide="check" class="tab-icon"></i></label>
+                        </div>
+                    </div>
+
+                    <div class="flex-shrink-0">
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-ghost text-white p-2" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Settings">
+                                <i data-lucide="settings" class="tab-icon"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end bg-secondary">
+                                <li><a class="dropdown-item text-white" href="#" data-bs-toggle="modal" data-bs-target="#settingsModal" data-i18n="settings">Settings</a></li>
+                                <li><hr class="dropdown-divider bg-white"></li>
+                                <li><a class="dropdown-item text-white" href="#" data-bs-toggle="modal" data-bs-target="#importTaskModal" data-i18n="importTasks">Import Tasks</a></li>
+                                <li><a class="dropdown-item text-white" href="#" onclick="exportTaskAsFile()" data-i18n="exportTasks">Export Tasks</a></li>
+                                <li><a class="dropdown-item text-white" href="#" onclick="logout();" data-i18n="logout">Logout</a></li>
+                                <li><a class="dropdown-item text-white" href="#" data-i18n="about">About this</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+            </div>
         </div>
     </div>
 
     <main class="container">
-        <div class="row">
-            <nav class="navbar navbar-pouch navbar-expand-lg bg-primary rounded-bottom mt-0 mt-lg-1 p-3 d-flex align-items-center gap-2">
-                <div class="navbar-logo flex-shrink-0">
-                    <a href="#taskicon" class="d-inline-block">
-                        <img width="72" height="72" src="./assets/icons/app-icon.png" alt="logo" />
-                    </a>
-                </div>
-
-                <div class="flex-grow-1 d-flex justify-content-center">
-                    <div class="tab-pill" role="group" aria-label="tabs">
-                        <input type="radio" class="btn-check" name="btnradio" id="failed" autocomplete="off" tab="STARRED" onclick="switchToTab('STARRED');">
-                        <label class="tab-btn" for="failed" title="Starred" aria-label="Starred"><i data-lucide="star" class="tab-icon"></i></label>
-                        <input type="radio" class="btn-check" name="btnradio" id="todos" autocomplete="off" tab="ALL" onclick="switchToTab('ALL');">
-                        <label class="tab-btn" for="todos" title="To Do" aria-label="To Do"><i data-lucide="list-todo" class="tab-icon"></i></label>
-                        <input type="radio" class="btn-check" name="btnradio" id="completed" autocomplete="off" tab="COMPLETED" onclick="switchToTab('COMPLETED');">
-                        <label class="tab-btn" for="completed" title="Completed" aria-label="Completed"><i data-lucide="check" class="tab-icon"></i></label>
-                    </div>
-                </div>
-
-                <div class="flex-shrink-0">
-                    <div class="dropdown">
-                        <button type="button" class="btn btn-ghost text-white p-2" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Settings">
-                            <i data-lucide="settings" class="tab-icon"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end bg-secondary">
-                            <li><a class="dropdown-item text-white" href="#" data-bs-toggle="modal" data-bs-target="#settingsModal" data-i18n="settings">Settings</a></li>
-                            <li><hr class="dropdown-divider bg-white"></li>
-                            <li><a class="dropdown-item text-white" href="#" data-bs-toggle="modal" data-bs-target="#importTaskModal" data-i18n="importTasks">Import Tasks</a></li>
-                            <li><a class="dropdown-item text-white" href="#" onclick="exportTaskAsFile()" data-i18n="exportTasks">Export Tasks</a></li>
-                            <li><a class="dropdown-item text-white" href="#" onclick="logout();" data-i18n="logout">Logout</a></li>
-                            <li><a class="dropdown-item text-white" href="#" data-i18n="about">About this</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-        </div>
-
-        
         <div class="container rounded shadow">
             
             <div class="row mt-3 border-0 shadow-sm">
@@ -277,7 +283,7 @@
               <div class="modal-body">
                 <form>
                   <div class="mb-3">
-                    <span data-i18n="confirmDeleteBody">Do you really want to delete these records?</span></p>
+                    <span data-i18n="confirmDeleteBody">Do you really want to delete these records?</span>
                   <input class="form-control" id="deleteditemID" type="hidden" aria-label="hide input" readonly value="">
                   </div>
                 </form>
@@ -397,48 +403,54 @@
               </div>
               <div class="modal-body">
                 <div class="content" style="color: var(--bs-gray)">
-                    <div class="row row-cols-3 flex-nowrap">
-                        <div class="col-6">
-                            <div class="input-group mb-3">
+                    <!-- ROW 1: Titolo (left) | Scadenza (right) -->
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-6">
+                            <div class="input-group">
                                 <span class="input-group-text fw-light" id="newTitleSpan"><i data-lucide="square-round-corner" class="lucide-sm opacity-50"></i></span>
                                 <input type="text" class="form-control" id="newTitle" data-i18n-placeholder="title" placeholder="Title" aria-label="Title" aria-describedby="newTitleSpan">
-                              </div>
+                            </div>
                         </div>
-                        <div class="col-3">
-                            <div class="input-group mb-3 font-light">
-                            <input type="text" class="form-control" data-i18n-placeholder="topics" placeholder="+ Topic" id="newTopics" aria-label="Categories" aria-describedby="newTopicsSpan">
-                            <span class="input-group-text" id="newTopicsSpan" style="overflow-x: scroll;min-width: 3em;">
-                                <i data-lucide="tags" class="lucide-sm opacity-50"></i></span>
-                          </div>
-                        </div>
-                        <div class="col-3">
-                            <div class="input-group date d-flex flex-nowrap datapickertoggler">
-                                <input type="text" class="form-control fw-light pe-none text-body-secondary bg-body-tertiary float-end text-end" value="" id="newExpireDate" placeholder="" style="border: 0; min-width: 0px!important;">
-                                <span class="input-group-text datapickertoggler" style="border: 0;">
+                        <div class="col-12 col-md-6 d-flex justify-content-end">
+                            <div class="input-group date d-flex flex-nowrap datapickertoggler" style="max-width: 260px;">
+                                <input type="text" class="form-control pe-none text-end" value="" id="newExpireDate" placeholder="" aria-describedby="newExpireDateSpan" style="min-width: 0px!important;">
+                                <span class="input-group-text datapickertoggler" id="newExpireDateSpan">
                                     <i data-lucide="calendar-days" class="lucide-sm opacity-50 datapickertoggler"></i>
                                 </span>
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="form-floating">
-                            <textarea class="form-control" data-i18n-placeholder="description" placeholder="Description here" id="newDesc"></textarea>
-                            <label for="newDesc" style="color: var(--bs-gray)" data-i18n="description">Description</label>
+
+                    <!-- ROW 2: Descrizione (full width) -->
+                    <div class="row g-3 mt-0">
+                        <div class="col-12">
+                            <div class="form-floating">
+                                <textarea class="form-control" data-i18n-placeholder="description" placeholder="Description here" id="newDesc"></textarea>
+                                <label for="newDesc" style="color: var(--bs-gray)" data-i18n="description">Description</label>
+                            </div>
                         </div>
                     </div>
-                    <div class="row mt-3">
-                        <div class="col">
-                            <div class="input-group mb-3 font-light">
-                            <p class="mt-3 font-light"><span data-i18n="dependsOn">Depend by Task</span>:
-                                <button type="button" class="m-0 p-0 bg-transparent border-0 text-body-secondary text-end" aria-label="Close" onClick="$('#newDepencyTask').attr('href', '#').text(t('noDependency'));">
+
+                    <!-- ROW 3: Argomenti (left) | Dipende da (right) -->
+                    <div class="row g-3 align-items-center mt-0">
+                        <div class="col-12 col-md-6">
+                            <div class="input-group font-light">
+                                <input type="text" class="form-control" data-i18n-placeholder="topics" placeholder="+ Topic" id="newTopics" aria-label="Categories" aria-describedby="newTopicsSpan">
+                                <span class="input-group-text" id="newTopicsSpan" style="overflow-x: scroll;min-width: 3em;">
+                                    <i data-lucide="tags" class="lucide-sm opacity-50"></i></span>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 d-flex justify-content-end align-items-center">
+                            <p class="m-0 font-light text-end">
+                                <span data-i18n="dependsOn">Depend by Task</span>:
+                                <button type="button" class="m-0 p-0 bg-transparent border-0 text-body-secondary" aria-label="Close" onClick="$('#newDepencyTask').attr('href', '#').text(t('noDependency'));">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                                 <a id="newDepencyTask" class="depency alert z-0 m-0 p-0" href="#" data-i18n="noDependency">No dependency</a>
                             </p>
-                            <button class="btn btn-outline-primary p-2 m-2 text-nowrap" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="New Task" data-bs-requiredforID="0">
+                            <button class="btn btn-outline-primary p-2 ms-2 text-nowrap" aria-label="New Subtask" style="max-width: max-content;" data-bs-toggle="modal" data-bs-target="#addSubTaskModal" data-bs-requiredfor="New Task" data-bs-requiredforID="0">
                                 <i data-lucide="circle-plus" class=""></i>
                             </button>
-                        </div>
                         </div>
                     </div>
                 </div>

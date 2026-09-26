@@ -31,7 +31,7 @@ const I18N = {
         syncToken: 'Bearer Token (optional)', syncEncPassword: 'Encryption Password (optional)', syncEncHelp: 'If set, remote storage is compressed & encrypted (AES-256-GCM)',
         testSync: 'Test Sync', emptyTrash: 'Empty Trash', trashSection: 'Trash (soft-deleted tasks)', trashEmptied: 'Trash emptied', syncOk: 'Sync OK', syncFail: 'Sync failed',
         starred: 'Starred', todo: 'To Do', completed: 'Completed', allTasks: 'All Tasks',
-        search: 'Search', addTask: 'Add Task', save: 'Save', insert: 'Insert',
+        search: 'Search', clearSearch: 'Clear', addTask: 'Add Task', save: 'Save', insert: 'Insert',
         title: 'Title', topics: 'Topics', description: 'Description', dependsOn: 'Depends on',
         noDependency: 'No dependency', importTasks: 'Import Tasks', exportTasks: 'Export Tasks',
         logout: 'Logout', about: 'About', tasksJson: 'Tasks JSON',
@@ -57,7 +57,7 @@ const I18N = {
         syncToken: 'Bearer Token (opzionale)', syncEncPassword: 'Password Cifratura (opzionale)', syncEncHelp: 'Se impostata, lo storage remoto è compresso e cifrato (AES-256-GCM)',
         testSync: 'Test Sync', emptyTrash: 'Svuota cestino', trashSection: 'Cestino (task eliminati)', trashEmptied: 'Cestino svuotato', syncOk: 'Sync OK', syncFail: 'Sync fallito',
         starred: 'Preferiti', todo: 'Da fare', completed: 'Completati', allTasks: 'Tutti i Task',
-        search: 'Cerca', addTask: 'Aggiungi Task', save: 'Salva', insert: 'Inserisci',
+        search: 'Cerca', clearSearch: 'Cancella', addTask: 'Aggiungi Task', save: 'Salva', insert: 'Inserisci',
         title: 'Titolo', topics: 'Argomenti', description: 'Descrizione', dependsOn: 'Dipende da',
         noDependency: 'Nessuna dipendenza', importTasks: 'Importa Task', exportTasks: 'Esporta Task',
         logout: 'Logout', about: 'Info', tasksJson: 'JSON Task',
@@ -86,6 +86,9 @@ function applyI18n() {
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+    });
+    document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+        el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label')));
     });
 }
 
@@ -759,7 +762,8 @@ function enableDynamicActions() {
                 language:   getStoredLang(),
                 leftArrow:  '<i data-lucide="chevron-left" class="lucide-sm" role="button"></i>',
                 rightArrow: '<i data-lucide="chevron-right" class="lucide-sm" role="button"></i>',
-                clearBtn:   true
+                clearBtn:   true,
+                zIndexOffset: 1040
             });
         }
         $input.datepicker('show');
@@ -818,30 +822,50 @@ function toggleSearchOverlay(force, evt) {
     if (show) {
         const input = document.getElementById('mysearch');
         if (input) setTimeout(() => input.focus(), 50);
+        if (typeof syncSearchClear === 'function') syncSearchClear();
         lucide.createIcons();
     }
+}
+// Mostra la X di clear solo quando la search-bar contiene testo non vuoto
+function syncSearchClear() {
+    const input = document.getElementById('mysearch');
+    const btn   = document.getElementById('searchClearBtn');
+    if (!input || !btn) return;
+    btn.classList.toggle('d-none', input.value.trim().length === 0);
 }
 function enableSearch() {
     if (_searchInitialized) return;
     const el = document.getElementById('mysearch');
     const overlay = document.getElementById('searchOverlay');
+    const clearBtn = document.getElementById('searchClearBtn');
     if (!el) return;
+
     el.addEventListener('input', function () {
         const searchTerm = this.value.toLowerCase();
         const rows = document.querySelectorAll('.myitem');
         if (!searchTerm || searchTerm.length <= 2) {
             $('.myitem:hidden').show();
-            return;
+        } else {
+            rows.forEach(row => {
+                const text = [
+                    $(row).find('input.title').val(),
+                    $(row).find('textarea.desc').val(),
+                    $(row).find('.categories').text()
+                ].join(' ').toLowerCase();
+                $(row).toggle(text.includes(searchTerm));
+            });
         }
-        rows.forEach(row => {
-            const text = [
-                $(row).find('input.title').val(),
-                $(row).find('textarea.desc').val(),
-                $(row).find('.categories').text()
-            ].join(' ').toLowerCase();
-            $(row).toggle(text.includes(searchTerm));
-        });
+        syncSearchClear();
     });
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            el.value = '';
+            el.dispatchEvent(new Event('input'));
+            el.focus();
+        });
+    }
     if (overlay) {
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) toggleSearchOverlay(false);
@@ -1309,7 +1333,8 @@ function orderByExpDate() {
 
 // ─── SORTABLE ────────────────────────────────────────────────────────────────
 $(function () {
-    $(".sortable").sortable({ cursor: "n-resize", handle: ".bd-placeholder" });
+    // zIndex > 1030 altrimenti l'helper del drag finisce sotto la topbar fixed
+    $(".sortable").sortable({ cursor: "n-resize", handle: ".bd-placeholder", zIndex: 1040 });
 
     $(".sortable").on("sortstop", function (event, ui) {
         const nextOrder = $(ui.item).next('div.container').attr('order');
